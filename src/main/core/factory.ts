@@ -2,6 +2,7 @@ import {
   getControledMihomoConfig,
   getProfileConfig,
   getProfile,
+  getProfileStr,
   getProfileItem,
   getOverride,
   getOverrideItem,
@@ -22,15 +23,17 @@ import { existsSync, writeFileSync } from 'fs'
 import path from 'path'
 import util from 'util'
 
-let runtimeConfigStr: string
-let currentProfileStr: string
-let overrideProfileStr: string
+let runtimeConfigStr: string,
+  rawProfileStr: string,
+  currentProfileStr: string,
+  overrideProfileStr: string
 let runtimeConfig: IMihomoConfig
 
 export async function generateProfile(): Promise<void> {
   const { current } = await getProfileConfig()
   const { diffWorkDir = false } = await getAppConfig()
   const currentProfileConfig = await getProfile(current)
+  rawProfileStr = await getProfileStr(current)
   currentProfileStr = yaml.stringify(currentProfileConfig)
   const currentProfile = await overrideProfile(current, currentProfileConfig)
   overrideProfileStr = yaml.stringify(currentProfile)
@@ -156,6 +159,10 @@ function format(data: unknown): string {
 
 export async function getRuntimeConfigStr(): Promise<string> {
   return runtimeConfigStr
+}
+
+export async function getRawProfileStr(): Promise<string> {
+  return rawProfileStr
 }
 
 export async function getCurrentProfileStr(): Promise<string> {

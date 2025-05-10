@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useRef } from 'react'
 import * as monaco from 'monaco-editor'
 import MonacoEditor, { MonacoDiffEditor } from 'react-monaco-editor'
 import { configureMonacoYaml } from 'monaco-yaml'
@@ -129,26 +129,6 @@ export const BaseEditor: React.FC<Props> = (props) => {
     })
   }
 
-  useEffect(() => {
-    window.onresize = (): void => {
-      setTimeout(() => {
-        editorRef.current?.layout()
-        diffEditorRef.current?.layout()
-      }, 0)
-    }
-    return (): void => {
-      window.onresize = null
-      if (editorRef.current) {
-        editorRef.current.dispose()
-        editorRef.current = undefined
-      }
-      if (diffEditorRef.current) {
-        diffEditorRef.current.dispose()
-        diffEditorRef.current = undefined
-      }
-    }
-  }, [])
-
   const options = {
     tabSize: ['yaml', 'javascript', 'json'].includes(language) ? 2 : 4, // 根据语言类型设置缩进大小
     minimap: {
@@ -169,7 +149,8 @@ export const BaseEditor: React.FC<Props> = (props) => {
     renderSideBySide: diffRenderSideBySide, // 侧边显示
     glyphMargin: false, // 禁用字形边距
     folding: true, // 启用代码折叠
-    scrollBeyondLastLine: false // 禁止滚动超过最后一行
+    scrollBeyondLastLine: false, // 禁止滚动超过最后一行
+    automaticLayout: true // 自动布局
   }
 
   if (originalValue !== undefined) {

@@ -11,6 +11,7 @@ import React, { useEffect, useState, useCallback } from 'react'
 import { BaseEditor } from '../base/base-editor'
 import {
   getProfileConfig,
+  getRawProfileStr,
   getRuntimeConfigStr,
   getCurrentProfileStr,
   getOverrideProfileStr
@@ -22,9 +23,11 @@ interface Props {
 }
 const ConfigViewer: React.FC<Props> = ({ onClose }) => {
   const [runtimeConfig, setRuntimeConfig] = useState('')
+  const [rawProfile, setRawProfile] = useState('')
   const [profileConfig, setProfileConfig] = useState('')
   const [overrideConfig, setOverrideConfig] = useState('')
   const [isDiff, setIsDiff] = useState(false)
+  const [isRaw, setIsRaw] = useState(false)
   const [isOverride, setIsOverride] = useState(false)
   const [sideBySide, setSideBySide] = useState(false)
 
@@ -32,6 +35,7 @@ const ConfigViewer: React.FC<Props> = ({ onClose }) => {
 
   const fetchConfigs = useCallback(async () => {
     setRuntimeConfig(await getRuntimeConfigStr())
+    setRawProfile(await getRawProfileStr())
     setProfileConfig(await getCurrentProfileStr())
     setOverrideConfig(await getOverrideProfileStr())
   }, [appConfig])
@@ -43,7 +47,10 @@ const ConfigViewer: React.FC<Props> = ({ onClose }) => {
   return (
     <Modal
       backdrop="blur"
-      classNames={{ backdrop: 'top-[48px]' }}
+      classNames={{
+        base: 'max-w-none w-full',
+        backdrop: 'top-[48px]'
+      }}
       size="5xl"
       hideCloseButton
       isOpen={true}
@@ -56,7 +63,15 @@ const ConfigViewer: React.FC<Props> = ({ onClose }) => {
           <BaseEditor
             language="yaml"
             value={runtimeConfig}
-            originalValue={isDiff ? (isOverride ? overrideConfig : profileConfig) : undefined}
+            originalValue={
+              isDiff
+                ? isOverride
+                  ? overrideConfig
+                  : isRaw
+                    ? rawProfile
+                    : profileConfig
+                : undefined
+            }
             readOnly
             diffRenderSideBySide={sideBySide}
           />
@@ -67,8 +82,28 @@ const ConfigViewer: React.FC<Props> = ({ onClose }) => {
             <span className="text-sm">对比当前配置</span>
             <Switch size="sm" isSelected={sideBySide} onValueChange={setSideBySide} />
             <span className="text-sm">侧边显示</span>
-            <Switch size="sm" isSelected={isOverride} onValueChange={setIsOverride} />
-            <span className="text-sm">包含覆写</span>
+            <Switch
+              size="sm"
+              isSelected={isRaw}
+              onValueChange={(value) => {
+                setIsRaw(value)
+                if (value) {
+                  setIsOverride(false)
+                }
+              }}
+            />
+            <span className="text-sm">显示原始文本</span>
+            <Switch
+              size="sm"
+              isSelected={isOverride}
+              onValueChange={(value) => {
+                setIsOverride(value)
+                if (value) {
+                  setIsRaw(false)
+                }
+              }}
+            />
+            <span className="text-sm">显示覆写后文本</span>
           </div>
           <Button size="sm" variant="light" onPress={onClose}>
             关闭

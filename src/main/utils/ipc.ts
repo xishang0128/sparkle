@@ -70,6 +70,7 @@ import {
 import {
   getRuntimeConfig,
   getRuntimeConfigStr,
+  getRawProfileStr,
   getCurrentProfileStr,
   getOverrideProfileStr
 } from '../core/factory'
@@ -184,6 +185,7 @@ export function registerIpcMainHandlers(): void {
   ipcMain.handle('getFilePath', (_e, ext) => getFilePath(ext))
   ipcMain.handle('readTextFile', (_e, filePath) => ipcErrorWrapper(readTextFile)(filePath))
   ipcMain.handle('getRuntimeConfigStr', ipcErrorWrapper(getRuntimeConfigStr))
+  ipcMain.handle('getRawProfileStr', ipcErrorWrapper(getRawProfileStr))
   ipcMain.handle('getCurrentProfileStr', ipcErrorWrapper(getCurrentProfileStr))
   ipcMain.handle('getOverrideProfileStr', ipcErrorWrapper(getOverrideProfileStr))
   ipcMain.handle('getRuntimeConfig', ipcErrorWrapper(getRuntimeConfig))

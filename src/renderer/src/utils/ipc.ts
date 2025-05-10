@@ -227,6 +227,10 @@ export async function getRuntimeConfigStr(): Promise<string> {
   return ipcErrorWrapper(await window.electron.ipcRenderer.invoke('getRuntimeConfigStr'))
 }
 
+export async function getRawProfileStr(): Promise<string> {
+  return ipcErrorWrapper(await window.electron.ipcRenderer.invoke('getRawProfileStr'))
+}
+
 export async function getCurrentProfileStr(): Promise<string> {
   return ipcErrorWrapper(await window.electron.ipcRenderer.invoke('getCurrentProfileStr'))
 }
