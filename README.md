@@ -9,6 +9,9 @@
   <a href="https://t.me/+y7rcYjEKIiI1NzZl">
     <img src="https://img.shields.io/badge/Telegram-Group-blue?logo=telegram">
   </a>
+  <a href="./FAQ.md">
+    <img src="https://img.shields.io/badge/FAQ-informational">
+  </a>
 </p>
 
 ## 特性
