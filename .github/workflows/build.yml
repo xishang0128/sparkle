@@ -139,7 +139,7 @@ jobs:
           git log -1 --pretty=format:"%s%n%b" > changelog.md
 
       - name: Generate latest.yml
-        run: pnpm updater
+        run: SKIP=1 pnpm updater
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
@@ -233,12 +233,6 @@ jobs:
           echo '# 更新日志' > changelog.md
           echo $RESPONSE | jq .choices[0].message.content -r | sed 's/\\n/\n/g' | sed 's/^/ - /g' >> changelog.md
 
-      - name: Install Dependencies and Updater
-        run: |
-          npm install -g pnpm
-          pnpm i
-          pnpm updater
-
       - name: Update Version
         run: |
           INPUT_VERSION="${{ github.event.inputs.version }}"
@@ -254,6 +248,12 @@ jobs:
           git add package.json
           git commit -m "update version to $CLEAN_VERSION"
           git push
+
+      - name: Install Dependencies and Updater
+        run: |
+          npm install -g pnpm
+          SKIP_PREPARE=1 pnpm install
+          pnpm updater
 
       - uses: actions/download-artifact@v4
         with:
