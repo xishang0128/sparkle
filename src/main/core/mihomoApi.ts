@@ -46,6 +46,11 @@ export async function mihomoVersion(): Promise<IMihomoVersion> {
   return await instance.get('/version')
 }
 
+export const mihomoConfig = async (): Promise<IMihomoConfigs> => {
+  const instance = await getAxios()
+  return await instance.get('/configs')
+}
+
 export const patchMihomoConfig = async (patch: Partial<IMihomoConfig>): Promise<void> => {
   const instance = await getAxios()
   return await instance.patch('/configs', patch)
@@ -56,9 +61,28 @@ export const mihomoCloseConnection = async (id: string): Promise<void> => {
   return await instance.delete(`/connections/${encodeURIComponent(id)}`)
 }
 
-export const mihomoCloseAllConnections = async (): Promise<void> => {
+export const mihomoGetConnections = async (): Promise<IMihomoConnectionsInfo> => {
   const instance = await getAxios()
-  return await instance.delete('/connections')
+  return await instance.get('/connections')
+}
+
+export const mihomoCloseAllConnections = async (name?: string): Promise<void> => {
+  const instance = await getAxios()
+  if (name) {
+    const connectionsInfo = await mihomoGetConnections()
+    const targetConnections =
+      connectionsInfo?.connections?.filter((conn) => conn.chains && conn.chains.includes(name)) ||
+      []
+    for (const conn of targetConnections) {
+      try {
+        await mihomoCloseConnection(conn.id)
+      } catch (error) {
+        // ignore
+      }
+    }
+  } else {
+    return await instance.delete('/connections')
+  }
 }
 
 export const mihomoRules = async (): Promise<IMihomoRulesInfo> => {
@@ -81,7 +105,6 @@ export const mihomoGroups = async (): Promise<IMihomoMixedGroup[]> => {
   const proxies = await mihomoProxies()
   const runtime = await getRuntimeConfig()
   const groups: IMihomoMixedGroup[] = []
-  
   runtime?.['proxy-groups']?.forEach((group: { name: string; url?: string }) => {
     const { name, url } = group
     if (proxies.proxies[name] && 'all' in proxies.proxies[name] && !proxies.proxies[name].hidden) {
@@ -91,8 +114,7 @@ export const mihomoGroups = async (): Promise<IMihomoMixedGroup[]> => {
       groups.push({ ...newGroup, all: newAll })
     }
   })
-
-  // 规则模式不添加GLOBAL组
+    // 规则模式不添加GLOBAL组
   if (mode !== 'rule') {
     const hasGlobal = groups.some(g => g.name === 'GLOBAL')
     if (!hasGlobal) {
@@ -146,18 +168,13 @@ export const mihomoUnfixedProxy = async (group: string): Promise<IMihomoProxy> =
   return await instance.delete(`/proxies/${encodeURIComponent(group)}`)
 }
 
-export const mihomoUpgradeGeo = async (): Promise<void> => {
-  const instance = await getAxios()
-  return await instance.post('/configs/geo')
-}
-
 export const mihomoProxyDelay = async (proxy: string, url?: string): Promise<IMihomoDelay> => {
   const appConfig = await getAppConfig()
   const { delayTestUrl, delayTestTimeout } = appConfig
   const instance = await getAxios()
   return await instance.get(`/proxies/${encodeURIComponent(proxy)}/delay`, {
     params: {
-      url: url || delayTestUrl || 'http://www.gstatic.com/generate_204',
+      url: url || delayTestUrl || 'https://www.gstatic.com/generate_204',
       timeout: delayTestTimeout || 5000
     }
   })
@@ -169,7 +186,7 @@ export const mihomoGroupDelay = async (group: string, url?: string): Promise<IMi
   const instance = await getAxios()
   return await instance.get(`/group/${encodeURIComponent(group)}/delay`, {
     params: {
-      url: url || delayTestUrl || 'http://www.gstatic.com/generate_204',
+      url: url || delayTestUrl || 'https://www.gstatic.com/generate_204',
       timeout: delayTestTimeout || 5000
     }
   })
@@ -178,6 +195,16 @@ export const mihomoGroupDelay = async (group: string, url?: string): Promise<IMi
 export const mihomoUpgrade = async (): Promise<void> => {
   const instance = await getAxios()
   return await instance.post('/upgrade')
+}
+
+export const mihomoUpgradeGeo = async (): Promise<void> => {
+  const instance = await getAxios()
+  return await instance.post('/upgrade/geo')
+}
+
+export const mihomoUpgradeUI = async (): Promise<void> => {
+  const instance = await getAxios()
+  return await instance.post('/upgrade/ui')
 }
 
 export const startMihomoTraffic = async (): Promise<void> => {
