@@ -227,10 +227,10 @@ function parseFilename(str: string): string {
 
 // subscription-userinfo: upload=1234; download=2234; total=1024000; expire=2218532293
 function parseSubinfo(str: string): ISubscriptionUserInfo {
-  const parts = str.split('; ')
+  const parts = str.split(';')
   const obj = {} as ISubscriptionUserInfo
   parts.forEach((part) => {
-    const [key, value] = part.split('=')
+    const [key, value] = part.trim().split('=')
     obj[key] = parseInt(value)
   })
   return obj
