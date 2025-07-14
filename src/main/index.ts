@@ -16,6 +16,7 @@ import { quitWithoutCore, startCore, stopCore } from './core/manager'
 import { triggerSysProxy } from './sys/sysproxy'
 import icon from '../../resources/icon.png?asset'
 import { createTray } from './resolve/tray'
+import { createApplicationMenu } from './resolve/menu'
 import { init } from './utils/init'
 import { join } from 'path'
 import { initShortcut } from './resolve/shortcut'
@@ -385,7 +386,11 @@ export async function createWindow(): Promise<void> {
     file: 'window-state.json'
   })
   // https://github.com/electron/electron/issues/16521#issuecomment-582955104
-  Menu.setApplicationMenu(null)
+  if (process.platform === 'darwin') {
+    await createApplicationMenu()
+  } else {
+    Menu.setApplicationMenu(null)
+  }
   mainWindow = new BrowserWindow({
     minWidth: 800,
     minHeight: 600,
