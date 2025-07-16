@@ -4,7 +4,7 @@ import AdmZip from 'adm-zip'
 import path from 'path'
 import zlib from 'zlib'
 import { extract } from 'tar'
-import { execSync } from 'child_process'
+import { execSync, execFileSync } from 'child_process'
 
 const cwd = process.cwd()
 const TEMP_DIR = path.join(cwd, 'node_modules/.temp')
@@ -194,7 +194,7 @@ async function resolveSidecar(binInfo) {
           .pipe(writeStream)
           .on('finish', () => {
             console.log(`[INFO]: "${name}" gunzip finished`)
-            execSync(`chmod 755 ${sidecarPath}`)
+            execFileSync("chmod", ["755", sidecarPath])
             console.log(`[INFO]: "${name}" chmod binary finished`)
             resolve()
           })
