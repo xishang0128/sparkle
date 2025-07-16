@@ -86,7 +86,7 @@ importers:
         version: 3.3.1
       '@eslint/js':
         specifier: ^9.30.1
-        version: 9.30.1
+        version: 9.31.0
       '@types/adm-zip':
         specifier: ^0.5.7
         version: 0.5.7
@@ -614,10 +614,6 @@ packages:
 
   '@eslint/eslintrc@3.3.1':
     resolution: {integrity: sha512-gtF186CXhIl1p4pJNGZw8Yc6RlshoePRvE0X91oPGb3vZ8pM3qOS9W9NGPat9LziaBV7XrJWGylNQXkGcnM3IQ==}
-    engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
-
-  '@eslint/js@9.30.1':
-    resolution: {integrity: sha512-zXhuECFlyep42KZUhWjfvsmXGX39W8K8LFb8AWXM9gSV9dQB+MrJGLKvW6Zw0Ggnbpw0VHTtrhFXYe3Gym18jg==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
 
   '@eslint/js@9.31.0':
@@ -5454,7 +5450,7 @@ snapshots:
 
   '@electron-toolkit/eslint-config-ts@3.1.0(eslint@9.31.0(jiti@2.4.2))(typescript@5.8.3)':
     dependencies:
-      '@eslint/js': 9.30.1
+      '@eslint/js': 9.31.0
       eslint: 9.31.0(jiti@2.4.2)
       globals: 16.3.0
       typescript-eslint: 8.36.0(eslint@9.31.0(jiti@2.4.2))(typescript@5.8.3)
@@ -5708,8 +5704,6 @@ snapshots:
       strip-json-comments: 3.1.1
     transitivePeerDependencies:
       - supports-color
-
-  '@eslint/js@9.30.1': {}
 
   '@eslint/js@9.31.0': {}
 
