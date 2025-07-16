@@ -22,7 +22,7 @@ importers:
         version: 4.1.11
       '@tailwindcss/vite':
         specifier: ^4.1.11
-        version: 4.1.11(vite@7.0.3(@types/node@24.0.12)(jiti@2.4.2)(lightningcss@1.30.1)(tsx@4.20.3)(yaml@2.8.0))
+        version: 4.1.11(vite@7.0.3(@types/node@24.0.14)(jiti@2.4.2)(lightningcss@1.30.1)(tsx@4.20.3)(yaml@2.8.0))
       '@types/crypto-js':
         specifier: ^4.2.2
         version: 4.2.2
@@ -80,7 +80,7 @@ importers:
         version: 3.1.0(eslint@9.30.1(jiti@2.4.2))(typescript@5.8.3)
       '@electron-toolkit/tsconfig':
         specifier: ^1.0.1
-        version: 1.0.1(@types/node@24.0.12)
+        version: 1.0.1(@types/node@24.0.14)
       '@eslint/eslintrc':
         specifier: ^3.3.1
         version: 3.3.1
@@ -98,7 +98,7 @@ importers:
         version: 4.0.9
       '@types/node':
         specifier: ^24.0.12
-        version: 24.0.12
+        version: 24.0.14
       '@types/pubsub-js':
         specifier: ^1.8.6
         version: 1.8.6
@@ -113,7 +113,7 @@ importers:
         version: 8.18.1
       '@vitejs/plugin-react':
         specifier: ^4.6.0
-        version: 4.6.0(vite@7.0.3(@types/node@24.0.12)(jiti@2.4.2)(lightningcss@1.30.1)(tsx@4.20.3)(yaml@2.8.0))
+        version: 4.6.0(vite@7.0.3(@types/node@24.0.14)(jiti@2.4.2)(lightningcss@1.30.1)(tsx@4.20.3)(yaml@2.8.0))
       autoprefixer:
         specifier: ^10.4.21
         version: 10.4.21(postcss@8.5.6)
@@ -131,7 +131,7 @@ importers:
         version: 26.0.12(electron-builder-squirrel-windows@25.0.4)
       electron-vite:
         specifier: ^4.0.0
-        version: 4.0.0(vite@7.0.3(@types/node@24.0.12)(jiti@2.4.2)(lightningcss@1.30.1)(tsx@4.20.3)(yaml@2.8.0))
+        version: 4.0.0(vite@7.0.3(@types/node@24.0.14)(jiti@2.4.2)(lightningcss@1.30.1)(tsx@4.20.3)(yaml@2.8.0))
       electron-window-state:
         specifier: ^5.0.3
         version: 5.0.3
@@ -218,7 +218,7 @@ importers:
         version: 5.8.3
       vite:
         specifier: ^7.0.3
-        version: 7.0.3(@types/node@24.0.12)(jiti@2.4.2)(lightningcss@1.30.1)(tsx@4.20.3)(yaml@2.8.0)
+        version: 7.0.3(@types/node@24.0.14)(jiti@2.4.2)(lightningcss@1.30.1)(tsx@4.20.3)(yaml@2.8.0)
       vite-plugin-monaco-editor:
         specifier: ^1.1.0
         version: 1.1.0(monaco-editor@0.52.2)
@@ -2097,11 +2097,11 @@ packages:
   '@types/node@10.17.60':
     resolution: {integrity: sha512-F0KIgDJfy2nA3zMLmWGKxcH2ZVEtCZXHHdOQs2gSaQ27+lNeEfGxzkIw90aXswATX7AZ33tahPbzy6KAfUreVw==}
 
-  '@types/node@22.16.2':
-    resolution: {integrity: sha512-Cdqa/eJTvt4fC4wmq1Mcc0CPUjp/Qy2FGqLza3z3pKymsI969TcZ54diNJv8UYUgeWxyb8FSbCkhdR6WqmUFhA==}
+  '@types/node@22.16.4':
+    resolution: {integrity: sha512-PYRhNtZdm2wH/NT2k/oAJ6/f2VD2N2Dag0lGlx2vWgMSJXGNmlce5MiTQzoWAiIJtso30mjnfQCOKVH+kAQC/g==}
 
-  '@types/node@24.0.12':
-    resolution: {integrity: sha512-LtOrbvDf5ndC9Xi+4QZjVL0woFymF/xSTKZKPgrrl7H7XoeDvnD+E2IclKVDyaK9UM756W/3BXqSU+JEHopA9g==}
+  '@types/node@24.0.14':
+    resolution: {integrity: sha512-4zXMWD91vBLGRtHK3YbIoFMia+1nqEz72coM42C5ETjnNCa/heoj7NT1G67iAfOqMmcfhuCZ4uNpyz8EjlAejw==}
 
   '@types/plist@3.0.5':
     resolution: {integrity: sha512-E6OCaRmAe4WDmWNsL/9RMqdkkzDCY1etutkflWk4c+AcjDU07Pcz1fQwTX0TQz+Pxqn9i4L1TU3UFpjnrcDgxA==}
@@ -2307,8 +2307,8 @@ packages:
       dmg-builder: 26.0.12
       electron-builder-squirrel-windows: 26.0.12
 
-  aproba@2.0.0:
-    resolution: {integrity: sha512-lYe4Gx7QT+MKGbDsA+Z+he/Wtef0BiwDOlK/XkBrdfsh9J/jPPXbX0tE9x9cl27Tmu5gg3QUbUrQYa/y+KOHPQ==}
+  aproba@2.1.0:
+    resolution: {integrity: sha512-tLIEcj5GuR2RSTnxNKdkK0dJ/GrC7P38sUkiDmDuHfsHmbagTFAxDVIBltoklXEVIQ/f14IL8IMJ5pn9Hez1Ew==}
 
   archiver-utils@2.1.0:
     resolution: {integrity: sha512-bEL/yUb/fNNiNTuUz979Z0Yg5L+LzLxGJz8x79lYmR54fmTIb6ob/hNQgkQnIUDWIFjZVQwl9Xs356I6BAMHfw==}
@@ -4751,8 +4751,8 @@ packages:
     resolution: {integrity: sha512-Fgl0YPZ902wEsAyiQ+idGd1A7rSFx/ayC1CQVMw5P+EQx2V0SgpGtf6OKFhVjPflPUl9YMmEOnmfjCdMUsygww==}
     engines: {node: '>= 10'}
 
-  socks@2.8.5:
-    resolution: {integrity: sha512-iF+tNDQla22geJdTyJB1wM/qrX9DMRwWrciEPwWLPRWAUEM8sQiyxgckLxWT1f7+9VabJS0jTGGr4QgBuvi6Ww==}
+  socks@2.8.6:
+    resolution: {integrity: sha512-pe4Y2yzru68lXCb38aAqRf5gvN8YdjP1lok5o0J7BOHljkyCGKVz7H3vpVIXKD27rj2giOJ7DwVyk/GWrPHDWA==}
     engines: {node: '>= 10.0.0', npm: '>= 3.0.0'}
 
   source-map-js@1.2.1:
@@ -5467,9 +5467,9 @@ snapshots:
     dependencies:
       electron: 37.2.0
 
-  '@electron-toolkit/tsconfig@1.0.1(@types/node@24.0.12)':
+  '@electron-toolkit/tsconfig@1.0.1(@types/node@24.0.14)':
     dependencies:
-      '@types/node': 24.0.12
+      '@types/node': 24.0.14
 
   '@electron-toolkit/utils@4.0.0(electron@37.2.0)':
     dependencies:
@@ -7821,12 +7821,12 @@ snapshots:
       postcss: 8.5.6
       tailwindcss: 4.1.11
 
-  '@tailwindcss/vite@4.1.11(vite@7.0.3(@types/node@24.0.12)(jiti@2.4.2)(lightningcss@1.30.1)(tsx@4.20.3)(yaml@2.8.0))':
+  '@tailwindcss/vite@4.1.11(vite@7.0.3(@types/node@24.0.14)(jiti@2.4.2)(lightningcss@1.30.1)(tsx@4.20.3)(yaml@2.8.0))':
     dependencies:
       '@tailwindcss/node': 4.1.11
       '@tailwindcss/oxide': 4.1.11
       tailwindcss: 4.1.11
-      vite: 7.0.3(@types/node@24.0.12)(jiti@2.4.2)(lightningcss@1.30.1)(tsx@4.20.3)(yaml@2.8.0)
+      vite: 7.0.3(@types/node@24.0.14)(jiti@2.4.2)(lightningcss@1.30.1)(tsx@4.20.3)(yaml@2.8.0)
 
   '@tanstack/react-virtual@3.11.3(react-dom@19.1.0(react@19.1.0))(react@19.1.0)':
     dependencies:
@@ -7840,7 +7840,7 @@ snapshots:
 
   '@types/adm-zip@0.5.7':
     dependencies:
-      '@types/node': 24.0.12
+      '@types/node': 24.0.14
 
   '@types/babel__core@7.20.5':
     dependencies:
@@ -7866,18 +7866,18 @@ snapshots:
   '@types/body-parser@1.19.6':
     dependencies:
       '@types/connect': 3.4.38
-      '@types/node': 24.0.12
+      '@types/node': 24.0.14
 
   '@types/cacheable-request@6.0.3':
     dependencies:
       '@types/http-cache-semantics': 4.0.4
       '@types/keyv': 3.1.4
-      '@types/node': 24.0.12
+      '@types/node': 24.0.14
       '@types/responselike': 1.0.3
 
   '@types/connect@3.4.38':
     dependencies:
-      '@types/node': 24.0.12
+      '@types/node': 24.0.14
 
   '@types/crypto-js@4.2.2': {}
 
@@ -7917,7 +7917,7 @@ snapshots:
 
   '@types/express-serve-static-core@5.0.7':
     dependencies:
-      '@types/node': 24.0.12
+      '@types/node': 24.0.14
       '@types/qs': 6.14.0
       '@types/range-parser': 1.2.7
       '@types/send': 0.17.5
@@ -7930,7 +7930,7 @@ snapshots:
 
   '@types/fs-extra@9.0.13':
     dependencies:
-      '@types/node': 24.0.12
+      '@types/node': 24.0.14
 
   '@types/hast@3.0.4':
     dependencies:
@@ -7946,7 +7946,7 @@ snapshots:
 
   '@types/keyv@3.1.4':
     dependencies:
-      '@types/node': 24.0.12
+      '@types/node': 24.0.14
 
   '@types/mdast@4.0.4':
     dependencies:
@@ -7958,17 +7958,17 @@ snapshots:
 
   '@types/node@10.17.60': {}
 
-  '@types/node@22.16.2':
+  '@types/node@22.16.4':
     dependencies:
       undici-types: 6.21.0
 
-  '@types/node@24.0.12':
+  '@types/node@24.0.14':
     dependencies:
       undici-types: 7.8.0
 
   '@types/plist@3.0.5':
     dependencies:
-      '@types/node': 24.0.12
+      '@types/node': 24.0.14
       xmlbuilder: 15.1.1
     optional: true
 
@@ -7988,17 +7988,17 @@ snapshots:
 
   '@types/responselike@1.0.3':
     dependencies:
-      '@types/node': 24.0.12
+      '@types/node': 24.0.14
 
   '@types/send@0.17.5':
     dependencies:
       '@types/mime': 1.3.5
-      '@types/node': 24.0.12
+      '@types/node': 24.0.14
 
   '@types/serve-static@1.15.8':
     dependencies:
       '@types/http-errors': 2.0.5
-      '@types/node': 24.0.12
+      '@types/node': 24.0.14
       '@types/send': 0.17.5
 
   '@types/unist@2.0.11': {}
@@ -8012,11 +8012,11 @@ snapshots:
 
   '@types/ws@8.18.1':
     dependencies:
-      '@types/node': 24.0.12
+      '@types/node': 24.0.14
 
   '@types/yauzl@2.10.3':
     dependencies:
-      '@types/node': 24.0.12
+      '@types/node': 24.0.14
     optional: true
 
   '@typescript-eslint/eslint-plugin@8.36.0(@typescript-eslint/parser@8.36.0(eslint@9.30.1(jiti@2.4.2))(typescript@5.8.3))(eslint@9.30.1(jiti@2.4.2))(typescript@5.8.3)':
@@ -8113,7 +8113,7 @@ snapshots:
 
   '@ungap/structured-clone@1.3.0': {}
 
-  '@vitejs/plugin-react@4.6.0(vite@7.0.3(@types/node@24.0.12)(jiti@2.4.2)(lightningcss@1.30.1)(tsx@4.20.3)(yaml@2.8.0))':
+  '@vitejs/plugin-react@4.6.0(vite@7.0.3(@types/node@24.0.14)(jiti@2.4.2)(lightningcss@1.30.1)(tsx@4.20.3)(yaml@2.8.0))':
     dependencies:
       '@babel/core': 7.28.0
       '@babel/plugin-transform-react-jsx-self': 7.27.1(@babel/core@7.28.0)
@@ -8121,7 +8121,7 @@ snapshots:
       '@rolldown/pluginutils': 1.0.0-beta.19
       '@types/babel__core': 7.20.5
       react-refresh: 0.17.0
-      vite: 7.0.3(@types/node@24.0.12)(jiti@2.4.2)(lightningcss@1.30.1)(tsx@4.20.3)(yaml@2.8.0)
+      vite: 7.0.3(@types/node@24.0.14)(jiti@2.4.2)(lightningcss@1.30.1)(tsx@4.20.3)(yaml@2.8.0)
     transitivePeerDependencies:
       - supports-color
 
@@ -8267,7 +8267,7 @@ snapshots:
       - bluebird
       - supports-color
 
-  aproba@2.0.0: {}
+  aproba@2.1.0: {}
 
   archiver-utils@2.1.0:
     dependencies:
@@ -8976,7 +8976,7 @@ snapshots:
 
   electron-to-chromium@1.5.180: {}
 
-  electron-vite@4.0.0(vite@7.0.3(@types/node@24.0.12)(jiti@2.4.2)(lightningcss@1.30.1)(tsx@4.20.3)(yaml@2.8.0)):
+  electron-vite@4.0.0(vite@7.0.3(@types/node@24.0.14)(jiti@2.4.2)(lightningcss@1.30.1)(tsx@4.20.3)(yaml@2.8.0)):
     dependencies:
       '@babel/core': 7.28.0
       '@babel/plugin-transform-arrow-functions': 7.27.1(@babel/core@7.28.0)
@@ -8984,7 +8984,7 @@ snapshots:
       esbuild: 0.25.6
       magic-string: 0.30.17
       picocolors: 1.1.1
-      vite: 7.0.3(@types/node@24.0.12)(jiti@2.4.2)(lightningcss@1.30.1)(tsx@4.20.3)(yaml@2.8.0)
+      vite: 7.0.3(@types/node@24.0.14)(jiti@2.4.2)(lightningcss@1.30.1)(tsx@4.20.3)(yaml@2.8.0)
     transitivePeerDependencies:
       - supports-color
 
@@ -8996,7 +8996,7 @@ snapshots:
   electron@37.2.0:
     dependencies:
       '@electron/get': 2.0.3
-      '@types/node': 22.16.2
+      '@types/node': 22.16.4
       extract-zip: 2.0.1
     transitivePeerDependencies:
       - supports-color
@@ -9500,7 +9500,7 @@ snapshots:
 
   gauge@4.0.4:
     dependencies:
-      aproba: 2.0.0
+      aproba: 2.1.0
       color-support: 1.1.3
       console-control-strings: 1.1.0
       has-unicode: 2.0.1
@@ -11235,11 +11235,11 @@ snapshots:
     dependencies:
       agent-base: 6.0.2
       debug: 4.4.1
-      socks: 2.8.5
+      socks: 2.8.6
     transitivePeerDependencies:
       - supports-color
 
-  socks@2.8.5:
+  socks@2.8.6:
     dependencies:
       ip-address: 9.0.5
       smart-buffer: 4.2.0
@@ -11671,7 +11671,7 @@ snapshots:
     dependencies:
       monaco-editor: 0.52.2
 
-  vite@7.0.3(@types/node@24.0.12)(jiti@2.4.2)(lightningcss@1.30.1)(tsx@4.20.3)(yaml@2.8.0):
+  vite@7.0.3(@types/node@24.0.14)(jiti@2.4.2)(lightningcss@1.30.1)(tsx@4.20.3)(yaml@2.8.0):
     dependencies:
       esbuild: 0.25.6
       fdir: 6.4.6(picomatch@4.0.2)
@@ -11680,7 +11680,7 @@ snapshots:
       rollup: 4.44.2
       tinyglobby: 0.2.14
     optionalDependencies:
-      '@types/node': 24.0.12
+      '@types/node': 24.0.14
       fsevents: 2.3.3
       jiti: 2.4.2
       lightningcss: 1.30.1
