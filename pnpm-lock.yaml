@@ -119,7 +119,7 @@ importers:
         version: 10.4.21(postcss@8.5.6)
       cron-validator:
         specifier: ^1.3.1
-        version: 1.3.1
+        version: 1.4.0
       driver.js:
         specifier: ^1.3.6
         version: 1.3.6
@@ -2680,8 +2680,8 @@ packages:
   crc@3.8.0:
     resolution: {integrity: sha512-iX3mfgcTMIq3ZKLIsVFAbv7+Mc10kxabAGQb8HvjA1o3T1PIYprbakQ65d3I+2HGHt6nSKkM9PYjgoJO2KcFBQ==}
 
-  cron-validator@1.3.1:
-    resolution: {integrity: sha512-C1HsxuPCY/5opR55G5/WNzyEGDWFVG+6GLrA+fW/sCTcP6A6NTjUP2AK7B8n2PyFs90kDG2qzwm8LMheADku6A==}
+  cron-validator@1.4.0:
+    resolution: {integrity: sha512-wGcJ9FCy65iaU6egSH8b5dZYJF7GU/3Jh06wzaT9lsa5dbqExjljmu+0cJ8cpKn+vUyZa/EM4WAxeLR6SypJXw==}
 
   cross-spawn@7.0.6:
     resolution: {integrity: sha512-uV2QOWP2nWzsy2aMp8aRibhi9dlzF5Hgh5SHaB9OiTGEyDTiJJyx0uy51QXdyWbtAHNua4XJzUKca3OzKUd3vA==}
@@ -8732,7 +8732,7 @@ snapshots:
       buffer: 5.7.1
     optional: true
 
-  cron-validator@1.3.1: {}
+  cron-validator@1.4.0: {}
 
   cross-spawn@7.0.6:
     dependencies:
