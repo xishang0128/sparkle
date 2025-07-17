@@ -187,8 +187,8 @@ importers:
         specifier: ^10.1.0
         version: 10.1.0(@types/react@19.1.8)(react@19.1.0)
       react-monaco-editor:
-        specifier: ^0.58.0
-        version: 0.58.0(monaco-editor@0.52.2)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
+        specifier: ^0.59.0
+        version: 0.59.0(monaco-editor@0.52.2)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       react-router-dom:
         specifier: ^7.6.3
         version: 7.7.0(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
@@ -4443,8 +4443,8 @@ packages:
       '@types/react': '>=18'
       react: '>=18'
 
-  react-monaco-editor@0.58.0:
-    resolution: {integrity: sha512-e8JH0TQEzO96Wd/EXgzc9M9tQK1pxBECD+8GNob9slMURcCM36TiVrgc4topWCDGYxRuMj8IEkaX+s3eQcUUqw==}
+  react-monaco-editor@0.59.0:
+    resolution: {integrity: sha512-SggqfZCdUauNk7GI0388bk5n25zYsQ1ai1i+VhxAgwbCH+MTGl7L1fBNTJ6V+oXeUApf+bpzikprHJEZm9J/zA==}
     peerDependencies:
       monaco-editor: ^0.52.0
       react: '>=16.8.0 <20.0.0'
@@ -10828,7 +10828,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  react-monaco-editor@0.58.0(monaco-editor@0.52.2)(react-dom@19.1.0(react@19.1.0))(react@19.1.0):
+  react-monaco-editor@0.59.0(monaco-editor@0.52.2)(react-dom@19.1.0(react@19.1.0))(react@19.1.0):
     dependencies:
       monaco-editor: 0.52.2
       react: 19.1.0
