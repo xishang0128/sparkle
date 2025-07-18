@@ -72,7 +72,7 @@ export const defaultControledMihomoConfig: Partial<MihomoConfig> = {
   'skip-auth-prefixes': ['127.0.0.1/32'],
   tun: {
     enable: false,
-    device: 'Mihomo',
+    device: process.platform === 'darwin' ? undefined : 'mihomo',
     stack: 'mixed',
     'auto-route': true,
     'auto-redirect': false,

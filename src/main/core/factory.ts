@@ -62,6 +62,13 @@ export async function generateProfile(): Promise<void> {
       profile['lan-disallowed-ips'] = undefined
     }
   }
+  // macOS 只允许 utun 设备
+  if (process.platform === 'darwin' && controledMihomoConfig.tun) {
+    if (!controledMihomoConfig.tun.device?.startsWith('utun')) {
+      controledMihomoConfig.tun.device = undefined
+    }
+  }
+
   runtimeConfig = profile
   runtimeConfigStr = yaml.stringify(profile)
   if (diffWorkDir) {

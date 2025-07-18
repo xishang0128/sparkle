@@ -45,9 +45,6 @@ export async function patchControledMihomoConfig(patch: Partial<MihomoConfig>): 
     controledMihomoConfig.hosts = patch.hosts
   }
   controledMihomoConfig = deepMerge(controledMihomoConfig, patch)
-  if (process.platform === 'darwin' && controledMihomoConfig.tun) {
-    controledMihomoConfig.tun.device = undefined
-  }
   await generateProfile()
   await writeFile(controledMihomoConfigPath(), yaml.stringify(controledMihomoConfig), 'utf-8')
 }

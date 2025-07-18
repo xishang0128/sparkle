@@ -16,7 +16,7 @@ const Tun: React.FC = () => {
   const { tun } = controledMihomoConfig || {}
   const [loading, setLoading] = useState(false)
   const {
-    device = 'Mihomo',
+    device = platform === 'darwin' ? undefined : 'mihomo',
     stack = 'mixed',
     'auto-route': autoRoute = true,
     'auto-redirect': autoRedirect = false,

@@ -22,7 +22,7 @@ const AdvancedSetting: React.FC = () => {
     tun = {}
   } = controledMihomoConfig || {}
   const { 'store-selected': storeSelected, 'store-fake-ip': storeFakeIp } = profile
-  const { device = 'Mihomo' } = tun
+  const { device = 'mihomo' } = tun
 
   const [idleInput, setIdleInput] = useState(idle)
   const [intervalInput, setIntervalInput] = useState(interval)

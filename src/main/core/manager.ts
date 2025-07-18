@@ -387,11 +387,14 @@ export async function startNetworkDetection(): Promise<void> {
     networkDetectionBypass = [],
     networkDetectionInterval = 10
   } = await getAppConfig()
-  const { tun: { device = 'utun' } = {} } = await getControledMihomoConfig()
+  const { tun: { device = process.platform === 'darwin' ? undefined : 'mihomo' } = {} } =
+    await getControledMihomoConfig()
   if (networkDetectionTimer) {
     clearInterval(networkDetectionTimer)
   }
-  const extendedBypass = networkDetectionBypass.concat([device, 'lo', 'docker0'])
+  const extendedBypass = networkDetectionBypass.concat(
+    [device, 'lo', 'docker0', 'utun'].filter((item): item is string => item !== undefined)
+  )
 
   networkDetectionTimer = setInterval(() => {
     if (isAnyNetworkInterfaceUp(extendedBypass) && net.isOnline()) {
