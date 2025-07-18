@@ -37,11 +37,30 @@ export async function generateProfile(): Promise<void> {
   const currentProfile = await overrideProfile(current, currentProfileConfig)
   overrideProfileStr = yaml.stringify(currentProfile)
   const controledMihomoConfig = await getControledMihomoConfig()
-  const profile = deepMerge(currentProfile, controledMihomoConfig)
+  const profile = deepMerge(
+    JSON.parse(JSON.stringify(currentProfile)),
+    JSON.parse(JSON.stringify(controledMihomoConfig))
+  )
   // 确保可以拿到基础日志信息
   // 使用 debug 可以调试内核相关问题 `debug/pprof`
   if (['info', 'debug'].includes(profile['log-level']) === false) {
     profile['log-level'] = 'info'
+  }
+  // 处理端口局域连接网相关配置项
+  if (profile['allow-lan'] === false) {
+    profile['lan-allowed-ips'] = undefined
+    profile['lan-disallowed-ips'] = undefined
+  } else {
+    if (profile['lan-allowed-ips']?.length === 0) {
+      profile['lan-allowed-ips'] = undefined
+    } else if (profile['lan-allowed-ips']) {
+      if (!profile['lan-allowed-ips'].some((ip: string) => ip.startsWith('127.0.0.1/'))) {
+        profile['lan-allowed-ips']?.push('127.0.0.1/8')
+      }
+    }
+    if (profile['lan-disallowed-ips']?.length === 0) {
+      profile['lan-disallowed-ips'] = undefined
+    }
   }
   runtimeConfig = profile
   runtimeConfigStr = yaml.stringify(profile)

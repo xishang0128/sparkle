@@ -33,9 +33,7 @@ const PortSetting: React.FC = () => {
   const [httpPortInput, setHttpPortInput] = useState(httpPort)
   const [redirPortInput, setRedirPortInput] = useState(redirPort)
   const [tproxyPortInput, setTproxyPortInput] = useState(tproxyPort)
-  const initialLanAllowedIps =
-    JSON.stringify(lanAllowedIps) === JSON.stringify(['0.0.0.0/0', '::/0']) ? [] : lanAllowedIps
-  const [lanAllowedIpsInput, setLanAllowedIpsInput] = useState(initialLanAllowedIps)
+  const [lanAllowedIpsInput, setLanAllowedIpsInput] = useState(lanAllowedIps)
   const [lanDisallowedIpsInput, setLanDisallowedIpsInput] = useState(lanDisallowedIps)
   const [authenticationInput, setAuthenticationInput] = useState(authentication)
   const [skipAuthPrefixesInput, setSkipAuthPrefixesInput] = useState(skipAuthPrefixes)
@@ -245,16 +243,13 @@ const PortSetting: React.FC = () => {
         {allowLan && (
           <>
             <SettingItem title="允许连接的 IP 段">
-              {(lanAllowedIpsInput.length === 0 ? ['0.0.0.0/0', '::/0'] : lanAllowedIpsInput).join(
-                ''
-              ) !== lanAllowedIps.join('') && (
+              {lanAllowedIpsInput.join('') !== lanAllowedIps.join('') && (
                 <Button
                   size="sm"
                   color="primary"
                   onPress={() => {
-                    const finalIps =
-                      lanAllowedIpsInput.length === 0 ? ['0.0.0.0/0', '::/0'] : lanAllowedIpsInput
-                    onChangeNeedRestart({ 'lan-allowed-ips': finalIps })
+                    onChangeNeedRestart({ 'lan-allowed-ips': lanAllowedIpsInput })
+                    console.log(lanAllowedIps, lanAllowedIpsInput)
                   }}
                 >
                   确认

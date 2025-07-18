@@ -8,8 +8,7 @@ import {
   Dropdown,
   DropdownTrigger,
   DropdownMenu,
-  DropdownItem,
-  Tooltip
+  DropdownItem
 } from '@heroui/react'
 import React from 'react'
 import SettingItem from '../base/base-setting-item'
@@ -311,30 +310,22 @@ const ConnectionDetailModal: React.FC<Props> = (props) => {
           )}
           {connection.metadata.remoteDestination && (
             <SettingItem title="远程目标">
-              <Tooltip content={connection.metadata.remoteDestination}>
-                <div className="truncate">{connection.metadata.remoteDestination}</div>
-              </Tooltip>
+              <div className="truncate">{connection.metadata.remoteDestination}</div>
             </SettingItem>
           )}
           {connection.metadata.dnsMode && (
             <SettingItem title="DNS模式">
-              <Tooltip content={connection.metadata.dnsMode}>
-                <div className="truncate">{connection.metadata.dnsMode}</div>
-              </Tooltip>
+              <div className="truncate">{connection.metadata.dnsMode}</div>
             </SettingItem>
           )}
           {connection.metadata.specialProxy && (
             <SettingItem title="特殊代理">
-              <Tooltip content={connection.metadata.specialProxy}>
-                <div className="truncate">{connection.metadata.specialProxy}</div>
-              </Tooltip>
+              <div className="truncate">{connection.metadata.specialProxy}</div>
             </SettingItem>
           )}
           {connection.metadata.specialRules && (
             <SettingItem title="特殊规则">
-              <Tooltip content={connection.metadata.specialRules}>
-                <div className="truncate">{connection.metadata.specialRules}</div>
-              </Tooltip>
+              <div className="truncate">{connection.metadata.specialRules}</div>
             </SettingItem>
           )}
         </ModalBody>
