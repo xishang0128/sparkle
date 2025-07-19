@@ -6,6 +6,10 @@ on:
   workflow_dispatch:
   # disable issue event
 
+permissions:
+  contents: read
+  issues: write
+
 jobs:
   review:
     runs-on: ubuntu-latest

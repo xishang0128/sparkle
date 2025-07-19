@@ -37,8 +37,10 @@ const ControllerSetting: React.FC = () => {
     await restartCore()
   }
   const generateRandomString = (length: number): string => {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
-    return Array.from({ length }, () => chars[Math.floor(Math.random() * chars.length)]).join('')
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    const array = new Uint8Array(length);
+    window.crypto.getRandomValues(array);
+    return Array.from(array, (byte) => chars[byte % chars.length]).join('');
   }
 
   return (
