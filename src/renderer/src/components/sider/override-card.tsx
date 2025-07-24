@@ -64,7 +64,7 @@ const OverrideCard: React.FC<Props> = (props) => {
         {...listeners}
         className={`${match ? 'bg-primary' : 'hover:bg-primary/30'} ${isDragging ? 'scale-[0.97] tap-highlight-transparent' : ''}`}
       >
-        <CardBody className="pb-1 pt-0 px-0">
+        <CardBody className="pb-1 pt-0 px-0 overflow-y-visible">
           <div className="flex justify-between">
             <Button
               isIconOnly

@@ -2,7 +2,6 @@ import { Button } from '@heroui/react'
 import BasePage from '@renderer/components/base/base-page'
 // import { CgWebsite } from 'react-icons/cg'
 import { IoLogoGithub } from 'react-icons/io5'
-import WebdavConfig from '@renderer/components/settings/webdav-config'
 import GeneralConfig from '@renderer/components/settings/general-config'
 import MihomoConfig from '@renderer/components/settings/mihomo-config'
 import Actions from '@renderer/components/settings/actions'
@@ -61,7 +60,6 @@ const Settings: React.FC = () => {
       <AppearanceConfig />
       <SubStoreConfig />
       <SiderConfig />
-      <WebdavConfig />
       <MihomoConfig />
       <ShortcutConfig />
       <Actions />

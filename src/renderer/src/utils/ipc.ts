@@ -293,20 +293,8 @@ export async function getInterfaces(): Promise<Record<string, NetworkInterfaceIn
   return ipcErrorWrapper(await window.electron.ipcRenderer.invoke('getInterfaces'))
 }
 
-export async function webdavBackup(): Promise<boolean> {
-  return ipcErrorWrapper(await window.electron.ipcRenderer.invoke('webdavBackup'))
-}
-
-export async function webdavRestore(filename: string): Promise<void> {
-  return ipcErrorWrapper(await window.electron.ipcRenderer.invoke('webdavRestore', filename))
-}
-
 export async function listWebdavBackups(): Promise<string[]> {
   return ipcErrorWrapper(await window.electron.ipcRenderer.invoke('listWebdavBackups'))
-}
-
-export async function webdavDelete(filename: string): Promise<void> {
-  return ipcErrorWrapper(await window.electron.ipcRenderer.invoke('webdavDelete', filename))
 }
 
 export async function setTitleBarOverlay(overlay: TitleBarOverlayOptions): Promise<void> {

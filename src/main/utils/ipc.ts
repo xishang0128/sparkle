@@ -81,7 +81,6 @@ import {
   getCurrentProfileStr,
   getOverrideProfileStr
 } from '../core/factory'
-import { listWebdavBackups, webdavBackup, webdavDelete, webdavRestore } from '../resolve/backup'
 import { getInterfaces } from '../sys/interface'
 import { closeTrayIcon, copyEnv, showTrayIcon } from '../resolve/tray'
 import { registerShortcut } from '../resolve/shortcut'
@@ -214,10 +213,6 @@ export function registerIpcMainHandlers(): void {
   ipcMain.handle('openUWPTool', ipcErrorWrapper(openUWPTool))
   ipcMain.handle('setupFirewall', ipcErrorWrapper(setupFirewall))
   ipcMain.handle('getInterfaces', getInterfaces)
-  ipcMain.handle('webdavBackup', ipcErrorWrapper(webdavBackup))
-  ipcMain.handle('webdavRestore', (_e, filename) => ipcErrorWrapper(webdavRestore)(filename))
-  ipcMain.handle('listWebdavBackups', ipcErrorWrapper(listWebdavBackups))
-  ipcMain.handle('webdavDelete', (_e, filename) => ipcErrorWrapper(webdavDelete)(filename))
   ipcMain.handle('registerShortcut', (_e, oldShortcut, newShortcut, action) =>
     ipcErrorWrapper(registerShortcut)(oldShortcut, newShortcut, action)
   )
