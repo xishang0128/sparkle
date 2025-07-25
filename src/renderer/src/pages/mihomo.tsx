@@ -68,7 +68,11 @@ const Mihomo: React.FC = () => {
                     })
                   }
                 } catch (e) {
-                  if (typeof e === 'string' && e.includes('already using latest version')) {
+                  if (
+                    typeof e === 'string' &&
+                    (e.includes('already using latest version') ||
+                      e.includes('is the latest version'))
+                  ) {
                     new Notification('已经是最新版本')
                   } else {
                     alert(e)
