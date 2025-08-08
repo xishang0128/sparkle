@@ -17,6 +17,7 @@ interface IHost {
 }
 
 interface AppConfig {
+  controlTun: boolean
   updateChannel: 'stable' | 'beta'
   core: 'mihomo' | 'mihomo-alpha'
   disableLoopbackDetector: boolean

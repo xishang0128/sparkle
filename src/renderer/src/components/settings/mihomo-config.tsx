@@ -19,6 +19,7 @@ const MihomoConfig: React.FC = () => {
   const { appConfig, patchAppConfig } = useAppConfig()
   const {
     diffWorkDir = false,
+    controlTun = true,
     controlDns = true,
     controlSniff = true,
     delayTestConcurrency,
@@ -196,6 +197,21 @@ const MihomoConfig: React.FC = () => {
           onValueChange={async (v) => {
             try {
               await patchAppConfig({ diffWorkDir: v })
+              await restartCore()
+            } catch (e) {
+              alert(e)
+            }
+          }}
+        />
+      </SettingItem>
+      <SettingItem title="接管 TUN 设置" divider>
+        <Switch
+          size="sm"
+          isSelected={controlTun}
+          onValueChange={async (v) => {
+            try {
+              await patchAppConfig({ controlTun: v })
+              await patchControledMihomoConfig({})
               await restartCore()
             } catch (e) {
               alert(e)

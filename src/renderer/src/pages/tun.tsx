@@ -12,7 +12,7 @@ import { useAppConfig } from '@renderer/hooks/use-app-config'
 const Tun: React.FC = () => {
   const { controledMihomoConfig, patchControledMihomoConfig } = useControledMihomoConfig()
   const { appConfig, patchAppConfig } = useAppConfig()
-  const { autoSetDNS = true } = appConfig || {}
+  const { autoSetDNS = true, controlTun = true } = appConfig || {}
   const { tun } = controledMihomoConfig || {}
   const [loading, setLoading] = useState(false)
   const {
@@ -54,7 +54,7 @@ const Tun: React.FC = () => {
       <BasePage
         title="虚拟网卡设置"
         header={
-          changed && (
+          controlTun && changed && (
             <Button
               size="sm"
               className="app-nodrag"

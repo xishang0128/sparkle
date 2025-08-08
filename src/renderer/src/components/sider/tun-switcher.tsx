@@ -19,7 +19,7 @@ const TunSwitcher: React.FC<Props> = (props) => {
   const navigate = useNavigate()
   const match = location.pathname.includes('/tun') || false
   const { appConfig } = useAppConfig()
-  const { tunCardStatus = 'col-span-1' } = appConfig || {}
+  const { tunCardStatus = 'col-span-1', controlTun = true } = appConfig || {}
   const { controledMihomoConfig, patchControledMihomoConfig } = useControledMihomoConfig()
   const { tun } = controledMihomoConfig || {}
   const { enable } = tun || {}
@@ -47,7 +47,7 @@ const TunSwitcher: React.FC<Props> = (props) => {
 
   if (iconOnly) {
     return (
-      <div className={`${tunCardStatus} flex justify-center`}>
+      <div className={`${tunCardStatus} ${!controlTun ? 'hidden' : ''} flex justify-center`}>
         <Tooltip content="虚拟网卡" placement="right">
           <Button
             size="sm"
@@ -73,7 +73,7 @@ const TunSwitcher: React.FC<Props> = (props) => {
         transition,
         zIndex: isDragging ? 'calc(infinity)' : undefined
       }}
-      className={`${tunCardStatus} tun-card`}
+      className={`${tunCardStatus} ${!controlTun ? 'hidden' : ''} tun-card`}
     >
       <Card
         fullWidth
