@@ -112,7 +112,7 @@ jobs:
       - name: Adaptation to the loongarch64 architecture
         env:
           npm_config_arch: ${{ matrix.arch }}
-          npm_config_target_arch: ${{ matrix.arch }}
+          npm_config_target_arch: ${{ matrix.arch }}1
           ELECTRON_MIRROR: https://github.com/darkyzhou/electron-loong64/releases/download/
           electron_use_remote_checksums: 1
         if: matrix.os == 'ubuntu-latest' && matrix.arch == 'loong64'
