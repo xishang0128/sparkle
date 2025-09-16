@@ -53,6 +53,15 @@ jobs:
           - os: ubuntu-latest
             arch: arm64
             format: pacman
+          - os: ubuntu-latest
+            arch: loong64
+            format: deb
+          - os: ubuntu-latest
+            arch: loong64
+            format: rpm
+          - os: ubuntu-latest
+            arch: loong64
+            format: pacman
 
           - os: macos-latest
             arch: x64
@@ -99,6 +108,18 @@ jobs:
         if: matrix.os == 'ubuntu-latest' && matrix.format == 'pacman'
         run: |
           sudo apt-get update && sudo apt-get install -y libarchive-tools
+
+      - name: Adaptation to the loongarch64 architecture
+        env:
+          npm_config_arch: ${{ matrix.arch }}
+          npm_config_target_arch: ${{ matrix.arch }}
+        if: matrix.os == 'ubuntu-latest' && matrix.arch == 'loong64'
+        shell: bash
+        run: |
+          export ELECTRON_MIRROR="https://github.com/darkyzhou/electron-loong64/releases/download/"
+          export electron_use_remote_checksums=1
+          SKIP_PREPARE=1 pnpm install electron@37.2.5 -D
+          SKIP_PREPARE=1 pnpm install @sparkle-loong64/electron-builder@26.0.12 -D
 
       - name: Install Dependencies and Prepare
         env:
