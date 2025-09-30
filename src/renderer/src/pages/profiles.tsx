@@ -7,7 +7,8 @@ import {
   DropdownItem,
   DropdownMenu,
   DropdownTrigger,
-  Input
+  Input,
+  Tooltip
 } from '@heroui/react'
 import BasePage from '@renderer/components/base/base-page'
 import ProfileItem from '@renderer/components/profiles/profile-item'
@@ -232,24 +233,27 @@ const Profiles: React.FC = () => {
         <div className="flex p-2">
           <Input
             size="sm"
+            placeholder="请输入订阅链接"
             value={url}
             onValueChange={setUrl}
             onKeyUp={handleInputKeyUp}
             endContent={
               <>
-                <Button
-                  size="sm"
-                  isIconOnly
-                  variant="light"
-                  className="z-10"
-                  onPress={() => {
-                    navigator.clipboard.readText().then((text) => {
-                      setUrl(text)
-                    })
-                  }}
-                >
-                  <MdContentPaste className="text-lg" />
-                </Button>
+                <Tooltip content="粘贴">
+                  <Button
+                    size="sm"
+                    isIconOnly
+                    variant="light"
+                    className="z-10"
+                    onPress={() => {
+                      navigator.clipboard.readText().then((text) => {
+                        setUrl(text)
+                      })
+                    }}
+                  >
+                    <MdContentPaste className="text-lg" />
+                  </Button>
+                </Tooltip>
                 <Checkbox
                   className="whitespace-nowrap"
                   checked={useProxy}
