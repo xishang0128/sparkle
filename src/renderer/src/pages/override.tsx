@@ -22,6 +22,7 @@ import {
 import { SortableContext } from '@dnd-kit/sortable'
 import { useOverrideConfig } from '@renderer/hooks/use-override-config'
 import OverrideItem from '@renderer/components/override/override-item'
+import EditInfoModal from '@renderer/components/override/edit-info-modal'
 import { FaPlus } from 'react-icons/fa6'
 import { HiOutlineDocumentText } from 'react-icons/hi'
 import { RiArchiveLine } from 'react-icons/ri'
@@ -40,6 +41,8 @@ const Override: React.FC = () => {
   const [importing, setImporting] = useState(false)
   const [fileOver, setFileOver] = useState(false)
   const [url, setUrl] = useState('')
+  const [showEditModal, setShowEditModal] = useState(false)
+  const [editingItem, setEditingItem] = useState<OverrideItem | null>(null)
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -231,10 +234,22 @@ const Override: React.FC = () => {
                     file: '// https://mihomo.party/docs/guide/override/javascript\nfunction main(config) {\n  return config\n}',
                     ext: 'js'
                   })
+                } else if (key === 'import') {
+                  const newRemoteOverride: OverrideItem = {
+                    id: '',
+                    name: '',
+                    type: 'remote',
+                    url: '',
+                    ext: 'yaml',
+                    updated: Date.now()
+                  }
+                  setEditingItem(newRemoteOverride)
+                  setShowEditModal(true)
                 }
               }}
             >
-              <DropdownItem key="open">打开</DropdownItem>
+              <DropdownItem key="open">打开本地覆写</DropdownItem>
+              <DropdownItem key="import">导入远程覆写</DropdownItem>
               <DropdownItem key="new-yaml">新建 YAML</DropdownItem>
               <DropdownItem key="new-js">新建 JavaScript</DropdownItem>
             </DropdownMenu>
@@ -264,6 +279,20 @@ const Override: React.FC = () => {
           </SortableContext>
         </div>
       </DndContext>
+      {showEditModal && editingItem && (
+        <EditInfoModal
+          item={editingItem}
+          updateOverrideItem={async (item: OverrideItem) => {
+            await addOverrideItem(item)
+            setShowEditModal(false)
+            setEditingItem(null)
+          }}
+          onClose={() => {
+            setShowEditModal(false)
+            setEditingItem(null)
+          }}
+        />
+      )}
     </BasePage>
   )
 }

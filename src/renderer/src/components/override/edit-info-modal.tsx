@@ -1,4 +1,5 @@
 import {
+  cn,
   Modal,
   ModalContent,
   ModalHeader,
@@ -6,12 +7,14 @@ import {
   ModalFooter,
   Button,
   Input,
-  Switch
+  Switch,
+  Select,
+  SelectItem
 } from '@heroui/react'
 import React, { useState } from 'react'
 import SettingItem from '../base/base-setting-item'
-import { restartCore } from '@renderer/utils/ipc'
 import { useAppConfig } from '@renderer/hooks/use-app-config'
+import { restartCore } from '@renderer/utils/ipc'
 
 interface Props {
   item: OverrideItem
@@ -23,30 +26,47 @@ const EditInfoModal: React.FC<Props> = (props) => {
   const { item, updateOverrideItem, onClose } = props
   const { appConfig: { disableAnimation = false } = {} } = useAppConfig()
   const [values, setValues] = useState(item)
+  const inputWidth = 'w-[400px] md:w-[400px] lg:w-[600px] xl:w-[800px]'
 
   const onSave = async (): Promise<void> => {
-    await updateOverrideItem(values)
-    await restartCore()
-    onClose()
+    try {
+      const itemToSave = {
+        ...values
+      }
+
+      await updateOverrideItem(itemToSave)
+      if (item.id) {
+        await restartCore()
+      }
+      onClose()
+    } catch (e) {
+      alert(e)
+    }
   }
 
   return (
     <Modal
       backdrop={disableAnimation ? 'transparent' : 'blur'}
       disableAnimation={disableAnimation}
-      classNames={{ backdrop: 'top-[48px]' }}
+      size="5xl"
+      classNames={{
+        backdrop: 'top-[48px]',
+        base: 'w-[600px] md:w-[600px] lg:w-[800px] xl:w-[1024px]'
+      }}
       hideCloseButton
       isOpen={true}
       onOpenChange={onClose}
       scrollBehavior="inside"
     >
       <ModalContent>
-        <ModalHeader className="flex app-drag">编辑信息</ModalHeader>
+        <ModalHeader className="flex app-drag">
+          {item.id ? '编辑覆写信息' : '导入远程覆写'}
+        </ModalHeader>
         <ModalBody>
           <SettingItem title="名称">
             <Input
               size="sm"
-              className="w-[200px]"
+              className={cn(inputWidth)}
               value={values.name}
               onValueChange={(v) => {
                 setValues({ ...values, name: v })
@@ -54,21 +74,47 @@ const EditInfoModal: React.FC<Props> = (props) => {
             />
           </SettingItem>
           {values.type === 'remote' && (
-            <SettingItem title="地址">
-              <Input
-                size="sm"
-                className="w-[200px]"
-                value={values.url}
-                onValueChange={(v) => {
-                  setValues({ ...values, url: v })
-                }}
-              />
-            </SettingItem>
+            <>
+              <SettingItem title="覆写地址">
+                <Input
+                  size="sm"
+                  className={cn(inputWidth)}
+                  value={values.url || ''}
+                  onValueChange={(v) => {
+                    setValues({ ...values, url: v })
+                  }}
+                />
+              </SettingItem>
+              <SettingItem title="证书指纹">
+                <Input
+                  size="sm"
+                  className={cn(inputWidth)}
+                  value={values.fingerprint ?? ''}
+                  onValueChange={(v) => {
+                    setValues({ ...values, fingerprint: v.trim() || undefined })
+                  }}
+                />
+              </SettingItem>
+            </>
           )}
-          <SettingItem title="全局启用">
+          <SettingItem title="文件类型">
+            <Select
+              size="sm"
+              className={cn(inputWidth)}
+              selectedKeys={[values.ext]}
+              onSelectionChange={(keys) => {
+                const key = Array.from(keys)[0] as 'js' | 'yaml'
+                setValues({ ...values, ext: key })
+              }}
+            >
+              <SelectItem key="yaml">YAML</SelectItem>
+              <SelectItem key="js">JavaScript</SelectItem>
+            </Select>
+          </SettingItem>
+          <SettingItem title="全局覆写">
             <Switch
               size="sm"
-              isSelected={values.global}
+              isSelected={values.global ?? false}
               onValueChange={(v) => {
                 setValues({ ...values, global: v })
               }}
@@ -80,7 +126,7 @@ const EditInfoModal: React.FC<Props> = (props) => {
             取消
           </Button>
           <Button size="sm" color="primary" onPress={onSave}>
-            保存
+            {item.id ? '保存' : '导入'}
           </Button>
         </ModalFooter>
       </ModalContent>

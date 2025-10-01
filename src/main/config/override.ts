@@ -2,8 +2,11 @@ import { overrideConfigPath, overridePath } from '../utils/dirs'
 import { getControledMihomoConfig } from './controledMihomo'
 import { readFile, writeFile, rm } from 'fs/promises'
 import { existsSync } from 'fs'
-import axios from 'axios'
+import axios, { AxiosResponse } from 'axios'
+import https from 'https'
+import tls from 'tls'
 import { parseYaml, stringifyYaml } from '../utils/yaml'
+import { getCertFingerprint } from './profile'
 
 let overrideConfig: OverrideConfig // override.yaml
 
@@ -70,16 +73,47 @@ export async function createOverride(item: Partial<OverrideItem>): Promise<Overr
     case 'remote': {
       const { 'mixed-port': mixedPort = 7890 } = await getControledMihomoConfig()
       if (!item.url) throw new Error('Empty URL')
-      const res = await axios.get(item.url, {
-        ...(mixedPort != 0 && {
-          proxy: {
-            protocol: 'http',
-            host: '127.0.0.1',
-            port: mixedPort
+      let res: AxiosResponse
+      try {
+        res = await axios.get(item.url, {
+          httpsAgent: new https.Agent({
+            checkServerIdentity: (hostname, cert) => {
+              if (item.fingerprint) {
+                const fingerprint = getCertFingerprint(cert)
+                if (fingerprint !== item.fingerprint.replace(/:/g, '').toUpperCase()) {
+                  throw new Error(`Certificate verification failed for ${hostname}`)
+                }
+                return undefined
+              }
+              return tls.checkServerIdentity(hostname, cert)
+            }
+          }),
+          ...(mixedPort != 0 && {
+            proxy: {
+              protocol: 'http',
+              host: '127.0.0.1',
+              port: mixedPort
+            }
+          }),
+          responseType: 'text'
+        })
+      } catch (error) {
+        if (axios.isAxiosError(error)) {
+          if (error.code === 'ECONNRESET' || error.code === 'ECONNABORTED') {
+            throw new Error(`网络连接被重置或超时：${item.url}`)
+          } else if (error.code === 'CERT_HAS_EXPIRED') {
+            throw new Error(`服务器证书已过期：${item.url}`)
+          } else if (error.code === 'UNABLE_TO_VERIFY_LEAF_SIGNATURE') {
+            throw new Error(`无法验证服务器证书：${item.url}`)
+          } else if (error.message.includes('Certificate verification failed')) {
+            throw new Error(`证书验证失败：${item.url}`)
+          } else {
+            throw new Error(`请求失败：${error.message}`)
           }
-        }),
-        responseType: 'text'
-      })
+        }
+        throw error
+      }
+
       const data = res.data
       await setOverride(id, newItem.ext, data)
       break

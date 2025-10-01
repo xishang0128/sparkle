@@ -6,6 +6,9 @@ import { restartCore } from '../core/manager'
 import { getAppConfig } from './app'
 import { existsSync } from 'fs'
 import axios, { AxiosResponse } from 'axios'
+import https from 'https'
+import tls from 'tls'
+import crypto from 'crypto'
 import { parseYaml, stringifyYaml } from '../utils/yaml'
 import { defaultProfile } from '../utils/template'
 import { subStorePort } from '../resolve/server'
@@ -14,6 +17,10 @@ import { deepMerge } from '../utils/merge'
 import { getUserAgent } from '../utils/userAgent'
 
 let profileConfig: ProfileConfig // profile.yaml
+
+export function getCertFingerprint(cert: tls.PeerCertificate) {
+  return crypto.createHash('sha256').update(cert.raw).digest('hex').toUpperCase()
+}
 
 export async function getProfileConfig(force = false): Promise<ProfileConfig> {
   if (force || !profileConfig) {
@@ -113,6 +120,7 @@ export async function createProfile(item: Partial<ProfileItem>): Promise<Profile
     name: item.name || (item.type === 'remote' ? 'Remote File' : 'Local File'),
     type: item.type,
     url: item.url,
+    fingerprint: item.fingerprint,
     substore: item.substore || false,
     interval: item.interval || 0,
     override: item.override || [],
@@ -140,20 +148,50 @@ export async function createProfile(item: Partial<ProfileItem>): Promise<Profile
           responseType: 'text'
         })
       } else {
-        res = await axios.get(item.url, {
-          proxy:
-            newItem.useProxy && mixedPort != 0
-              ? {
+        try {
+          res = await axios.get(item.url, {
+            httpsAgent: new https.Agent({
+              checkServerIdentity: (hostname, cert) => {
+                if (item.fingerprint) {
+                  const fingerprint = getCertFingerprint(cert)
+                  if (fingerprint !== item.fingerprint.replace(/:/g, '').toUpperCase()) {
+                    return new Error(`Certificate verification failed for ${hostname}`)
+                  }
+                  return undefined
+                }
+
+                return tls.checkServerIdentity(hostname, cert)
+              }
+            }),
+            ...(newItem.useProxy &&
+              mixedPort != 0 && {
+                proxy: {
                   protocol: 'http',
                   host: '127.0.0.1',
                   port: mixedPort
                 }
-              : false,
-          headers: {
-            'User-Agent': await getUserAgent()
-          },
-          responseType: 'text'
-        })
+              }),
+            headers: {
+              'User-Agent': await getUserAgent()
+            },
+            responseType: 'text'
+          })
+        } catch (error) {
+          if (axios.isAxiosError(error)) {
+            if (error.code === 'ECONNRESET' || error.code === 'ECONNABORTED') {
+              throw new Error(`网络连接被重置或超时：${item.url}`)
+            } else if (error.code === 'CERT_HAS_EXPIRED') {
+              throw new Error(`服务器证书已过期：${item.url}`)
+            } else if (error.code === 'UNABLE_TO_VERIFY_LEAF_SIGNATURE') {
+              throw new Error(`无法验证服务器证书：${item.url}`)
+            } else if (error.message.includes('Certificate verification failed')) {
+              throw new Error(`证书验证失败：${item.url}`)
+            } else {
+              throw new Error(`请求失败：${error.message}`)
+            }
+          }
+          throw error
+        }
       }
 
       const data = res.data

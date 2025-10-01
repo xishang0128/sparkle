@@ -11,6 +11,7 @@ import {
 } from '@heroui/react'
 import BasePage from '@renderer/components/base/base-page'
 import ProfileItem from '@renderer/components/profiles/profile-item'
+import EditInfoModal from '@renderer/components/profiles/edit-info-modal'
 import { useProfileConfig } from '@renderer/hooks/use-profile-config'
 import { useAppConfig } from '@renderer/hooks/use-app-config'
 import { getFilePath, readTextFile, subStoreCollections, subStoreSubs } from '@renderer/utils/ipc'
@@ -52,6 +53,8 @@ const Profiles: React.FC = () => {
   const [importing, setImporting] = useState(false)
   const [updating, setUpdating] = useState(false)
   const [fileOver, setFileOver] = useState(false)
+  const [showEditModal, setShowEditModal] = useState(false)
+  const [editingItem, setEditingItem] = useState<ProfileItem | null>(null)
   const [url, setUrl] = useState('')
   const isUrlEmpty = url.trim() === ''
   const sensors = useSensors(
@@ -228,6 +231,20 @@ const Profiles: React.FC = () => {
         </Button>
       }
     >
+      {showEditModal && editingItem && (
+        <EditInfoModal
+          item={editingItem}
+          updateProfileItem={async (item: ProfileItem) => {
+            await addProfileItem(item)
+            setShowEditModal(false)
+            setEditingItem(null)
+          }}
+          onClose={() => {
+            setShowEditModal(false)
+            setEditingItem(null)
+          }}
+        />
+      )}
       <div className="sticky profiles-sticky top-0 z-40 bg-background">
         <div className="flex p-2">
           <Input
@@ -355,28 +372,48 @@ const Profiles: React.FC = () => {
             </DropdownTrigger>
             <DropdownMenu
               onAction={async (key) => {
-                if (key === 'open') {
-                  try {
-                    const files = await getFilePath(['yml', 'yaml'])
-                    if (files?.length) {
-                      const content = await readTextFile(files[0])
-                      const fileName = files[0].split('/').pop()?.split('\\').pop()
-                      await addProfileItem({ name: fileName, type: 'local', file: content })
+                switch (key) {
+                  case 'open': {
+                    try {
+                      const files = await getFilePath(['yml', 'yaml'])
+                      if (files?.length) {
+                        const content = await readTextFile(files[0])
+                        const fileName = files[0].split('/').pop()?.split('\\').pop()
+                        await addProfileItem({ name: fileName, type: 'local', file: content })
+                      }
+                    } catch (e) {
+                      alert(e)
                     }
-                  } catch (e) {
-                    alert(e)
+                    break
                   }
-                } else if (key === 'new') {
-                  await addProfileItem({
-                    name: '新建订阅',
-                    type: 'local',
-                    file: 'proxies: []\nproxy-groups: []\nrules: []'
-                  })
+                  case 'new': {
+                    {
+                      await addProfileItem({
+                        name: '新配置',
+                        type: 'local',
+                        file: 'proxies: []\nproxy-groups: []\nrules: []'
+                      })
+                    }
+                    break
+                  }
+                  case 'import': {
+                    const newRemoteProfile: ProfileItem = {
+                      id: '',
+                      name: '',
+                      type: 'remote',
+                      url: '',
+                      useProxy: false
+                    }
+                    setEditingItem(newRemoteProfile)
+                    setShowEditModal(true)
+                    break
+                  }
                 }
               }}
             >
-              <DropdownItem key="open">打开</DropdownItem>
-              <DropdownItem key="new">新建</DropdownItem>
+              <DropdownItem key="open">打开本地配置</DropdownItem>
+              <DropdownItem key="new">新建本地配置</DropdownItem>
+              <DropdownItem key="import">导入远程配置</DropdownItem>
             </DropdownMenu>
           </Dropdown>
         </div>

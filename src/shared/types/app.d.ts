@@ -117,6 +117,7 @@ interface ProfileItem {
   type: 'remote' | 'local'
   name: string
   url?: string // remote
+  fingerprint?: string // remote
   file?: string // local
   interval?: number
   home?: string
@@ -148,6 +149,7 @@ interface OverrideItem {
   global?: boolean
   url?: string
   file?: string
+  fingerprint?: string
 }
 
 interface SubStoreSub {
