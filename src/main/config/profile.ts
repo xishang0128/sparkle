@@ -121,6 +121,7 @@ export async function createProfile(item: Partial<ProfileItem>): Promise<Profile
     type: item.type,
     url: item.url,
     fingerprint: item.fingerprint,
+    ua: item.ua,
     substore: item.substore || false,
     interval: item.interval || 0,
     override: item.override || [],
@@ -172,7 +173,7 @@ export async function createProfile(item: Partial<ProfileItem>): Promise<Profile
                 }
               }),
             headers: {
-              'User-Agent': await getUserAgent()
+              'User-Agent': newItem.ua ? newItem.ua : await getUserAgent()
             },
             responseType: 'text'
           })

@@ -104,6 +104,16 @@ const EditInfoModal: React.FC<Props> = (props) => {
                   }}
                 />
               </SettingItem>
+              <SettingItem title="用户代理">
+                <Input
+                  size="sm"
+                  className={cn(inputWidth)}
+                  value={values.ua ?? ''}
+                  onValueChange={(v) => {
+                    setValues({ ...values, ua: v.trim() || undefined })
+                  }}
+                />
+              </SettingItem>
               <SettingItem title="使用代理更新">
                 <Switch
                   size="sm"

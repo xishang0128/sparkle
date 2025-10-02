@@ -118,6 +118,7 @@ interface ProfileItem {
   name: string
   url?: string // remote
   fingerprint?: string // remote
+  ua?: string // remote
   file?: string // local
   interval?: number
   home?: string
