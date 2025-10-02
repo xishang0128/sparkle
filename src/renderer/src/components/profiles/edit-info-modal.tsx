@@ -104,7 +104,7 @@ const EditInfoModal: React.FC<Props> = (props) => {
                   }}
                 />
               </SettingItem>
-              <SettingItem title="用户代理">
+              <SettingItem title="指定 UA">
                 <Input
                   size="sm"
                   className={cn(inputWidth)}
