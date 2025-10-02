@@ -27,7 +27,8 @@ import {
   stopMihomoTraffic,
   stopMihomoLogs,
   stopMihomoMemory,
-  patchMihomoConfig
+  patchMihomoConfig,
+  mihomoGroups
 } from './mihomoApi'
 import chokidar from 'chokidar'
 import { readFile, rm, writeFile } from 'fs/promises'
@@ -176,15 +177,31 @@ export async function startCore(detached = false): Promise<Promise<void>[]> {
                 providerNames.size > 0 && matchedProviders.size === providerNames.size
 
               if ((providerNames.size === 0 && isDefaultProvider) || isAllProvidersMatched) {
-                const delay = providerNames.size === 0 ? 100 : 500
+                matchedProviders.clear()
+
+                const waitForMihomoReady = async (): Promise<void> => {
+                  const maxRetries = 30
+                  const retryInterval = 100
+
+                  for (let i = 0; i < maxRetries; i++) {
+                    try {
+                      await mihomoGroups()
+                      break
+                    } catch (error) {
+                      await new Promise((r) => setTimeout(r, retryInterval))
+                    }
+                  }
+                }
+
+                await waitForMihomoReady()
                 initialized = true
                 Promise.all([
-                  new Promise((r) => setTimeout(r, delay)).then(() => {
+                  new Promise((r) => setTimeout(r, 100)).then(() => {
                     mainWindow?.webContents.send('groupsUpdated')
                     mainWindow?.webContents.send('rulesUpdated')
                   }),
                   uploadRuntimeConfig(),
-                  new Promise((r) => setTimeout(r, delay)).then(() =>
+                  new Promise((r) => setTimeout(r, 100)).then(() =>
                     patchMihomoConfig({ 'log-level': logLevel })
                   )
                 ]).then(() => resolve())
