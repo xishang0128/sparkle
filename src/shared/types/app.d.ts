@@ -26,6 +26,8 @@ interface AppConfig {
   safePaths: string[]
   proxyDisplayMode: 'simple' | 'full'
   proxyDisplayOrder: 'default' | 'delay' | 'name'
+  proxyDisplayLayout: 'single' | 'double'
+  groupDisplayLayout: 'single' | 'double'
   profileDisplayDate?: 'expire' | 'update'
   envType?: ('bash' | 'cmd' | 'powershell' | 'nushell')[]
   proxyCols: 'auto' | '1' | '2' | '3' | '4'

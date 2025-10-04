@@ -29,7 +29,9 @@ const MihomoConfig: React.FC = () => {
     delayTestUrl,
     userAgent,
     mihomoCpuPriority = 'PRIORITY_NORMAL',
-    proxyCols = 'auto'
+    proxyCols = 'auto',
+    groupDisplayLayout = 'single',
+    proxyDisplayLayout = 'double'
   } = appConfig || {}
   const [url, setUrl] = useState(delayTestUrl)
   const [pauseSSIDInput, setPauseSSIDInput] = useState(pauseSSID)
@@ -149,6 +151,40 @@ const MihomoConfig: React.FC = () => {
           <SelectItem key="2">两列</SelectItem>
           <SelectItem key="3">三列</SelectItem>
           <SelectItem key="4">四列</SelectItem>
+        </Select>
+      </SettingItem>
+      <SettingItem title="代理组行数" divider>
+        <Select
+          classNames={{ trigger: 'data-[hover=true]:bg-default-200' }}
+          className="w-[150px]"
+          size="sm"
+          selectedKeys={new Set([groupDisplayLayout])}
+          disallowEmptySelection={true}
+          onSelectionChange={async (v) => {
+            await patchAppConfig({
+              groupDisplayLayout: v.currentKey as 'single' | 'double'
+            })
+          }}
+        >
+          <SelectItem key="single">单行</SelectItem>
+          <SelectItem key="double">双行</SelectItem>
+        </Select>
+      </SettingItem>
+      <SettingItem title="代理节点行数" divider>
+        <Select
+          classNames={{ trigger: 'data-[hover=true]:bg-default-200' }}
+          className="w-[150px]"
+          size="sm"
+          selectedKeys={new Set([proxyDisplayLayout])}
+          disallowEmptySelection={true}
+          onSelectionChange={async (v) => {
+            await patchAppConfig({
+              proxyDisplayLayout: v.currentKey as 'single' | 'double'
+            })
+          }}
+        >
+          <SelectItem key="single">单行</SelectItem>
+          <SelectItem key="double">双行</SelectItem>
         </Select>
       </SettingItem>
       {platform === 'win32' && (

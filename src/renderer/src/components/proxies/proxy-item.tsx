@@ -7,6 +7,7 @@ interface Props {
   mutateProxies: () => void
   onProxyDelay: (proxy: string, url?: string) => Promise<ControllerProxiesDelay>
   proxyDisplayMode: 'simple' | 'full'
+  proxyDisplayLayout: 'single' | 'double'
   proxy: ControllerProxiesDetail | ControllerGroupDetail
   group: ControllerMixedGroup
   onSelect: (group: string, proxy: string) => void
@@ -14,7 +15,16 @@ interface Props {
 }
 
 const ProxyItem: React.FC<Props> = (props) => {
-  const { mutateProxies, proxyDisplayMode, group, proxy, selected, onSelect, onProxyDelay } = props
+  const {
+    mutateProxies,
+    proxyDisplayMode,
+    proxyDisplayLayout,
+    group,
+    proxy,
+    selected,
+    onSelect,
+    onProxyDelay
+  } = props
 
   const delay = useMemo(() => {
     if (proxy.history.length > 0) {
@@ -57,46 +67,97 @@ const ProxyItem: React.FC<Props> = (props) => {
       className={`${fixed ? 'bg-secondary/30' : selected ? 'bg-primary/30' : 'bg-content2'}`}
       radius="sm"
     >
-      <CardBody className="p-2">
-        <div className="flex justify-between items-center">
-          <div className="text-ellipsis overflow-hidden whitespace-nowrap">
-            <div className="flag-emoji inline" title={proxy.name}>
-              {proxy.name}
-            </div>
-            {proxyDisplayMode === 'full' && (
-              <div className="inline ml-2 text-foreground-500" title={proxy.type}>
-                {proxy.type}
+      <CardBody className="py-1.5 px-2">
+        <div
+          className={`flex ${proxyDisplayMode === 'full' && proxyDisplayLayout === 'double' ? 'gap-1' : 'justify-between items-center'}`}
+        >
+          {proxyDisplayMode === 'full' && proxyDisplayLayout === 'double' ? (
+            <>
+              <div className="flex flex-col gap-0 flex-1 min-w-0">
+                <div className="text-ellipsis overflow-hidden whitespace-nowrap">
+                  <div className="flag-emoji inline" title={proxy.name}>
+                    {proxy.name}
+                  </div>
+                </div>
+                <div className="text-[12px] text-foreground-500 leading-none mt-0.5">
+                  <span>{proxy.type}</span>
+                </div>
               </div>
-            )}
-          </div>
-          <div className="flex justify-end">
-            {fixed && (
-              <Button
-                isIconOnly
-                title="取消固定"
-                color="danger"
-                onPress={async () => {
-                  await mihomoUnfixedProxy(group.name)
-                  mutateProxies()
-                }}
-                variant="light"
-                className="h-[20px] p-0 text-sm"
-              >
-                <FaMapPin className="text-md le" />
-              </Button>
-            )}
-            <Button
-              isIconOnly
-              title={proxy.type}
-              isLoading={loading}
-              color={delayColor(delay)}
-              onPress={onDelay}
-              variant="light"
-              className="h-full p-0 text-sm"
-            >
-              {delayText(delay)}
-            </Button>
-          </div>
+              <div className="flex items-center justify-center gap-0.5 shrink-0">
+                {fixed && (
+                  <Button
+                    isIconOnly
+                    title="取消固定"
+                    color="danger"
+                    onPress={async () => {
+                      await mihomoUnfixedProxy(group.name)
+                      mutateProxies()
+                    }}
+                    variant="light"
+                    className="h-[24px] w-[24px] min-w-[24px] p-0 text-xs"
+                  >
+                    <FaMapPin className="text-xs le" />
+                  </Button>
+                )}
+                <Button
+                  isIconOnly
+                  title={proxy.type}
+                  isLoading={loading}
+                  color={delayColor(delay)}
+                  onPress={onDelay}
+                  variant="light"
+                  className="h-[32px] w-[32px] min-w-[32px] p-0 text-xs"
+                >
+                  {delayText(delay)}
+                </Button>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="text-ellipsis overflow-hidden whitespace-nowrap">
+                <div className="flag-emoji inline" title={proxy.name}>
+                  {proxy.name}
+                </div>
+                {proxyDisplayMode === 'full' && proxyDisplayLayout === 'single' && (
+                  <div className="inline ml-2 text-foreground-500" title={proxy.type}>
+                    {proxy.type}
+                  </div>
+                )}
+              </div>
+              <div className="flex items-center gap-0.5 shrink-0">
+                {fixed && (
+                  <div className="flex items-center">
+                    <Button
+                      isIconOnly
+                      title="取消固定"
+                      color="danger"
+                      onPress={async () => {
+                        await mihomoUnfixedProxy(group.name)
+                        mutateProxies()
+                      }}
+                      variant="light"
+                      className="h-[24px] w-[24px] min-w-[24px] p-0 text-xs"
+                    >
+                      <FaMapPin className="text-xs le" />
+                    </Button>
+                  </div>
+                )}
+                <div className="flex items-center">
+                  <Button
+                    isIconOnly
+                    title={proxy.type}
+                    isLoading={loading}
+                    color={delayColor(delay)}
+                    onPress={onDelay}
+                    variant="light"
+                    className="h-full w-[32px] min-w-[32px] p-0 text-sm"
+                  >
+                    {delayText(delay)}
+                  </Button>
+                </div>
+              </div>
+            </>
+          )}
         </div>
       </CardBody>
     </Card>

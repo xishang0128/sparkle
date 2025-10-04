@@ -28,6 +28,8 @@ const Proxies: React.FC = () => {
   const { appConfig, patchAppConfig } = useAppConfig()
   const {
     proxyDisplayMode = 'simple',
+    proxyDisplayLayout = 'double',
+    groupDisplayLayout = 'double',
     proxyDisplayOrder = 'default',
     autoCloseConnection = true,
     proxyCols = 'auto',
@@ -251,14 +253,27 @@ const Proxies: React.FC = () => {
                     />
                   ) : null}
                   <div
-                    className={`flex flex-col h-full ${proxyDisplayMode === 'full' ? '' : 'justify-center'}`}
+                    className={`flex flex-col h-full ${proxyDisplayMode === 'full' && groupDisplayLayout === 'double' ? '' : 'justify-center'}`}
                   >
                     <div
-                      className={`text-ellipsis overflow-hidden whitespace-nowrap leading-tight ${proxyDisplayMode === 'full' ? 'text-md flex-5 flex items-center' : 'text-lg'}`}
+                      className={`text-ellipsis overflow-hidden whitespace-nowrap leading-tight ${proxyDisplayMode === 'full' && groupDisplayLayout === 'double' ? 'text-md flex-5 flex items-center' : 'text-lg'}`}
                     >
                       <span className="flag-emoji inline-block">{groups[index].name}</span>
+                      {proxyDisplayMode === 'full' && groupDisplayLayout === 'single' && (
+                        <>
+                          <div
+                            title={groups[index].type}
+                            className="inline ml-2 text-sm text-foreground-500"
+                          >
+                            {groups[index].type}
+                          </div>
+                          <div className="inline flag-emoji ml-2 text-sm text-foreground-500">
+                            {groups[index].now}
+                          </div>
+                        </>
+                      )}
                     </div>
-                    {proxyDisplayMode === 'full' && (
+                    {proxyDisplayMode === 'full' && groupDisplayLayout === 'double' && (
                       <div className="text-ellipsis whitespace-nowrap text-[10px] text-foreground-500 leading-tight flex-3 flex items-center">
                         <span>{groups[index].type}</span>
                         <span className="flag-emoji ml-1 inline-block">{groups[index].now}</span>
@@ -351,6 +366,7 @@ const Proxies: React.FC = () => {
                 proxy={allProxies[groupIndex][innerIndex * cols + i]}
                 group={groups[groupIndex]}
                 proxyDisplayMode={proxyDisplayMode}
+                proxyDisplayLayout={proxyDisplayLayout}
                 selected={
                   allProxies[groupIndex][innerIndex * cols + i]?.name === groups[groupIndex].now
                 }
