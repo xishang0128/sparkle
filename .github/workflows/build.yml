@@ -120,7 +120,7 @@ jobs:
           export electron_use_remote_checksums=1
           SKIP_PREPARE=1 pnpm install electron@37.2.5 -D
           pnpm remove electron-builder
-          SKIP_PREPARE=1 pnpm install @loongdotjs/electron-builder@26.0.12 -D
+          SKIP_PREPARE=1 pnpm install @loongdotjs/electron-builder@26.0.12-1 -D
 
       - name: Install Dependencies and Prepare
         env:
@@ -159,7 +159,7 @@ jobs:
           Get-ChildItem dist/*portable.7z | ForEach-Object {
             7z a $_.FullName PORTABLE
           }
-      
+
       - name: Magic build for AOSC OS(loongarch64)
         if: matrix.os == 'ubuntu-latest' && matrix.format == 'deb' && matrix.arch == 'loong64'
         shell: bash
@@ -172,15 +172,6 @@ jobs:
           dpkg-deb -b workdir dist/sparkle-linux-${VERSION}-loongarch64.deb
           rm -rf workdir
 
-      ## Waiting for loogdotjs@electron-builder fix it
-      - name: Make sure rpm show correct loongarch64 architecture name 
-        if: matrix.os == 'ubuntu-latest' && matrix.format == 'rpm' && matrix.arch == 'loong64'
-        shell: bash
-        run: |
-          set -e
-          VERSION=$(jq -r '.version' package.json)
-          mv dist/sparkle-linux-${VERSION}-loong64.rpm dist/sparkle-linux-${VERSION}-loongarch64.rpm
-          
       - name: Create Changelog
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
