@@ -2,7 +2,6 @@ import { ChildProcess, exec, execFile, spawn } from 'child_process'
 import {
   dataDir,
   logPath,
-  mihomoCoreDir,
   mihomoCorePath,
   mihomoProfileWorkDir,
   mihomoTestDir,
@@ -30,7 +29,6 @@ import {
   patchMihomoConfig,
   mihomoGroups
 } from './mihomoApi'
-import chokidar from 'chokidar'
 import { readFile, rm, writeFile } from 'fs/promises'
 import { promisify } from 'util'
 import { mainWindow } from '..'
@@ -40,15 +38,6 @@ import { createWriteStream, existsSync } from 'fs'
 import { uploadRuntimeConfig } from '../resolve/gistApi'
 import { startMonitor } from '../resolve/trafficMonitor'
 import { disableSysProxy, triggerSysProxy } from '../sys/sysproxy'
-
-chokidar.watch(path.join(mihomoCoreDir(), 'meta-update'), {}).on('unlinkDir', async () => {
-  try {
-    await stopCore(true)
-    await startCore()
-  } catch (e) {
-    dialog.showErrorBox('内核启动出错', `${e}`)
-  }
-})
 
 export const mihomoIpcPath =
   process.platform === 'win32' ? '\\\\.\\pipe\\Sparkle\\mihomo' : '/tmp/sparkle.sock'
@@ -155,6 +144,15 @@ export async function startCore(detached = false): Promise<Promise<void>[]> {
         (process.platform === 'win32' && str.includes('External controller pipe listen error'))
       ) {
         reject(`控制器监听错误:\n${str}`)
+      }
+
+      if (process.platform === 'win32' && str.includes('updater: finished')) {
+        try {
+          await stopCore(true)
+          await startCore()
+        } catch (e) {
+          dialog.showErrorBox('内核启动出错', `${e}`)
+        }
       }
 
       if (
