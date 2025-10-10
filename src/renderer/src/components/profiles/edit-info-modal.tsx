@@ -114,6 +114,15 @@ const EditInfoModal: React.FC<Props> = (props) => {
                   }}
                 />
               </SettingItem>
+              <SettingItem title="验证订阅格式">
+                <Switch
+                  size="sm"
+                  isSelected={values.verify ?? false}
+                  onValueChange={(v) => {
+                    setValues({ ...values, verify: v })
+                  }}
+                />
+              </SettingItem>
               <SettingItem title="使用代理更新">
                 <Switch
                   size="sm"

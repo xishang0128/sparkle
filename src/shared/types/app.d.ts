@@ -122,6 +122,7 @@ interface ProfileItem {
   fingerprint?: string // remote
   ua?: string // remote
   file?: string // local
+  verify?: boolean // remote
   interval?: number
   home?: string
   updated?: number

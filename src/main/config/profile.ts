@@ -122,6 +122,7 @@ export async function createProfile(item: Partial<ProfileItem>): Promise<Profile
     url: item.url,
     fingerprint: item.fingerprint,
     ua: item.ua,
+    verify: item.verify ?? false,
     substore: item.substore || false,
     interval: item.interval || 0,
     override: item.override || [],
@@ -211,6 +212,13 @@ export async function createProfile(item: Partial<ProfileItem>): Promise<Profile
       }
       if (headers['subscription-userinfo']) {
         newItem.extra = parseSubinfo(headers['subscription-userinfo'])
+      }
+      if (newItem.verify) {
+        try {
+          parseYaml<MihomoConfig>(data)
+        } catch (error) {
+          throw new Error('订阅格式错误，无法解析为有效的配置文件\n' + (error as Error).message)
+        }
       }
       await setProfileStr(id, data)
       break
