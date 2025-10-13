@@ -1,7 +1,7 @@
 import fs from 'fs'
 import path from 'path'
 import plist from 'plist'
-import { findBestAppPath, isIOSApp } from './image'
+import { findBestAppPath, isIOSApp } from './icon'
 import { spawnSync } from 'child_process'
 
 export async function getAppName(appPath: string): Promise<string> {

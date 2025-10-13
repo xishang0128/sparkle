@@ -303,13 +303,15 @@ const Connections: React.FC = () => {
 
     const visibleConnections = filteredConnections.slice(0, 20)
     visibleConnections.forEach((c) => {
-      if (c.metadata.processPath) visiblePaths.add(c.metadata.processPath)
+      const path = c.metadata.processPath || ''
+      visiblePaths.add(path)
     })
 
     const collectPaths = (connections: ControllerConnectionDetail[]) => {
       for (const c of connections) {
-        if (c.metadata.processPath && !visiblePaths.has(c.metadata.processPath)) {
-          otherPaths.add(c.metadata.processPath)
+        const path = c.metadata.processPath || ''
+        if (!visiblePaths.has(path)) {
+          otherPaths.add(path)
         }
       }
     }
@@ -374,8 +376,7 @@ const Connections: React.FC = () => {
     filteredConnections,
     processIconQueue,
     processAppNameQueue,
-    displayAppName,
-    findProcessMode
+    displayAppName
   ])
 
   const handleTabChange = useCallback((key: Key) => {
@@ -405,11 +406,13 @@ const Connections: React.FC = () => {
 
   const renderConnectionItem = useCallback(
     (i: number, connection: ControllerConnectionDetail) => {
-      const pathKey = connection.metadata.processPath || ''
-      const iconUrl =
-        displayIcon && findProcessMode !== 'off' && pathKey ? iconMap[pathKey] || '' : ''
+      const path = connection.metadata.processPath || ''
+      const iconUrl = (displayIcon && findProcessMode !== 'off' && iconMap[path]) || ''
       const itemKey = i === 0 ? `${connection.id}-${firstItemRefreshTrigger}` : connection.id
-      const displayName = displayAppName && pathKey ? appNameCache[pathKey] : undefined
+      const displayName =
+        displayAppName && connection.metadata.processPath
+          ? appNameCache[connection.metadata.processPath]
+          : undefined
 
       return (
         <ConnectionItem
