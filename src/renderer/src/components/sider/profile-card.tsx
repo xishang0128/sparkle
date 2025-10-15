@@ -125,7 +125,7 @@ const ProfileCard: React.FC<Props> = (props) => {
                   />
                 </Button>
                 {info.type === 'remote' && (
-                  <Tooltip placement="left" content={dayjs(info.updated).fromNow()}>
+                  <Tooltip delay={1000} placement="left" content={dayjs(info.updated).fromNow()}>
                     <Button
                       isIconOnly
                       size="sm"
