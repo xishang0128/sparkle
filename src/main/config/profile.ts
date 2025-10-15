@@ -7,8 +7,10 @@ import { getAppConfig } from './app'
 import { existsSync } from 'fs'
 import axios, { AxiosResponse } from 'axios'
 import https from 'https'
+import http from 'http'
 import tls from 'tls'
 import crypto from 'crypto'
+import { URL } from 'url'
 import { parseYaml, stringifyYaml } from '../utils/yaml'
 import { defaultProfile } from '../utils/template'
 import { subStorePort } from '../resolve/server'
@@ -151,31 +153,64 @@ export async function createProfile(item: Partial<ProfileItem>): Promise<Profile
         })
       } else {
         try {
-          res = await axios.get(item.url, {
-            httpsAgent: new https.Agent({
-              checkServerIdentity: (hostname, cert) => {
-                if (item.fingerprint) {
-                  const fingerprint = getCertFingerprint(cert)
-                  if (fingerprint !== item.fingerprint.replace(/:/g, '').toUpperCase()) {
-                    return new Error(`Certificate verification failed for ${hostname}`)
-                  }
-                  return undefined
-                }
+          const httpsAgent = new https.Agent({ rejectUnauthorized: !item.fingerprint })
 
-                return tls.checkServerIdentity(hostname, cert)
-              }
-            }),
-            ...(newItem.useProxy &&
-              mixedPort != 0 && {
-                proxy: {
-                  protocol: 'http',
+          if (item.fingerprint) {
+            const expected = item.fingerprint.replace(/:/g, '').toUpperCase()
+            const verify = (s: tls.TLSSocket) => {
+              if (getCertFingerprint(s.getPeerCertificate()) !== expected)
+                s.destroy(new Error('证书指纹不匹配'))
+            }
+
+            if (newItem.useProxy && mixedPort != 0) {
+              const urlObj = new URL(item.url)
+              const hostname = urlObj.hostname
+              const port = urlObj.port || '443'
+              httpsAgent.createConnection = (_, cb) => {
+                const req = http.request({
                   host: '127.0.0.1',
-                  port: mixedPort
-                }
+                  port: mixedPort,
+                  method: 'CONNECT',
+                  path: `${hostname}:${port}`
+                })
+
+                req.on('connect', (res, sock, head) => {
+                  if (res.statusCode !== 200) {
+                    cb?.(new Error(`代理连接失败，状态码：${res.statusCode}`), null!)
+                    return
+                  }
+                  if (head.length > 0) sock.unshift(head)
+                  const tls$ = tls.connect(
+                    { socket: sock, servername: hostname, rejectUnauthorized: false },
+                    () => verify(tls$)
+                  )
+                  cb?.(null, tls$)
+                })
+
+                req.on('error', (e) => cb?.(e, null!))
+                req.end()
+                return null!
+              }
+            } else {
+              const conn = httpsAgent.createConnection.bind(httpsAgent)
+              httpsAgent.createConnection = (o, c) => {
+                const sock = conn(o, c)
+                sock?.once('secureConnect', function (this: tls.TLSSocket) {
+                  verify(this)
+                })
+                return sock
+              }
+            }
+          }
+
+          res = await axios.get(item.url, {
+            httpsAgent,
+            ...(newItem.useProxy &&
+              mixedPort &&
+              !item.fingerprint && {
+                proxy: { protocol: 'http', host: '127.0.0.1', port: mixedPort }
               }),
-            headers: {
-              'User-Agent': newItem.ua ? newItem.ua : await getUserAgent()
-            },
+            headers: { 'User-Agent': newItem.ua || (await getUserAgent()) },
             responseType: 'text'
           })
         } catch (error) {

@@ -4,6 +4,7 @@ import { readFile, writeFile, rm } from 'fs/promises'
 import { existsSync } from 'fs'
 import axios, { AxiosResponse } from 'axios'
 import https from 'https'
+import http from 'http'
 import tls from 'tls'
 import { parseYaml, stringifyYaml } from '../utils/yaml'
 import { getCertFingerprint } from './profile'
@@ -75,26 +76,62 @@ export async function createOverride(item: Partial<OverrideItem>): Promise<Overr
       if (!item.url) throw new Error('Empty URL')
       let res: AxiosResponse
       try {
-        res = await axios.get(item.url, {
-          httpsAgent: new https.Agent({
-            checkServerIdentity: (hostname, cert) => {
-              if (item.fingerprint) {
-                const fingerprint = getCertFingerprint(cert)
-                if (fingerprint !== item.fingerprint.replace(/:/g, '').toUpperCase()) {
-                  throw new Error(`Certificate verification failed for ${hostname}`)
+        const httpsAgent = new https.Agent({ rejectUnauthorized: !item.fingerprint })
+
+        if (item.fingerprint) {
+          const expected = item.fingerprint.replace(/:/g, '').toUpperCase()
+          const verify = (s: tls.TLSSocket) => {
+            if (getCertFingerprint(s.getPeerCertificate()) !== expected)
+              s.destroy(new Error('证书指纹不匹配'))
+          }
+
+          if (mixedPort != 0) {
+            const urlObj = new URL(item.url)
+            const hostname = urlObj.hostname
+            const port = urlObj.port || '443'
+            httpsAgent.createConnection = (_, cb) => {
+              const req = http.request({
+                host: '127.0.0.1',
+                port: mixedPort,
+                method: 'CONNECT',
+                path: `${hostname}:${port}`
+              })
+
+              req.on('connect', (res, sock, head) => {
+                if (res.statusCode !== 200) {
+                  cb?.(new Error(`代理连接失败，状态码：${res.statusCode}`), null!)
+                  return
                 }
-                return undefined
-              }
-              return tls.checkServerIdentity(hostname, cert)
+                if (head.length > 0) sock.unshift(head)
+                const tls$ = tls.connect(
+                  { socket: sock, servername: hostname, rejectUnauthorized: false },
+                  () => verify(tls$)
+                )
+                cb?.(null, tls$)
+              })
+
+              req.on('error', (e) => cb?.(e, null!))
+              req.end()
+              return null!
             }
-          }),
-          ...(mixedPort != 0 && {
-            proxy: {
-              protocol: 'http',
-              host: '127.0.0.1',
-              port: mixedPort
+          } else {
+            const conn = httpsAgent.createConnection.bind(httpsAgent)
+            httpsAgent.createConnection = (o, c) => {
+              const sock = conn(o, c)
+              sock?.once('secureConnect', function (this: tls.TLSSocket) {
+                verify(this)
+              })
+              return sock
             }
-          }),
+          }
+        }
+
+        res = await axios.get(item.url, {
+          httpsAgent,
+          ...(mixedPort != 0 &&
+            !item.fingerprint && {
+              proxy: { protocol: 'http', host: '127.0.0.1', port: mixedPort }
+            }),
           responseType: 'text'
         })
       } catch (error) {
