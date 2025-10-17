@@ -62,8 +62,11 @@ export function mihomoCoreDir(): string {
 }
 
 export function mihomoCorePath(core: string): string {
-  const isWin = process.platform === 'win32'
-  return path.join(mihomoCoreDir(), `${core}${isWin ? '.exe' : ''}`)
+  if (core === 'mihomo' || core === 'mihomo-alpha') {
+    const isWin = process.platform === 'win32'
+    return path.join(mihomoCoreDir(), `${core}${isWin ? '.exe' : ''}`)
+  }
+  throw new Error('内核路径错误')
 }
 
 export function sysproxyPath(): string {
