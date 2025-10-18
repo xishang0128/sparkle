@@ -164,7 +164,13 @@ const ProfileItem: React.FC<Props> = (props) => {
         zIndex: isDragging ? 'calc(infinity)' : undefined
       }}
     >
-      {openFileEditor && <EditFileModal id={info.id} onClose={() => setOpenFileEditor(false)} />}
+      {openFileEditor && (
+        <EditFileModal
+          id={info.id}
+          isRemote={info.type === 'remote'}
+          onClose={() => setOpenFileEditor(false)}
+        />
+      )}
       {openInfoEditor && (
         <EditInfoModal
           item={info}

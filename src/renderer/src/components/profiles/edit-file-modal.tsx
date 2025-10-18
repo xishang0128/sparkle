@@ -7,6 +7,7 @@ import { useAppConfig } from '@renderer/hooks/use-app-config'
 
 interface Props {
   id: string
+  isRemote: boolean
   onClose: () => void
 }
 
@@ -42,21 +43,23 @@ const EditFileModal: React.FC<Props> = (props) => {
         <ModalHeader className="flex pb-0 app-drag">
           <div className="flex justify-start">
             <div className="flex items-center">编辑订阅</div>
-            <small className="ml-2 text-foreground-500">
-              注意：此处编辑配置更新订阅后会还原，如需要自定义配置请使用
-              <Button
-                size="sm"
-                color="primary"
-                variant="light"
-                className="app-nodrag"
-                onPress={() => {
-                  navigate('/override')
-                }}
-              >
-                覆写
-              </Button>
-              功能
-            </small>
+            {props.isRemote && (
+              <small className="ml-2 text-foreground-500">
+                注意：此处编辑配置更新订阅后会还原，如需要自定义配置请使用
+                <Button
+                  size="sm"
+                  color="primary"
+                  variant="light"
+                  className="app-nodrag"
+                  onPress={() => {
+                    navigate('/override')
+                  }}
+                >
+                  覆写
+                </Button>
+                功能
+              </small>
+            )}
           </div>
         </ModalHeader>
         <ModalBody className="h-full">
