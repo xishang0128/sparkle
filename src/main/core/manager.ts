@@ -415,6 +415,40 @@ export async function manualGrantCorePermition(): Promise<void> {
   }
 }
 
+export async function checkCorePermission(): Promise<boolean> {
+  const { core = 'mihomo' } = await getAppConfig()
+  const corePath = mihomoCorePath(core)
+  const execPromise = promisify(exec)
+
+  try {
+    const { stdout } = await execPromise(`ls -l "${corePath}"`)
+    const permissions = stdout.trim().split(/\s+/)[0]
+    return permissions.includes('s') || permissions.includes('S')
+  } catch (error) {
+    return false
+  }
+}
+
+export async function revokeCorePermission(): Promise<void> {
+  const { core = 'mihomo' } = await getAppConfig()
+  const corePath = mihomoCorePath(core)
+  const execPromise = promisify(exec)
+  const execFilePromise = promisify(execFile)
+
+  if (process.platform === 'darwin') {
+    const shell = `chmod a-s ${corePath.replace(' ', '\\\\ ')} && rm -f ${mihomoIpcPath}`
+    const command = `do shell script "${shell}" with administrator privileges`
+    await execPromise(`osascript -e '${command}'`)
+  }
+  if (process.platform === 'linux') {
+    await execFilePromise('pkexec', [
+      'bash',
+      '-c',
+      `chmod a-s "${corePath}" && rm -f "${mihomoIpcPath}"`
+    ])
+  }
+}
+
 export async function getDefaultDevice(): Promise<string> {
   const execPromise = promisify(exec)
   const { stdout: deviceOut } = await execPromise(`route -n get default`)

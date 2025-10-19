@@ -19,7 +19,11 @@ const TunSwitcher: React.FC<Props> = (props) => {
   const navigate = useNavigate()
   const match = location.pathname.includes('/tun') || false
   const { appConfig } = useAppConfig()
-  const { tunCardStatus = 'col-span-1', disableAnimation = false } = appConfig || {}
+  const {
+    tunCardStatus = 'col-span-1',
+    disableAnimation = false,
+    corePermissionMode = 'elevated'
+  } = appConfig || {}
   const { controledMihomoConfig, patchControledMihomoConfig } = useControledMihomoConfig()
   const { tun } = controledMihomoConfig || {}
   const { enable } = tun || {}
@@ -98,6 +102,7 @@ const TunSwitcher: React.FC<Props> = (props) => {
               isShowBorder={match && enable}
               isSelected={enable}
               onValueChange={onChange}
+              isDisabled={corePermissionMode === 'none'}
             />
           </div>
         </CardBody>

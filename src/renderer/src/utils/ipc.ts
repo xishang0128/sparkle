@@ -237,6 +237,14 @@ export async function manualGrantCorePermition(): Promise<void> {
   return ipcErrorWrapper(await window.electron.ipcRenderer.invoke('manualGrantCorePermition'))
 }
 
+export async function checkCorePermission(): Promise<boolean> {
+  return ipcErrorWrapper(await window.electron.ipcRenderer.invoke('checkCorePermission'))
+}
+
+export async function revokeCorePermission(): Promise<void> {
+  return ipcErrorWrapper(await window.electron.ipcRenderer.invoke('revokeCorePermission'))
+}
+
 export async function getFilePath(ext: string[]): Promise<string[] | undefined> {
   return ipcErrorWrapper(await window.electron.ipcRenderer.invoke('getFilePath', ext))
 }

@@ -61,7 +61,9 @@ import {
   quitWithoutCore,
   restartCore,
   startNetworkDetection,
-  stopNetworkDetection
+  stopNetworkDetection,
+  revokeCorePermission,
+  checkCorePermission
 } from '../core/manager'
 import { isHelperInstalled, restartHelper, triggerSysProxy } from '../sys/sysproxy'
 import { checkUpdate, downloadAndInstallUpdate, cancelUpdate } from '../resolve/autoUpdater'
@@ -198,6 +200,8 @@ export function registerIpcMainHandlers(): void {
   ipcMain.handle('restartHelper', ipcErrorWrapper(restartHelper))
   ipcMain.handle('isHelperInstalled', ipcErrorWrapper(isHelperInstalled))
   ipcMain.handle('manualGrantCorePermition', () => ipcErrorWrapper(manualGrantCorePermition)())
+  ipcMain.handle('checkCorePermission', () => ipcErrorWrapper(checkCorePermission)())
+  ipcMain.handle('revokeCorePermission', () => ipcErrorWrapper(revokeCorePermission)())
   ipcMain.handle('getFilePath', (_e, ext) => getFilePath(ext))
   ipcMain.handle('readTextFile', (_e, filePath) => ipcErrorWrapper(readTextFile)(filePath))
   ipcMain.handle('getRuntimeConfigStr', ipcErrorWrapper(getRuntimeConfigStr))

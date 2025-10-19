@@ -2,13 +2,20 @@ import { Button, Input, Select, SelectItem, Switch, Tab, Tabs } from '@heroui/re
 import BasePage from '@renderer/components/base/base-page'
 import SettingCard from '@renderer/components/base/base-setting-card'
 import SettingItem from '@renderer/components/base/base-setting-item'
+import ConfirmModal from '@renderer/components/base/base-confirm'
 import { useAppConfig } from '@renderer/hooks/use-app-config'
 import { useControledMihomoConfig } from '@renderer/hooks/use-controled-mihomo-config'
 import PortSetting from '@renderer/components/mihomo/port-setting'
 import { platform } from '@renderer/utils/init'
 import { IoMdCloudDownload } from 'react-icons/io'
 import PubSub from 'pubsub-js'
-import { manualGrantCorePermition, mihomoUpgrade, restartCore } from '@renderer/utils/ipc'
+import {
+  manualGrantCorePermition,
+  mihomoUpgrade,
+  restartCore,
+  revokeCorePermission,
+  checkCorePermission
+} from '@renderer/utils/ipc'
 import React, { useState } from 'react'
 import ControllerSetting from '@renderer/components/mihomo/controller-setting'
 import EnvSetting from '@renderer/components/mihomo/env-setting'
@@ -21,6 +28,8 @@ const Mihomo: React.FC = () => {
   const { ipv6, 'log-level': logLevel = 'info' } = controledMihomoConfig || {}
 
   const [upgrading, setUpgrading] = useState(false)
+  const [showUnGrantConfirm, setShowUnGrantConfirm] = useState(false)
+  const [pendingPermissionMode, setPendingPermissionMode] = useState<string>('')
 
   const onChangeNeedRestart = async (patch: Partial<MihomoConfig>): Promise<void> => {
     await patchControledMihomoConfig(patch)
@@ -40,6 +49,28 @@ const Mihomo: React.FC = () => {
 
   return (
     <BasePage title="内核设置">
+      {showUnGrantConfirm && (
+        <ConfirmModal
+          onChange={setShowUnGrantConfirm}
+          title="确认撤销内核权限？"
+          description="撤销内核权限后，虚拟网卡等功能可能无法正常工作。确定要继续吗？"
+          confirmText="确认撤销"
+          cancelText="取消"
+          onConfirm={async () => {
+            try {
+              await revokeCorePermission()
+              await patchAppConfig({
+                corePermissionMode: pendingPermissionMode as 'none' | 'elevated' | 'service'
+              })
+              await patchControledMihomoConfig({ tun: { enable: false } })
+              new Notification('内核权限已撤销')
+              await restartCore()
+            } catch (e) {
+              alert(e)
+            }
+          }}
+        />
+      )}
       <SettingCard>
         <SettingItem
           title="内核版本"
@@ -95,20 +126,22 @@ const Mihomo: React.FC = () => {
             size="sm"
             color="primary"
             selectedKey={corePermissionMode}
-            onSelectionChange={(key) => {
-              switch (key) {
-                case 'none':
-                  break
-                case 'elevated':
-                  break
-                case 'service':
-                  break
+            onSelectionChange={async (key) => {
+              if (key !== 'elevated' && corePermissionMode === 'elevated') {
+                const hasSuid = await checkCorePermission()
+                if (hasSuid) {
+                  setPendingPermissionMode(key as string)
+                  setShowUnGrantConfirm(true)
+                } else {
+                  patchAppConfig({ corePermissionMode: key as 'none' | 'elevated' | 'service' })
+                }
+              } else {
+                patchAppConfig({ corePermissionMode: key as 'none' | 'elevated' | 'service' })
               }
-              patchAppConfig({ corePermissionMode: key as 'none' | 'elevated' | 'service' })
             }}
           >
             <Tab key="none" title="无" />
-            <Tab key="elevated" title="提权运行" />
+            <Tab key="elevated" title="授权运行" />
             <Tab key="service" title="系统服务" />
           </Tabs>
         </SettingItem>
