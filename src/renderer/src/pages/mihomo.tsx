@@ -1,4 +1,4 @@
-import { Button, Input, Select, SelectItem, Switch } from '@heroui/react'
+import { Button, Input, Select, SelectItem, Switch, Tab, Tabs } from '@heroui/react'
 import BasePage from '@renderer/components/base/base-page'
 import SettingCard from '@renderer/components/base/base-setting-card'
 import SettingItem from '@renderer/components/base/base-setting-item'
@@ -14,14 +14,9 @@ import ControllerSetting from '@renderer/components/mihomo/controller-setting'
 import EnvSetting from '@renderer/components/mihomo/env-setting'
 import AdvancedSetting from '@renderer/components/mihomo/advanced-settings'
 
-const CoreMap = {
-  mihomo: '稳定版',
-  'mihomo-alpha': '预览版'
-}
-
 const Mihomo: React.FC = () => {
   const { appConfig, patchAppConfig } = useAppConfig()
-  const { core = 'mihomo', maxLogDays = 7 } = appConfig || {}
+  const { core = 'mihomo', maxLogDays = 7, corePermissionMode = 'elevated' } = appConfig || {}
   const { controledMihomoConfig, patchControledMihomoConfig } = useControledMihomoConfig()
   const { ipv6, 'log-level': logLevel = 'info' } = controledMihomoConfig || {}
 
@@ -49,38 +44,40 @@ const Mihomo: React.FC = () => {
         <SettingItem
           title="内核版本"
           actions={
-            <Button
-              size="sm"
-              isIconOnly
-              title="升级内核"
-              variant="light"
-              isLoading={upgrading}
-              onPress={async () => {
-                try {
-                  setUpgrading(true)
-                  await mihomoUpgrade()
-                  setTimeout(() => {
-                    PubSub.publish('mihomo-core-changed')
-                  }, 2000)
-                } catch (e) {
-                  if (typeof e === 'string' && e.includes('already using latest version')) {
-                    new Notification('已经是最新版本')
-                  } else {
-                    alert(e)
+            core === 'mihomo' || core === 'mihomo-alpha' ? (
+              <Button
+                size="sm"
+                isIconOnly
+                title="升级内核"
+                variant="light"
+                isLoading={upgrading}
+                onPress={async () => {
+                  try {
+                    setUpgrading(true)
+                    await mihomoUpgrade()
+                    setTimeout(() => {
+                      PubSub.publish('mihomo-core-changed')
+                    }, 2000)
+                  } catch (e) {
+                    if (typeof e === 'string' && e.includes('already using latest version')) {
+                      new Notification('已经是最新版本')
+                    } else {
+                      alert(e)
+                    }
+                  } finally {
+                    setUpgrading(false)
                   }
-                } finally {
-                  setUpgrading(false)
-                }
-              }}
-            >
-              <IoMdCloudDownload className="text-lg" />
-            </Button>
+                }}
+              >
+                <IoMdCloudDownload className="text-lg" />
+              </Button>
+            ) : null
           }
           divider
         >
           <Select
             classNames={{ trigger: 'data-[hover=true]:bg-default-200' }}
-            className="w-[100px]"
+            className="w-[150px]"
             size="sm"
             selectedKeys={new Set([core])}
             disallowEmptySelection={true}
@@ -88,11 +85,34 @@ const Mihomo: React.FC = () => {
               handleConfigChangeWithRestart('core', v.currentKey as 'mihomo' | 'mihomo-alpha')
             }}
           >
-            <SelectItem key="mihomo">{CoreMap['mihomo']}</SelectItem>
-            <SelectItem key="mihomo-alpha">{CoreMap['mihomo-alpha']}</SelectItem>
+            <SelectItem key="mihomo">内置稳定版</SelectItem>
+            <SelectItem key="mihomo-alpha">内置预览版</SelectItem>
+            {/* {platform === 'linux' ? <SelectItem key="system">系统提供</SelectItem> : null} */}
           </Select>
         </SettingItem>
-        {platform !== 'win32' && (
+        <SettingItem title="内核权限管理" divider>
+          <Tabs
+            size="sm"
+            color="primary"
+            selectedKey={corePermissionMode}
+            onSelectionChange={(key) => {
+              switch (key) {
+                case 'none':
+                  break
+                case 'elevated':
+                  break
+                case 'service':
+                  break
+              }
+              patchAppConfig({ corePermissionMode: key as 'none' | 'elevated' | 'service' })
+            }}
+          >
+            <Tab key="none" title="无" />
+            <Tab key="elevated" title="提权运行" />
+            <Tab key="service" title="系统服务" />
+          </Tabs>
+        </SettingItem>
+        {platform !== 'win32' && corePermissionMode === 'elevated' && (
           <SettingItem title="手动授权内核" divider>
             <Button
               size="sm"
@@ -108,6 +128,19 @@ const Mihomo: React.FC = () => {
               }}
             >
               授权内核
+            </Button>
+          </SettingItem>
+        )}
+        {corePermissionMode === 'service' && (
+          <SettingItem title="服务管理" divider>
+            <Button
+              size="sm"
+              color="primary"
+              onPress={async () => {
+                alert('该功能正在开发中')
+              }}
+            >
+              安装服务
             </Button>
           </SettingItem>
         )}

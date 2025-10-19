@@ -32,9 +32,23 @@ const ControllerSetting: React.FC = () => {
   const [upgrading, setUpgrading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
 
+  const upgradeUI = async (): Promise<void> => {
+    try {
+      setUpgrading(true)
+      await mihomoUpgradeUI()
+      new Notification('面板更新成功')
+    } catch (e) {
+      alert(e)
+    } finally {
+      setUpgrading(false)
+    }
+  }
   const onChangeNeedRestart = async (patch: Partial<MihomoConfig>): Promise<void> => {
     await patchControledMihomoConfig(patch)
     await restartCore()
+    setTimeout(async () => {
+      await upgradeUI()
+    }, 1000)
   }
   const generateRandomString = (length: number): string => {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
@@ -142,17 +156,7 @@ const ControllerSetting: React.FC = () => {
                     title="更新面板"
                     variant="light"
                     isLoading={upgrading}
-                    onPress={async () => {
-                      try {
-                        setUpgrading(true)
-                        await mihomoUpgradeUI()
-                        new Notification('面板更新成功')
-                      } catch (e) {
-                        alert(e)
-                      } finally {
-                        setUpgrading(false)
-                      }
-                    }}
+                    onPress={upgradeUI}
                   >
                     <IoMdCloudDownload className="text-lg" />
                   </Button>
