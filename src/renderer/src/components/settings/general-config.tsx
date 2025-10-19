@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import SettingCard from '../base/base-setting-card'
 import SettingItem from '../base/base-setting-item'
-import { Button, Input, Select, SelectItem, Switch, Tooltip } from '@heroui/react'
+import { Button, Input, Select, SelectItem, Switch, Tab, Tabs, Tooltip } from '@heroui/react'
 import { BiCopy } from 'react-icons/bi'
 import useSWR from 'swr'
 import {
@@ -107,19 +107,17 @@ const GeneralConfig: React.FC = () => {
           />
         </SettingItem>
         <SettingItem title="更新通道" divider>
-          <Select
-            classNames={{ trigger: 'data-[hover=true]:bg-default-200' }}
-            className="w-[150px]"
+          <Tabs
             size="sm"
-            disallowEmptySelection={true}
-            selectedKeys={new Set([updateChannel])}
+            color="primary"
+            selectedKey={updateChannel}
             onSelectionChange={async (v) => {
-              patchAppConfig({ updateChannel: v.currentKey as 'stable' | 'beta' })
+              patchAppConfig({ updateChannel: v as 'stable' | 'beta' })
             }}
           >
-            <SelectItem key="stable">正式版</SelectItem>
-            <SelectItem key="beta">测试版</SelectItem>
-          </Select>
+            <Tab key="stable" title="正式版" />
+            <Tab key="beta" title="测试版" />
+          </Tabs>
         </SettingItem>
         <SettingItem
           title="自动开启轻量模式"

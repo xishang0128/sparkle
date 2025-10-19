@@ -6,8 +6,8 @@ import { FaMapPin } from 'react-icons/fa6'
 interface Props {
   mutateProxies: () => void
   onProxyDelay: (proxy: string, url?: string) => Promise<ControllerProxiesDelay>
-  proxyDisplayMode: 'simple' | 'full'
-  proxyDisplayLayout: 'single' | 'double'
+  proxyDisplayMode: 'hidden' | 'simple' | 'full'
+  proxyDisplayLayout: 'hidden' | 'single' | 'double'
   proxy: ControllerProxiesDetail | ControllerGroupDetail
   group: ControllerMixedGroup
   onSelect: (group: string, proxy: string) => void
