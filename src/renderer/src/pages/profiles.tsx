@@ -177,7 +177,14 @@ const Profiles: React.FC = () => {
       event.stopPropagation()
       if (event.dataTransfer?.files) {
         const file = event.dataTransfer.files[0]
-        if (file.name.endsWith('.yml') || file.name.endsWith('.yaml')) {
+        if (
+          file.name.endsWith('.yml') ||
+          file.name.endsWith('.yaml') ||
+          file.name.endsWith('.json') ||
+          file.name.endsWith('.jsonc') ||
+          file.name.endsWith('.json5') ||
+          file.name.endsWith('.txt')
+        ) {
           try {
             const path = window.api.webUtils.getPathForFile(file)
             const content = await readTextFile(path)
