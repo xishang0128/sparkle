@@ -2,6 +2,8 @@ import { is } from '@electron-toolkit/utils'
 import { existsSync, mkdirSync } from 'fs'
 import { app } from 'electron'
 import path from 'path'
+import { execSync } from 'child_process'
+import { getAppConfigSync } from '../config/app'
 
 export const homeDir = app.getPath('home')
 
@@ -57,6 +59,17 @@ export function themesDir(): string {
   return path.join(dataDir(), 'themes')
 }
 
+export function mihomoIpcPath(): string {
+  if (process.platform === 'win32') {
+    return '\\\\.\\pipe\\sparkle\\mihomo-api'
+  }
+  const { core = 'mihomo' } = getAppConfigSync()
+  if (core === 'system') {
+    return '/tmp/sparkle-mihomo-external.sock'
+  }
+  return '/tmp/sparkle-mihomo-api.sock'
+}
+
 export function mihomoCoreDir(): string {
   return path.join(resourcesDir(), 'sidecar')
 }
@@ -66,7 +79,15 @@ export function mihomoCorePath(core: string): string {
     const isWin = process.platform === 'win32'
     return path.join(mihomoCoreDir(), `${core}${isWin ? '.exe' : ''}`)
   }
+  if (core === 'system') {
+    return systemCorePath()
+  }
   throw new Error('内核路径错误')
+}
+
+function systemCorePath(): string {
+  const { systemCorePath = '' } = getAppConfigSync()
+  return systemCorePath
 }
 
 export function sysproxyPath(): string {
@@ -140,4 +161,205 @@ export function substoreLogPath(): string {
   const date = new Date()
   const name = `sub-store-${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`
   return path.join(logDir(), `${name}.log`)
+}
+
+function hasCommand(command: string): boolean {
+  try {
+    const isWin = process.platform === 'win32'
+    const whichCmd = isWin ? 'where' : 'which'
+    execSync(`${whichCmd} ${command}`, { encoding: 'utf8', stdio: 'pipe' })
+    return true
+  } catch (error) {
+    return false
+  }
+}
+
+export function findSystemMihomo(): string[] {
+  const isWin = process.platform === 'win32'
+  const isLinux = process.platform === 'linux'
+  const isMac = process.platform === 'darwin'
+  const foundPaths: string[] = []
+  const searchNames = ['mihomo', 'clash']
+
+  for (const name of searchNames) {
+    try {
+      const command = isWin ? 'where' : 'which'
+      const result = execSync(`${command} ${name}`, { encoding: 'utf8' }).trim()
+      if (result) {
+        const paths = result.split('\n').filter((p) => p && existsSync(p))
+        for (const p of paths) {
+          if (!foundPaths.includes(p)) {
+            foundPaths.push(p)
+          }
+        }
+      }
+    } catch (error) {
+      // ignore
+    }
+  }
+
+  if (!isWin) {
+    const commonDirs = [
+      '/usr/bin',
+      '/usr/local/bin',
+      path.join(homeDir, '.local/bin'),
+      path.join(homeDir, 'bin')
+    ]
+
+    for (const dir of commonDirs) {
+      if (existsSync(dir)) {
+        for (const name of searchNames) {
+          const binPath = path.join(dir, name)
+          if (existsSync(binPath) && !foundPaths.includes(binPath)) {
+            foundPaths.push(binPath)
+          }
+        }
+      }
+    }
+  }
+
+  if (isMac || isLinux) {
+    // Homebrew
+    if (hasCommand('brew')) {
+      for (const name of searchNames) {
+        try {
+          const result = execSync(`brew --prefix ${name} 2>/dev/null`, {
+            encoding: 'utf8'
+          }).trim()
+          if (result) {
+            const binPath = path.join(result, 'bin', name)
+            if (existsSync(binPath) && !foundPaths.includes(binPath)) {
+              foundPaths.push(binPath)
+            }
+          }
+        } catch (error) {
+          // ignore
+        }
+      }
+    }
+  }
+
+  if (isLinux) {
+    // Snap
+    if (hasCommand('snap')) {
+      for (const name of searchNames) {
+        try {
+          const result = execSync(`snap info ${name} 2>/dev/null | grep 'installed:'`, {
+            encoding: 'utf8'
+          }).trim()
+          if (result) {
+            const snapPath = `/snap/bin/${name}`
+            if (existsSync(snapPath) && !foundPaths.includes(snapPath)) {
+              foundPaths.push(snapPath)
+            }
+          }
+        } catch (error) {
+          // ignore
+        }
+      }
+    }
+
+    // Flatpak
+    if (hasCommand('flatpak')) {
+      for (const name of searchNames) {
+        try {
+          const result = execSync(`flatpak list --app --columns=application 2>/dev/null`, {
+            encoding: 'utf8'
+          }).trim()
+          if (result.includes(name)) {
+            const flatpakPath = path.join(homeDir, '.local/share/flatpak/exports/bin', name)
+            if (existsSync(flatpakPath) && !foundPaths.includes(flatpakPath)) {
+              foundPaths.push(flatpakPath)
+            }
+          }
+        } catch (error) {
+          // ignore
+        }
+      }
+    }
+
+    // apt/dpkg (Debian/Ubuntu)
+    if (hasCommand('dpkg')) {
+      for (const name of searchNames) {
+        try {
+          const result = execSync(`dpkg -L ${name} 2>/dev/null | grep bin/${name}$`, {
+            encoding: 'utf8'
+          }).trim()
+          if (result) {
+            const paths = result.split('\n').filter((p) => p && existsSync(p))
+            for (const p of paths) {
+              if (!foundPaths.includes(p)) {
+                foundPaths.push(p)
+              }
+            }
+          }
+        } catch (error) {
+          // ignore
+        }
+      }
+    }
+
+    // rpm/yum (RedHat/CentOS/Fedora)
+    if (hasCommand('rpm')) {
+      for (const name of searchNames) {
+        try {
+          const result = execSync(`rpm -ql ${name} 2>/dev/null | grep bin/${name}$`, {
+            encoding: 'utf8'
+          }).trim()
+          if (result) {
+            const paths = result.split('\n').filter((p) => p && existsSync(p))
+            for (const p of paths) {
+              if (!foundPaths.includes(p)) {
+                foundPaths.push(p)
+              }
+            }
+          }
+        } catch (error) {
+          // ignore
+        }
+      }
+    }
+
+    // pacman (Arch Linux)
+    if (hasCommand('pacman')) {
+      for (const name of searchNames) {
+        try {
+          const result = execSync(`pacman -Ql ${name} 2>/dev/null | grep bin/${name}$`, {
+            encoding: 'utf8'
+          }).trim()
+          if (result) {
+            const paths = result
+              .split('\n')
+              .map((line) => line.split(' ')[1])
+              .filter((p) => p && existsSync(p))
+            for (const p of paths) {
+              if (!foundPaths.includes(p)) {
+                foundPaths.push(p)
+              }
+            }
+          }
+        } catch (error) {
+          // ignore
+        }
+      }
+    }
+  }
+
+  if (isWin) {
+    // Scoop
+    if (hasCommand('scoop')) {
+      for (const name of searchNames) {
+        try {
+          const result = execSync(`scoop which ${name} 2>nul`, { encoding: 'utf8' }).trim()
+          if (result && existsSync(result) && !foundPaths.includes(result)) {
+            foundPaths.push(result)
+          }
+        } catch (error) {
+          // ignore
+        }
+      }
+    }
+  }
+
+  return Array.from(new Set(foundPaths))
 }

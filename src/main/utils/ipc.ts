@@ -76,6 +76,7 @@ import {
   setNativeTheme,
   setupFirewall
 } from '../sys/misc'
+import { findSystemMihomo } from '../utils/dirs'
 import {
   getRuntimeConfig,
   getRuntimeConfigStr,
@@ -202,6 +203,7 @@ export function registerIpcMainHandlers(): void {
   ipcMain.handle('manualGrantCorePermition', () => ipcErrorWrapper(manualGrantCorePermition)())
   ipcMain.handle('checkCorePermission', () => ipcErrorWrapper(checkCorePermission)())
   ipcMain.handle('revokeCorePermission', () => ipcErrorWrapper(revokeCorePermission)())
+  ipcMain.handle('findSystemMihomo', () => findSystemMihomo())
   ipcMain.handle('getFilePath', (_e, ext) => getFilePath(ext))
   ipcMain.handle('readTextFile', (_e, filePath) => ipcErrorWrapper(readTextFile)(filePath))
   ipcMain.handle('getRuntimeConfigStr', ipcErrorWrapper(getRuntimeConfigStr))

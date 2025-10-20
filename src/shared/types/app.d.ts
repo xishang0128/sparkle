@@ -18,7 +18,8 @@ interface IHost {
 
 interface AppConfig {
   updateChannel: 'stable' | 'beta'
-  core: 'mihomo' | 'mihomo-alpha'
+  core: 'mihomo' | 'mihomo-alpha' | 'system'
+  systemCorePath?: string
   corePermissionMode?: 'none' | 'elevated' | 'service'
   disableLoopbackDetector: boolean
   disableEmbedCA: boolean

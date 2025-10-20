@@ -245,6 +245,10 @@ export async function revokeCorePermission(): Promise<void> {
   return ipcErrorWrapper(await window.electron.ipcRenderer.invoke('revokeCorePermission'))
 }
 
+export async function findSystemMihomo(): Promise<string[]> {
+  return ipcErrorWrapper(await window.electron.ipcRenderer.invoke('findSystemMihomo'))
+}
+
 export async function getFilePath(ext: string[]): Promise<string[] | undefined> {
   return ipcErrorWrapper(await window.electron.ipcRenderer.invoke('getFilePath', ext))
 }

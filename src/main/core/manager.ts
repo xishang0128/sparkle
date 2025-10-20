@@ -3,6 +3,7 @@ import {
   dataDir,
   logPath,
   mihomoCorePath,
+  mihomoIpcPath,
   mihomoProfileWorkDir,
   mihomoTestDir,
   mihomoWorkConfigPath,
@@ -38,9 +39,8 @@ import { createWriteStream, existsSync } from 'fs'
 import { uploadRuntimeConfig } from '../resolve/gistApi'
 import { startMonitor } from '../resolve/trafficMonitor'
 import { disableSysProxy, triggerSysProxy } from '../sys/sysproxy'
+import { getAxios } from './mihomoApi'
 
-export const mihomoIpcPath =
-  process.platform === 'win32' ? '\\\\.\\pipe\\Sparkle\\mihomo' : '/tmp/sparkle.sock'
 const ctlParam = process.platform === 'win32' ? '-ext-ctl-pipe' : '-ext-ctl-unix'
 
 let setPublicDNSTimer: NodeJS.Timeout | null = null
@@ -99,7 +99,12 @@ export async function startCore(detached = false): Promise<Promise<void>[]> {
   let initialized = false
   child = spawn(
     corePath,
-    ['-d', diffWorkDir ? mihomoProfileWorkDir(current) : mihomoWorkDir(), ctlParam, mihomoIpcPath],
+    [
+      '-d',
+      diffWorkDir ? mihomoProfileWorkDir(current) : mihomoWorkDir(),
+      ctlParam,
+      mihomoIpcPath()
+    ],
     {
       detached: detached,
       stdio: detached ? 'ignore' : undefined,
@@ -242,6 +247,8 @@ export async function stopCore(force = false): Promise<void> {
     await stopChildProcess(child)
     child = undefined as unknown as ChildProcess
   }
+
+  await getAxios(true).catch(() => {})
 
   if (existsSync(path.join(dataDir(), 'core.pid'))) {
     const pidString = await readFile(path.join(dataDir(), 'core.pid'), 'utf-8')

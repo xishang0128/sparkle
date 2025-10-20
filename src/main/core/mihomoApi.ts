@@ -6,7 +6,7 @@ import { tray } from '../resolve/tray'
 import { calcTraffic } from '../utils/calc'
 import { getRuntimeConfig } from './factory'
 import { floatingWindow } from '../resolve/floatingWindow'
-import { mihomoIpcPath } from './manager'
+import { mihomoIpcPath } from '../utils/dirs'
 
 let axiosIns: AxiosInstance = null!
 let mihomoTrafficWs: WebSocket | null = null
@@ -19,11 +19,17 @@ let mihomoConnectionsWs: WebSocket | null = null
 let connectionsRetry = 10
 
 export const getAxios = async (force: boolean = false): Promise<AxiosInstance> => {
+  const currentSocketPath = mihomoIpcPath()
+
+  if (axiosIns && axiosIns.defaults.socketPath !== currentSocketPath) {
+    force = true
+  }
+
   if (axiosIns && !force) return axiosIns
 
   axiosIns = axios.create({
     baseURL: `http://localhost`,
-    socketPath: mihomoIpcPath,
+    socketPath: currentSocketPath,
     timeout: 15000
   })
 
@@ -217,7 +223,7 @@ export const stopMihomoTraffic = (): void => {
 }
 
 const mihomoTraffic = async (): Promise<void> => {
-  mihomoTrafficWs = new WebSocket(`ws+unix:${mihomoIpcPath}:/traffic`)
+  mihomoTrafficWs = new WebSocket(`ws+unix:${mihomoIpcPath()}:/traffic`)
 
   mihomoTrafficWs.onmessage = async (e): Promise<void> => {
     const data = e.data as string
@@ -269,7 +275,7 @@ export const stopMihomoMemory = (): void => {
 }
 
 const mihomoMemory = async (): Promise<void> => {
-  mihomoMemoryWs = new WebSocket(`ws+unix:${mihomoIpcPath}:/memory`)
+  mihomoMemoryWs = new WebSocket(`ws+unix:${mihomoIpcPath()}:/memory`)
 
   mihomoMemoryWs.onmessage = (e): void => {
     const data = e.data as string
@@ -313,7 +319,7 @@ export const stopMihomoLogs = (): void => {
 const mihomoLogs = async (): Promise<void> => {
   const { 'log-level': logLevel = 'info' } = await getControledMihomoConfig()
 
-  mihomoLogsWs = new WebSocket(`ws+unix:${mihomoIpcPath}:/logs?level=${logLevel}`)
+  mihomoLogsWs = new WebSocket(`ws+unix:${mihomoIpcPath()}:/logs?level=${logLevel}`)
 
   mihomoLogsWs.onmessage = (e): void => {
     const data = e.data as string
@@ -355,7 +361,7 @@ export const stopMihomoConnections = (): void => {
 }
 
 const mihomoConnections = async (): Promise<void> => {
-  mihomoConnectionsWs = new WebSocket(`ws+unix:${mihomoIpcPath}:/connections`)
+  mihomoConnectionsWs = new WebSocket(`ws+unix:${mihomoIpcPath()}:/connections`)
 
   mihomoConnectionsWs.onmessage = (e): void => {
     const data = e.data as string
