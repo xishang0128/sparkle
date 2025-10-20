@@ -3,6 +3,7 @@ import BasePage from '@renderer/components/base/base-page'
 import SettingCard from '@renderer/components/base/base-setting-card'
 import SettingItem from '@renderer/components/base/base-setting-item'
 import ConfirmModal from '@renderer/components/base/base-confirm'
+import PermissionModal from '@renderer/components/mihomo/permission-modal'
 import { useAppConfig } from '@renderer/hooks/use-app-config'
 import { useControledMihomoConfig } from '@renderer/hooks/use-controled-mihomo-config'
 import PortSetting from '@renderer/components/mihomo/port-setting'
@@ -62,6 +63,7 @@ const Mihomo: React.FC = () => {
 
   const [upgrading, setUpgrading] = useState(false)
   const [showUnGrantConfirm, setShowUnGrantConfirm] = useState(false)
+  const [showPermissionModal, setShowPermissionModal] = useState(false)
   const [pendingPermissionMode, setPendingPermissionMode] = useState<string>('')
   const [systemCorePaths, setSystemCorePaths] = useState<string[]>(systemCorePathsCache || [])
   const [loadingPaths, setLoadingPaths] = useState(systemCorePathsCache === null)
@@ -120,6 +122,21 @@ const Mihomo: React.FC = () => {
             } catch (e) {
               alert(e)
             }
+          }}
+        />
+      )}
+      {showPermissionModal && (
+        <PermissionModal
+          onChange={setShowPermissionModal}
+          onRevoke={async () => {
+            await revokeCorePermission()
+            new Notification('内核权限已撤销')
+            await restartCore()
+          }}
+          onGrant={async () => {
+            await manualGrantCorePermition()
+            new Notification('内核授权成功')
+            await restartCore()
           }}
         />
       )}
@@ -224,7 +241,7 @@ const Mihomo: React.FC = () => {
             )}
           </SettingItem>
         )}
-        <SettingItem title="内核权限管理" divider>
+        <SettingItem title="内核提权模式" divider>
           <Tabs
             size="sm"
             color="primary"
@@ -250,26 +267,14 @@ const Mihomo: React.FC = () => {
           </Tabs>
         </SettingItem>
         {platform !== 'win32' && corePermissionMode === 'elevated' && (
-          <SettingItem title="手动授权内核" divider>
-            <Button
-              size="sm"
-              color="primary"
-              onPress={async () => {
-                try {
-                  await manualGrantCorePermition()
-                  new Notification('内核授权成功')
-                  await restartCore()
-                } catch (e) {
-                  alert(e)
-                }
-              }}
-            >
-              授权内核
+          <SettingItem title="授权状态" divider>
+            <Button size="sm" color="primary" onPress={() => setShowPermissionModal(true)}>
+              管理
             </Button>
           </SettingItem>
         )}
         {corePermissionMode === 'service' && (
-          <SettingItem title="服务管理" divider>
+          <SettingItem title="服务状态" divider>
             <Button
               size="sm"
               color="primary"
