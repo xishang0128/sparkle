@@ -245,44 +245,6 @@ export function findSystemMihomo(): string[] {
   }
 
   if (isLinux) {
-    // Snap
-    if (hasCommand('snap')) {
-      for (const name of searchNames) {
-        try {
-          const result = execSync(`snap info ${name} 2>/dev/null | grep 'installed:'`, {
-            encoding: 'utf8'
-          }).trim()
-          if (result) {
-            const snapPath = `/snap/bin/${name}`
-            if (existsSync(snapPath) && !foundPaths.includes(snapPath)) {
-              foundPaths.push(snapPath)
-            }
-          }
-        } catch (error) {
-          // ignore
-        }
-      }
-    }
-
-    // Flatpak
-    if (hasCommand('flatpak')) {
-      for (const name of searchNames) {
-        try {
-          const result = execSync(`flatpak list --app --columns=application 2>/dev/null`, {
-            encoding: 'utf8'
-          }).trim()
-          if (result.includes(name)) {
-            const flatpakPath = path.join(homeDir, '.local/share/flatpak/exports/bin', name)
-            if (existsSync(flatpakPath) && !foundPaths.includes(flatpakPath)) {
-              foundPaths.push(flatpakPath)
-            }
-          }
-        } catch (error) {
-          // ignore
-        }
-      }
-    }
-
     // apt/dpkg (Debian/Ubuntu)
     if (hasCommand('dpkg')) {
       for (const name of searchNames) {
