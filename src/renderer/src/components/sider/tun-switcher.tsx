@@ -8,6 +8,7 @@ import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import React from 'react'
 import { useAppConfig } from '@renderer/hooks/use-app-config'
+import { platform } from '@renderer/utils/init'
 
 interface Props {
   iconOnly?: boolean
@@ -102,7 +103,7 @@ const TunSwitcher: React.FC<Props> = (props) => {
               isShowBorder={match && enable}
               isSelected={enable}
               onValueChange={onChange}
-              isDisabled={corePermissionMode === 'none'}
+              isDisabled={corePermissionMode === 'none' && platform !== 'win32'}
             />
           </div>
         </CardBody>

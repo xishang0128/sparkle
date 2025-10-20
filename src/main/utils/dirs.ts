@@ -80,7 +80,12 @@ export function mihomoCorePath(core: string): string {
     return path.join(mihomoCoreDir(), `${core}${isWin ? '.exe' : ''}`)
   }
   if (core === 'system') {
-    return systemCorePath()
+    const sysPath = systemCorePath()
+    if (!sysPath || !existsSync(sysPath)) {
+      const errorMsg = sysPath ? `系统内核路径无效或不存在: ${sysPath}` : '系统内核路径未设置'
+      throw new Error(errorMsg)
+    }
+    return sysPath
   }
   throw new Error('内核路径错误')
 }

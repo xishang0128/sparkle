@@ -115,7 +115,9 @@ const Mihomo: React.FC = () => {
               await patchAppConfig({
                 corePermissionMode: pendingPermissionMode as 'none' | 'elevated' | 'service'
               })
-              await patchControledMihomoConfig({ tun: { enable: false } })
+              if (platform !== 'win32') {
+                await patchControledMihomoConfig({ tun: { enable: false } })
+              }
               new Notification('内核权限已撤销')
               await restartCore()
             } catch (e) {
@@ -167,9 +169,25 @@ const Mihomo: React.FC = () => {
             disallowEmptySelection={true}
             onSelectionChange={async (v) => {
               const newCore = v.currentKey as 'mihomo' | 'mihomo-alpha' | 'system'
-              if (newCore === 'system' && corePermissionMode === 'elevated') {
-                await patchAppConfig({ corePermissionMode: 'none' })
-                await patchControledMihomoConfig({ tun: { enable: false } })
+
+              if (newCore === 'system') {
+                const paths = await getSystemCorePaths()
+
+                if (paths.length === 0) {
+                  new Notification('未找到系统内核', {
+                    body: '系统中未找到可用的 mihomo 或 clash 内核，已自动切换回内置内核'
+                  })
+                  return
+                }
+
+                if (!appConfig?.systemCorePath || !paths.includes(appConfig.systemCorePath)) {
+                  await patchAppConfig({ systemCorePath: paths[0] })
+                }
+
+                if (corePermissionMode === 'elevated' && platform !== 'win32') {
+                  await patchAppConfig({ corePermissionMode: 'none' })
+                  await patchControledMihomoConfig({ tun: { enable: false } })
+                }
               }
               handleConfigChangeWithRestart('core', newCore)
             }}
@@ -189,7 +207,10 @@ const Mihomo: React.FC = () => {
               disallowEmptySelection={systemCorePaths.length > 0}
               isDisabled={loadingPaths}
               onSelectionChange={async (v) => {
-                handleConfigChangeWithRestart('systemCorePath', v.currentKey as string)
+                const selectedPath = v.currentKey as string
+                if (selectedPath) {
+                  handleConfigChangeWithRestart('systemCorePath', selectedPath)
+                }
               }}
             >
               {loadingPaths ? (
@@ -200,6 +221,11 @@ const Mihomo: React.FC = () => {
                 <SelectItem key="">未找到系统内核</SelectItem>
               )}
             </Select>
+            {!loadingPaths && systemCorePaths.length === 0 && (
+              <div className="mt-2 text-sm text-warning">
+                未在系统中找到 mihomo 或 clash 内核，请安装后重试
+              </div>
+            )}
           </SettingItem>
         )}
         <SettingItem title="内核权限管理" divider>
@@ -207,7 +233,7 @@ const Mihomo: React.FC = () => {
             size="sm"
             color="primary"
             selectedKey={corePermissionMode}
-            disabledKeys={core === 'system' ? ['elevated'] : []}
+            disabledKeys={core === 'system' && platform !== 'win32' ? ['elevated'] : []}
             onSelectionChange={async (key) => {
               if (key !== 'elevated' && corePermissionMode === 'elevated') {
                 const hasSuid = await checkCorePermission()
@@ -223,7 +249,7 @@ const Mihomo: React.FC = () => {
             }}
           >
             <Tab key="none" title="无" />
-            <Tab key="elevated" title="授权运行" />
+            <Tab key="elevated" title={platform === 'win32' ? '任务计划' : '授权运行'} />
             <Tab key="service" title="系统服务" />
           </Tabs>
         </SettingItem>

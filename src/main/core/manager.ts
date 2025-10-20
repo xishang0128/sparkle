@@ -66,7 +66,18 @@ export async function startCore(detached = false): Promise<Promise<void>[]> {
   const { 'log-level': logLevel } = await getControledMihomoConfig()
   const { current } = await getProfileConfig()
   const { tun } = await getControledMihomoConfig()
-  const corePath = mihomoCorePath(core)
+
+  let corePath: string
+  try {
+    corePath = mihomoCorePath(core)
+  } catch (error) {
+    if (core === 'system') {
+      await patchAppConfig({ core: 'mihomo' })
+      return startCore(detached)
+    }
+    throw error
+  }
+
   await generateProfile()
   await checkProfile()
   await stopCore()
