@@ -1,5 +1,5 @@
 import { is } from '@electron-toolkit/utils'
-import { existsSync, mkdirSync } from 'fs'
+import { existsSync, mkdirSync, readdirSync } from 'fs'
 import { app } from 'electron'
 import path from 'path'
 import { execSync } from 'child_process'
@@ -205,6 +205,7 @@ export function findSystemMihomo(): string[] {
 
   if (!isWin) {
     const commonDirs = [
+      '/bin',
       '/usr/bin',
       '/usr/local/bin',
       path.join(homeDir, '.local/bin'),
@@ -213,11 +214,18 @@ export function findSystemMihomo(): string[] {
 
     for (const dir of commonDirs) {
       if (existsSync(dir)) {
-        for (const name of searchNames) {
-          const binPath = path.join(dir, name)
-          if (existsSync(binPath) && !foundPaths.includes(binPath)) {
-            foundPaths.push(binPath)
+        try {
+          const files = readdirSync(dir)
+          for (const file of files) {
+            if (file.startsWith('mihomo') || file.startsWith('clash')) {
+              const binPath = path.join(dir, file)
+              if (existsSync(binPath) && !foundPaths.includes(binPath)) {
+                foundPaths.push(binPath)
+              }
+            }
           }
+        } catch (error) {
+          // ignore
         }
       }
     }
@@ -328,5 +336,5 @@ export function findSystemMihomo(): string[] {
     }
   }
 
-  return Array.from(new Set(foundPaths))
+  return Array.from(new Set(foundPaths)).sort()
 }

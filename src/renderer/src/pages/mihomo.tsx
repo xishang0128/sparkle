@@ -115,9 +115,6 @@ const Mihomo: React.FC = () => {
               await patchAppConfig({
                 corePermissionMode: pendingPermissionMode as 'none' | 'elevated' | 'service'
               })
-              if (platform !== 'win32') {
-                await patchControledMihomoConfig({ tun: { enable: false } })
-              }
               new Notification('内核权限已撤销')
               await restartCore()
             } catch (e) {
@@ -186,7 +183,6 @@ const Mihomo: React.FC = () => {
 
                 if (corePermissionMode === 'elevated' && platform !== 'win32') {
                   await patchAppConfig({ corePermissionMode: 'none' })
-                  await patchControledMihomoConfig({ tun: { enable: false } })
                 }
               }
               handleConfigChangeWithRestart('core', newCore)

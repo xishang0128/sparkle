@@ -8,7 +8,6 @@ import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import React from 'react'
 import { useAppConfig } from '@renderer/hooks/use-app-config'
-import { platform } from '@renderer/utils/init'
 
 interface Props {
   iconOnly?: boolean
@@ -20,11 +19,7 @@ const TunSwitcher: React.FC<Props> = (props) => {
   const navigate = useNavigate()
   const match = location.pathname.includes('/tun') || false
   const { appConfig } = useAppConfig()
-  const {
-    tunCardStatus = 'col-span-1',
-    disableAnimation = false,
-    corePermissionMode = 'elevated'
-  } = appConfig || {}
+  const { tunCardStatus = 'col-span-1', disableAnimation = false } = appConfig || {}
   const { controledMihomoConfig, patchControledMihomoConfig } = useControledMihomoConfig()
   const { tun } = controledMihomoConfig || {}
   const { enable } = tun || {}
@@ -103,7 +98,6 @@ const TunSwitcher: React.FC<Props> = (props) => {
               isShowBorder={match && enable}
               isSelected={enable}
               onValueChange={onChange}
-              isDisabled={corePermissionMode === 'none' && platform !== 'win32'}
             />
           </div>
         </CardBody>

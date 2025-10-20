@@ -32,9 +32,13 @@ export function decryptString(encryptedText: string): string {
     return encryptedText.substring(ENCRYPTED_PREFIX.length)
   }
 
-  const base64Data = encryptedText.substring(ENCRYPTED_PREFIX.length)
-  const buffer = Buffer.from(base64Data, 'base64')
-  return safeStorage.decryptString(buffer)
+  try {
+    const base64Data = encryptedText.substring(ENCRYPTED_PREFIX.length)
+    const buffer = Buffer.from(base64Data, 'base64')
+    return safeStorage.decryptString(buffer)
+  } catch (e) {
+    return ''
+  }
 }
 
 export function isEncrypted(text: string): boolean {

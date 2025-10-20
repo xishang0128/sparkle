@@ -148,11 +148,15 @@ export async function startCore(detached = false): Promise<Promise<void>[]> {
   return new Promise((resolve, reject) => {
     child.stdout?.on('data', async (data) => {
       const str = data.toString()
-      if (str.includes('configure tun interface: operation not permitted')) {
+      if (
+        str.includes(
+          'Start TUN listening error: configure tun interface: Connect: operation not permitted'
+        )
+      ) {
         patchControledMihomoConfig({ tun: { enable: false } })
         mainWindow?.webContents.send('controledMihomoConfigUpdated')
         ipcMain.emit('updateTrayMenu')
-        reject('虚拟网卡启动失败，请尝试手动授予内核权限')
+        reject('虚拟网卡启动失败，前往内核设置页尝试手动授予内核权限')
       }
 
       if (
@@ -454,7 +458,7 @@ export async function revokeCorePermission(): Promise<void> {
   const execFilePromise = promisify(execFile)
 
   if (process.platform === 'darwin') {
-    const shell = `chmod a-s ${corePath.replace(' ', '\\\\ ')} && rm -f ${mihomoIpcPath}`
+    const shell = `chmod a-s ${corePath.replace(' ', '\\\\ ')} && rm -f ${mihomoIpcPath()}`
     const command = `do shell script "${shell}" with administrator privileges`
     await execPromise(`osascript -e '${command}'`)
   }
@@ -462,7 +466,7 @@ export async function revokeCorePermission(): Promise<void> {
     await execFilePromise('pkexec', [
       'bash',
       '-c',
-      `chmod a-s "${corePath}" && rm -f "${mihomoIpcPath}"`
+      `chmod a-s "${corePath}" && rm -f "${mihomoIpcPath()}"`
     ])
   }
 }
