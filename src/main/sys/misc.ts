@@ -105,7 +105,7 @@ const elevateTaskXml = `<?xml version="1.0" encoding="UTF-16"?>
 </Task>
 `
 
-export function createElevateTask(): void {
+export function createElevateTaskSync(): void {
   const taskFilePath = path.join(taskDir(), `sparkle-run.xml`)
   writeFileSync(taskFilePath, Buffer.from(`\ufeff${elevateTaskXml}`, 'utf-16le'))
   copyFileSync(
@@ -115,6 +115,23 @@ export function createElevateTask(): void {
   execSync(
     `%SystemRoot%\\System32\\schtasks.exe /create /tn "sparkle-run" /xml "${taskFilePath}" /f`
   )
+}
+
+export async function deleteElevateTask(): Promise<void> {
+  try {
+    execSync(`%SystemRoot%\\System32\\schtasks.exe /delete /tn "sparkle-run" /f`)
+  } catch {
+    // ignore
+  }
+}
+
+export async function checkElevateTask(): Promise<boolean> {
+  try {
+    execSync(`%SystemRoot%\\System32\\schtasks.exe /query /tn "sparkle-run"`)
+    return true
+  } catch {
+    return false
+  }
 }
 
 export function resetAppConfig(): void {

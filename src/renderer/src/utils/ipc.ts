@@ -241,6 +241,14 @@ export async function checkCorePermission(): Promise<boolean> {
   return ipcErrorWrapper(await window.electron.ipcRenderer.invoke('checkCorePermission'))
 }
 
+export async function checkElevateTask(): Promise<boolean> {
+  return ipcErrorWrapper(await window.electron.ipcRenderer.invoke('checkElevateTask'))
+}
+
+export async function deleteElevateTask(): Promise<void> {
+  return ipcErrorWrapper(await window.electron.ipcRenderer.invoke('deleteElevateTask'))
+}
+
 export async function revokeCorePermission(): Promise<void> {
   return ipcErrorWrapper(await window.electron.ipcRenderer.invoke('revokeCorePermission'))
 }

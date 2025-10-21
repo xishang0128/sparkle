@@ -68,6 +68,8 @@ import {
 import { isHelperInstalled, restartHelper, triggerSysProxy } from '../sys/sysproxy'
 import { checkUpdate, downloadAndInstallUpdate, cancelUpdate } from '../resolve/autoUpdater'
 import {
+  checkElevateTask,
+  deleteElevateTask,
   getFilePath,
   openFile,
   openUWPTool,
@@ -203,6 +205,8 @@ export function registerIpcMainHandlers(): void {
   ipcMain.handle('manualGrantCorePermition', () => ipcErrorWrapper(manualGrantCorePermition)())
   ipcMain.handle('checkCorePermission', () => ipcErrorWrapper(checkCorePermission)())
   ipcMain.handle('revokeCorePermission', () => ipcErrorWrapper(revokeCorePermission)())
+  ipcMain.handle('checkElevateTask', () => ipcErrorWrapper(checkElevateTask)())
+  ipcMain.handle('deleteElevateTask', () => ipcErrorWrapper(deleteElevateTask)())
   ipcMain.handle('findSystemMihomo', () => findSystemMihomo())
   ipcMain.handle('getFilePath', (_e, ext) => getFilePath(ext))
   ipcMain.handle('readTextFile', (_e, filePath) => ipcErrorWrapper(readTextFile)(filePath))

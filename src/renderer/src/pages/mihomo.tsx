@@ -16,7 +16,9 @@ import {
   restartCore,
   revokeCorePermission,
   checkCorePermission,
-  findSystemMihomo
+  findSystemMihomo,
+  deleteElevateTask,
+  checkElevateTask
 } from '@renderer/utils/ipc'
 import React, { useState, useEffect } from 'react'
 import ControllerSetting from '@renderer/components/mihomo/controller-setting'
@@ -107,17 +109,27 @@ const Mihomo: React.FC = () => {
       {showUnGrantConfirm && (
         <ConfirmModal
           onChange={setShowUnGrantConfirm}
-          title="确认撤销内核权限？"
-          description="撤销内核权限后，虚拟网卡等功能可能无法正常工作。确定要继续吗？"
-          confirmText="确认撤销"
+          title={platform === 'win32' ? '确认取消任务计划？' : '确认撤销内核权限？'}
+          description={
+            platform === 'win32'
+              ? '取消任务计划后，虚拟网卡等功能可能无法正常工作。确定要继续吗？'
+              : '撤销内核权限后，虚拟网卡等功能可能无法正常工作。确定要继续吗？'
+          }
+          confirmText={platform === 'win32' ? '确认取消' : '确认撤销'}
           cancelText="取消"
           onConfirm={async () => {
             try {
-              await revokeCorePermission()
+              if (platform === 'win32') {
+                await deleteElevateTask()
+                new Notification('任务计划已取消注册')
+              } else {
+                await revokeCorePermission()
+                new Notification('内核权限已撤销')
+              }
               await patchAppConfig({
                 corePermissionMode: pendingPermissionMode as 'none' | 'elevated' | 'service'
               })
-              new Notification('内核权限已撤销')
+
               await restartCore()
             } catch (e) {
               alert(e)
@@ -129,8 +141,13 @@ const Mihomo: React.FC = () => {
         <PermissionModal
           onChange={setShowPermissionModal}
           onRevoke={async () => {
-            await revokeCorePermission()
-            new Notification('内核权限已撤销')
+            if (platform === 'win32') {
+              await deleteElevateTask()
+              new Notification('任务计划已取消注册')
+            } else {
+              await revokeCorePermission()
+              new Notification('内核权限已撤销')
+            }
             await restartCore()
           }}
           onGrant={async () => {
@@ -249,8 +266,13 @@ const Mihomo: React.FC = () => {
             disabledKeys={core === 'system' && platform !== 'win32' ? ['elevated'] : []}
             onSelectionChange={async (key) => {
               if (key !== 'elevated' && corePermissionMode === 'elevated') {
-                const hasSuid = await checkCorePermission()
-                if (hasSuid) {
+                let hasPermission: boolean
+                if (platform === 'win32') {
+                  hasPermission = await checkElevateTask()
+                } else {
+                  hasPermission = await checkCorePermission()
+                }
+                if (hasPermission) {
                   setPendingPermissionMode(key as string)
                   setShowUnGrantConfirm(true)
                 } else {
@@ -266,8 +288,8 @@ const Mihomo: React.FC = () => {
             <Tab key="service" title="系统服务" />
           </Tabs>
         </SettingItem>
-        {platform !== 'win32' && corePermissionMode === 'elevated' && (
-          <SettingItem title="授权状态" divider>
+        {corePermissionMode === 'elevated' && (
+          <SettingItem title={platform === 'win32' ? '任务状态' : '授权状态'} divider>
             <Button size="sm" color="primary" onPress={() => setShowPermissionModal(true)}>
               管理
             </Button>
