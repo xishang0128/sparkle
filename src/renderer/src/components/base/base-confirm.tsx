@@ -2,13 +2,22 @@ import React from 'react'
 import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button } from '@heroui/react'
 import { useAppConfig } from '@renderer/hooks/use-app-config'
 
+export interface ConfirmButton {
+  key: string
+  text: string
+  color?: 'default' | 'primary' | 'secondary' | 'success' | 'warning' | 'danger'
+  variant?: 'solid' | 'bordered' | 'light' | 'flat' | 'faded' | 'shadow' | 'ghost'
+  onPress: () => void | Promise<void>
+}
+
 interface Props {
   onChange: (open: boolean) => void
   title?: string
   description?: React.ReactNode
   confirmText?: string
   cancelText?: string
-  onConfirm: () => void | Promise<void>
+  onConfirm?: () => void | Promise<void>
+  buttons?: ConfirmButton[]
 }
 
 const ConfirmModal: React.FC<Props> = (props) => {
@@ -18,9 +27,49 @@ const ConfirmModal: React.FC<Props> = (props) => {
     description,
     confirmText = '确认',
     cancelText = '取消',
-    onConfirm
+    onConfirm,
+    buttons
   } = props
   const { appConfig: { disableAnimation = false } = {} } = useAppConfig()
+
+  const renderButtons = () => {
+    if (buttons && buttons.length > 0) {
+      return buttons.map((button) => (
+        <Button
+          key={button.key}
+          size="sm"
+          color={button.color || 'primary'}
+          variant={button.variant || 'solid'}
+          onPress={async () => {
+            await button.onPress()
+            onChange(false)
+          }}
+        >
+          {button.text}
+        </Button>
+      ))
+    }
+
+    return (
+      <>
+        <Button size="sm" variant="light" onPress={() => onChange(false)}>
+          {cancelText}
+        </Button>
+        <Button
+          size="sm"
+          color="danger"
+          onPress={async () => {
+            if (onConfirm) {
+              await onConfirm()
+            }
+            onChange(false)
+          }}
+        >
+          {confirmText}
+        </Button>
+      </>
+    )
+  }
 
   return (
     <Modal
@@ -41,21 +90,7 @@ const ConfirmModal: React.FC<Props> = (props) => {
         <ModalBody>
           <div className="leading-relaxed">{description}</div>
         </ModalBody>
-        <ModalFooter className="space-x-2">
-          <Button size="sm" variant="light" onPress={() => onChange(false)}>
-            {cancelText}
-          </Button>
-          <Button
-            size="sm"
-            color="danger"
-            onPress={async () => {
-              await onConfirm()
-              onChange(false)
-            }}
-          >
-            {confirmText}
-          </Button>
-        </ModalFooter>
+        <ModalFooter className="space-x-2">{renderButtons()}</ModalFooter>
       </ModalContent>
     </Modal>
   )
