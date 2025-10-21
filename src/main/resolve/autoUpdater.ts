@@ -9,7 +9,7 @@ import { existsSync } from 'fs'
 import { exec, spawn } from 'child_process'
 import { promisify } from 'util'
 import { createHash } from 'crypto'
-import { setNotQuit, mainWindow } from '..'
+import { setNotQuitDialog, mainWindow } from '..'
 import { disableSysProxy } from '../sys/sysproxy'
 
 let downloadCancelToken: CancelTokenSource | null = null
@@ -151,7 +151,7 @@ export async function downloadAndInstallUpdate(version: string): Promise<void> {
           detached: true
         }
       ).unref()
-      setNotQuit()
+      setNotQuitDialog()
       app.quit()
     }
     if (file.endsWith('.pkg')) {
@@ -161,7 +161,7 @@ export async function downloadAndInstallUpdate(version: string): Promise<void> {
         const command = `do shell script "${shell}" with administrator privileges`
         await execPromise(`osascript -e '${command}'`)
         app.relaunch()
-        setNotQuit()
+        setNotQuitDialog()
         app.quit()
       } catch {
         shell.openPath(path.join(dataDir(), file))

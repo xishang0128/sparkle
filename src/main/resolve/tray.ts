@@ -16,7 +16,7 @@ import {
   mihomoGroupDelay,
   patchMihomoConfig
 } from '../core/mihomoApi'
-import { mainWindow, setNotQuit, showMainWindow, triggerMainWindow } from '..'
+import { mainWindow, setNotQuitDialog, showMainWindow, triggerMainWindow } from '..'
 import { app, clipboard, ipcMain, Menu, nativeImage, shell, Tray } from 'electron'
 import { dataDir, logDir, mihomoCoreDir, mihomoWorkDir } from '../utils/dirs'
 import { triggerSysProxy } from '../sys/sysproxy'
@@ -300,7 +300,7 @@ export const buildContextMenu = async (): Promise<Menu> => {
       type: 'normal',
       accelerator: quitWithoutCoreShortcut,
       click: (): void => {
-        setNotQuit()
+        setNotQuitDialog()
         quitWithoutCore()
       }
     },
@@ -310,7 +310,7 @@ export const buildContextMenu = async (): Promise<Menu> => {
       type: 'normal',
       accelerator: restartAppShortcut,
       click: (): void => {
-        setNotQuit()
+        setNotQuitDialog()
         app.relaunch()
         app.quit()
       }
@@ -321,7 +321,7 @@ export const buildContextMenu = async (): Promise<Menu> => {
       type: 'normal',
       accelerator: 'CommandOrControl+Q',
       click: (): void => {
-        setNotQuit()
+        setNotQuitDialog()
         app.quit()
       }
     }

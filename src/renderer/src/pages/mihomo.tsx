@@ -20,7 +20,7 @@ import {
   deleteElevateTask,
   checkElevateTask,
   relaunchApp,
-  quitApp
+  notDialogQuit
 } from '@renderer/utils/ipc'
 import React, { useState, useEffect } from 'react'
 import ControllerSetting from '@renderer/components/mihomo/controller-setting'
@@ -29,16 +29,10 @@ import AdvancedSetting from '@renderer/components/mihomo/advanced-settings'
 
 let systemCorePathsCache: string[] | null = null
 let cachePromise: Promise<string[]> | null = null
-let isInitializing = false
 
 const getSystemCorePaths = async (): Promise<string[]> => {
-  if (systemCorePathsCache !== null) {
-    return systemCorePathsCache
-  }
-
-  if (cachePromise !== null) {
-    return cachePromise
-  }
+  if (systemCorePathsCache !== null) return systemCorePathsCache
+  if (cachePromise !== null) return cachePromise
 
   cachePromise = findSystemMihomo()
     .then((paths) => {
@@ -54,10 +48,7 @@ const getSystemCorePaths = async (): Promise<string[]> => {
   return cachePromise
 }
 
-if (!isInitializing) {
-  isInitializing = true
-  getSystemCorePaths().catch(() => {})
-}
+getSystemCorePaths().catch(() => {})
 
 const Mihomo: React.FC = () => {
   const { appConfig, patchAppConfig } = useAppConfig()
@@ -74,21 +65,12 @@ const Mihomo: React.FC = () => {
   const [loadingPaths, setLoadingPaths] = useState(systemCorePathsCache === null)
 
   useEffect(() => {
-    if (systemCorePathsCache !== null) {
-      return
-    }
+    if (systemCorePathsCache !== null) return
 
-    const loadSystemPaths = async (): Promise<void> => {
-      try {
-        const paths = await getSystemCorePaths()
-        setSystemCorePaths(paths)
-      } catch {
-        // ignore
-      } finally {
-        setLoadingPaths(false)
-      }
-    }
-    loadSystemPaths()
+    getSystemCorePaths()
+      .then(setSystemCorePaths)
+      .catch(() => {})
+      .finally(() => setLoadingPaths(false))
   }, [])
 
   const onChangeNeedRestart = async (patch: Partial<MihomoConfig>): Promise<void> => {
@@ -100,10 +82,66 @@ const Mihomo: React.FC = () => {
     try {
       await patchAppConfig({ [key]: value })
       await restartCore()
+      PubSub.publish('mihomo-core-changed')
     } catch (e) {
       alert(e)
+    }
+  }
+
+  const handleCoreUpgrade = async (): Promise<void> => {
+    try {
+      setUpgrading(true)
+      await mihomoUpgrade()
+      setTimeout(() => PubSub.publish('mihomo-core-changed'), 2000)
+    } catch (e) {
+      if (typeof e === 'string' && e.includes('already using latest version')) {
+        new Notification('已经是最新版本')
+      } else {
+        alert(e)
+      }
     } finally {
-      PubSub.publish('mihomo-core-changed')
+      setUpgrading(false)
+    }
+  }
+
+  const handleCoreChange = async (newCore: 'mihomo' | 'mihomo-alpha' | 'system'): Promise<void> => {
+    if (newCore === 'system') {
+      const paths = await getSystemCorePaths()
+
+      if (paths.length === 0) {
+        new Notification('未找到系统内核', {
+          body: '系统中未找到可用的 mihomo 或 clash 内核，已自动切换回内置内核'
+        })
+        return
+      }
+
+      if (!appConfig?.systemCorePath || !paths.includes(appConfig.systemCorePath)) {
+        await patchAppConfig({ systemCorePath: paths[0] })
+      }
+
+      if (corePermissionMode === 'elevated' && platform !== 'win32') {
+        await patchAppConfig({ corePermissionMode: 'none' })
+      }
+    }
+    handleConfigChangeWithRestart('core', newCore)
+  }
+
+  const handlePermissionModeChange = async (key: string): Promise<void> => {
+    if (key !== 'elevated' && corePermissionMode === 'elevated') {
+      const hasPermission =
+        platform === 'win32' ? await checkElevateTask() : await checkCorePermission()
+
+      if (hasPermission) {
+        setPendingPermissionMode(key)
+        setShowUnGrantConfirm(true)
+      } else {
+        patchAppConfig({ corePermissionMode: key as 'none' | 'elevated' | 'service' })
+      }
+    } else if (key === 'elevated' && corePermissionMode !== 'elevated') {
+      setPendingPermissionMode(key)
+      setShowGrantConfirm(true)
+    } else {
+      patchAppConfig({ corePermissionMode: key as 'none' | 'elevated' | 'service' })
     }
   }
 
@@ -171,7 +209,7 @@ const Mihomo: React.FC = () => {
             await patchAppConfig({
               corePermissionMode: pendingPermissionMode as 'none' | 'elevated' | 'service'
             })
-            await quitApp()
+            await notDialogQuit()
           }}
         />
       )}
@@ -218,23 +256,7 @@ const Mihomo: React.FC = () => {
                 title="升级内核"
                 variant="light"
                 isLoading={upgrading}
-                onPress={async () => {
-                  try {
-                    setUpgrading(true)
-                    await mihomoUpgrade()
-                    setTimeout(() => {
-                      PubSub.publish('mihomo-core-changed')
-                    }, 2000)
-                  } catch (e) {
-                    if (typeof e === 'string' && e.includes('already using latest version')) {
-                      new Notification('已经是最新版本')
-                    } else {
-                      alert(e)
-                    }
-                  } finally {
-                    setUpgrading(false)
-                  }
-                }}
+                onPress={handleCoreUpgrade}
               >
                 <IoMdCloudDownload className="text-lg" />
               </Button>
@@ -248,29 +270,9 @@ const Mihomo: React.FC = () => {
             size="sm"
             selectedKeys={new Set([core])}
             disallowEmptySelection={true}
-            onSelectionChange={async (v) => {
-              const newCore = v.currentKey as 'mihomo' | 'mihomo-alpha' | 'system'
-
-              if (newCore === 'system') {
-                const paths = await getSystemCorePaths()
-
-                if (paths.length === 0) {
-                  new Notification('未找到系统内核', {
-                    body: '系统中未找到可用的 mihomo 或 clash 内核，已自动切换回内置内核'
-                  })
-                  return
-                }
-
-                if (!appConfig?.systemCorePath || !paths.includes(appConfig.systemCorePath)) {
-                  await patchAppConfig({ systemCorePath: paths[0] })
-                }
-
-                if (corePermissionMode === 'elevated' && platform !== 'win32') {
-                  await patchAppConfig({ corePermissionMode: 'none' })
-                }
-              }
-              handleConfigChangeWithRestart('core', newCore)
-            }}
+            onSelectionChange={(v) =>
+              handleCoreChange(v.currentKey as 'mihomo' | 'mihomo-alpha' | 'system')
+            }
           >
             <SelectItem key="mihomo">内置稳定版</SelectItem>
             <SelectItem key="mihomo-alpha">内置预览版</SelectItem>
@@ -286,11 +288,9 @@ const Mihomo: React.FC = () => {
               selectedKeys={new Set([appConfig?.systemCorePath || ''])}
               disallowEmptySelection={systemCorePaths.length > 0}
               isDisabled={loadingPaths}
-              onSelectionChange={async (v) => {
+              onSelectionChange={(v) => {
                 const selectedPath = v.currentKey as string
-                if (selectedPath) {
-                  handleConfigChangeWithRestart('systemCorePath', selectedPath)
-                }
+                if (selectedPath) handleConfigChangeWithRestart('systemCorePath', selectedPath)
               }}
             >
               {loadingPaths ? (
@@ -314,27 +314,7 @@ const Mihomo: React.FC = () => {
             color="primary"
             selectedKey={corePermissionMode}
             disabledKeys={core === 'system' && platform !== 'win32' ? ['elevated'] : []}
-            onSelectionChange={async (key) => {
-              if (key !== 'elevated' && corePermissionMode === 'elevated') {
-                let hasPermission: boolean
-                if (platform === 'win32') {
-                  hasPermission = await checkElevateTask()
-                } else {
-                  hasPermission = await checkCorePermission()
-                }
-                if (hasPermission) {
-                  setPendingPermissionMode(key as string)
-                  setShowUnGrantConfirm(true)
-                } else {
-                  patchAppConfig({ corePermissionMode: key as 'none' | 'elevated' | 'service' })
-                }
-              } else if (key === 'elevated' && corePermissionMode !== 'elevated') {
-                setPendingPermissionMode(key as string)
-                setShowGrantConfirm(true)
-              } else {
-                patchAppConfig({ corePermissionMode: key as 'none' | 'elevated' | 'service' })
-              }
-            }}
+            onSelectionChange={(key) => handlePermissionModeChange(key as string)}
           >
             <Tab key="none" title="无" />
             <Tab key="elevated" title={platform === 'win32' ? '任务计划' : '授权运行'} />
@@ -350,13 +330,7 @@ const Mihomo: React.FC = () => {
         )}
         {corePermissionMode === 'service' && (
           <SettingItem title="服务状态" divider>
-            <Button
-              size="sm"
-              color="primary"
-              onPress={async () => {
-                alert('该功能正在开发中')
-              }}
-            >
+            <Button size="sm" color="primary" onPress={async () => alert('该功能正在开发中')}>
               安装服务
             </Button>
           </SettingItem>
@@ -365,9 +339,7 @@ const Mihomo: React.FC = () => {
           <Switch
             size="sm"
             isSelected={ipv6}
-            onValueChange={(v) => {
-              onChangeNeedRestart({ ipv6: v })
-            }}
+            onValueChange={(v) => onChangeNeedRestart({ ipv6: v })}
           />
         </SettingItem>
         <SettingItem title="日志保留天数" divider>
@@ -376,9 +348,7 @@ const Mihomo: React.FC = () => {
             type="number"
             className="w-[100px]"
             value={maxLogDays.toString()}
-            onValueChange={(v) => {
-              patchAppConfig({ maxLogDays: parseInt(v) })
-            }}
+            onValueChange={(v) => patchAppConfig({ maxLogDays: parseInt(v) })}
           />
         </SettingItem>
         <SettingItem title="日志等级">
@@ -388,9 +358,9 @@ const Mihomo: React.FC = () => {
             size="sm"
             selectedKeys={new Set([logLevel])}
             disallowEmptySelection={true}
-            onSelectionChange={(v) => {
+            onSelectionChange={(v) =>
               onChangeNeedRestart({ 'log-level': v.currentKey as LogLevel })
-            }}
+            }
           >
             <SelectItem key="silent">静默</SelectItem>
             <SelectItem key="error">错误</SelectItem>

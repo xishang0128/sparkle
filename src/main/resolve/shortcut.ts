@@ -1,5 +1,5 @@
 import { app, globalShortcut, ipcMain, Notification } from 'electron'
-import { mainWindow, setNotQuit, triggerMainWindow } from '..'
+import { mainWindow, setNotQuitDialog, triggerMainWindow } from '..'
 import {
   getAppConfig,
   getControledMihomoConfig,
@@ -112,13 +112,13 @@ export async function registerShortcut(
     }
     case 'quitWithoutCoreShortcut': {
       return globalShortcut.register(newShortcut, async () => {
-        setNotQuit()
+        setNotQuitDialog()
         await quitWithoutCore()
       })
     }
     case 'restartAppShortcut': {
       return globalShortcut.register(newShortcut, () => {
-        setNotQuit()
+        setNotQuitDialog()
         app.relaunch()
         app.quit()
       })

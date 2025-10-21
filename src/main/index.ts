@@ -126,10 +126,10 @@ app.on('open-url', async (_event, url) => {
 })
 
 let isQuitting = false,
-  notQuit = false
+  notQuitDialog = false
 
-export function setNotQuit(): void {
-  notQuit = true
+export function setNotQuitDialog(): void {
+  notQuitDialog = true
 }
 
 function showWindow(): number {
@@ -171,7 +171,7 @@ function showQuitConfirmDialog(): Promise<boolean> {
 }
 
 app.on('before-quit', async (e) => {
-  if (!isQuitting && !notQuit) {
+  if (!isQuitting && !notQuitDialog) {
     e.preventDefault()
 
     const confirmed = await showQuitConfirmDialog()
@@ -182,7 +182,7 @@ app.on('before-quit', async (e) => {
       await stopCore()
       app.exit()
     }
-  } else if (notQuit) {
+  } else if (notQuitDialog) {
     isQuitting = true
     triggerSysProxy(false, false)
     await stopCore()

@@ -90,7 +90,13 @@ import { listWebdavBackups, webdavBackup, webdavDelete, webdavRestore } from '..
 import { getInterfaces } from '../sys/interface'
 import { closeTrayIcon, copyEnv, showTrayIcon } from '../resolve/tray'
 import { registerShortcut } from '../resolve/shortcut'
-import { closeMainWindow, mainWindow, setNotQuit, showMainWindow, triggerMainWindow } from '..'
+import {
+  closeMainWindow,
+  mainWindow,
+  setNotQuitDialog,
+  showMainWindow,
+  triggerMainWindow
+} from '..'
 import {
   applyTheme,
   fetchThemes,
@@ -290,7 +296,7 @@ export function registerIpcMainHandlers(): void {
   })
   ipcMain.handle('resetAppConfig', resetAppConfig)
   ipcMain.handle('relaunchApp', () => {
-    setNotQuit()
+    setNotQuitDialog()
     app.relaunch()
     app.quit()
   })
@@ -298,4 +304,8 @@ export function registerIpcMainHandlers(): void {
   ipcMain.handle('startNetworkDetection', ipcErrorWrapper(startNetworkDetection))
   ipcMain.handle('stopNetworkDetection', ipcErrorWrapper(stopNetworkDetection))
   ipcMain.handle('quitApp', () => app.quit())
+  ipcMain.handle('notDialogQuit', () => {
+    setNotQuitDialog()
+    app.quit()
+  })
 }
