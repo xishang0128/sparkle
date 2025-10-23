@@ -214,7 +214,7 @@ async function resolveSidecar(binInfo) {
  * download the file to the extra dir
  */
 async function resolveResource(binInfo) {
-  const { file, downloadURL } = binInfo
+  const { file, downloadURL, needExecutable = false } = binInfo
 
   const resDir = path.join(cwd, 'extra', 'files')
   const targetPath = path.join(resDir, file)
@@ -225,6 +225,11 @@ async function resolveResource(binInfo) {
 
   fs.mkdirSync(resDir, { recursive: true })
   await downloadFile(downloadURL, targetPath)
+
+  if (needExecutable && platform !== 'win32') {
+    execSync(`chmod 755 ${targetPath}`)
+    console.log(`[INFO]: ${file} chmod finished`)
+  }
 
   console.log(`[INFO]: ${file} finished`)
 }
@@ -292,7 +297,8 @@ const resolveSysproxy = () => {
 
   return resolveResource({
     file: `sysproxy${ext}`,
-    downloadURL: `https://github.com/xishang0128/sysproxy-go/releases/download/pre-release/${base}${ext}`
+    downloadURL: `https://github.com/xishang0128/sysproxy-go/releases/download/pre-release/${base}${ext}`,
+    needExecutable: true
   })
 }
 const resolveSparkleService = () => {
@@ -314,7 +320,8 @@ const resolveSparkleService = () => {
 
   return resolveResource({
     file: `sparkle-service${ext}`,
-    downloadURL: `https://github.com/xishang0128/sparkle-service/releases/download/pre-release/${base}${ext}`
+    downloadURL: `https://github.com/xishang0128/sparkle-service/releases/download/pre-release/${base}${ext}`,
+    needExecutable: true
   })
 }
 const resolveRunner = () =>
