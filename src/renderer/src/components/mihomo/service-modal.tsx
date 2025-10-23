@@ -236,7 +236,7 @@ const ServiceModal: React.FC<Props> = (props) => {
             关闭
           </Button>
 
-          {status === 'not-installed' ? (
+          {status === 'unknown' ? null : status === 'not-installed' ? (
             <Button
               size="sm"
               color="primary"
