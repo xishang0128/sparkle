@@ -48,6 +48,17 @@ export function getPublicKey(): string {
   return getKeyManager().getPublicKey()
 }
 
+function isUserCancelledError(error: unknown): boolean {
+  const errorMsg = error instanceof Error ? error.message : String(error)
+  return (
+    errorMsg.includes('用户已取消') ||
+    errorMsg.includes('User canceled') ||
+    errorMsg.includes('(-128)') ||
+    errorMsg.includes('user cancelled') ||
+    errorMsg.includes('dismissed')
+  )
+}
+
 export function exportPublicKey(): string {
   return getPublicKey()
 }
@@ -87,6 +98,9 @@ export async function initService(): Promise<void> {
       ])
     }
   } catch (error) {
+    if (isUserCancelledError(error)) {
+      return
+    }
     throw new Error(`服务初始化失败：${error instanceof Error ? error.message : String(error)}`)
   }
 
@@ -110,6 +124,9 @@ export async function installService(): Promise<void> {
       ])
     }
   } catch (error) {
+    if (isUserCancelledError(error)) {
+      return
+    }
     throw new Error(`服务安装失败：${error instanceof Error ? error.message : String(error)}`)
   }
 }
@@ -131,6 +148,9 @@ export async function uninstallService(): Promise<void> {
       ])
     }
   } catch (error) {
+    if (isUserCancelledError(error)) {
+      return
+    }
     throw new Error(`服务卸载失败：${error instanceof Error ? error.message : String(error)}`)
   }
 }
@@ -152,6 +172,9 @@ export async function startService(): Promise<void> {
       ])
     }
   } catch (error) {
+    if (isUserCancelledError(error)) {
+      return
+    }
     throw new Error(`服务启动失败：${error instanceof Error ? error.message : String(error)}`)
   }
 }
@@ -173,6 +196,9 @@ export async function stopService(): Promise<void> {
       ])
     }
   } catch (error) {
+    if (isUserCancelledError(error)) {
+      return
+    }
     throw new Error(`服务停止失败：${error instanceof Error ? error.message : String(error)}`)
   }
 }
@@ -194,6 +220,9 @@ export async function restartService(): Promise<void> {
       ])
     }
   } catch (error) {
+    if (isUserCancelledError(error)) {
+      return
+    }
     throw new Error(`服务重启失败：${error instanceof Error ? error.message : String(error)}`)
   }
 }
