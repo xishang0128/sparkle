@@ -65,7 +65,7 @@ import {
   revokeCorePermission,
   checkCorePermission
 } from '../core/manager'
-import { isHelperInstalled, restartHelper, triggerSysProxy } from '../sys/sysproxy'
+import { triggerSysProxy } from '../sys/sysproxy'
 import { checkUpdate, downloadAndInstallUpdate, cancelUpdate } from '../resolve/autoUpdater'
 import {
   checkElevateTask,
@@ -216,8 +216,6 @@ export function registerIpcMainHandlers(): void {
   ipcMain.handle('triggerSysProxy', (_e, enable, onlyActiveDevice) =>
     ipcErrorWrapper(triggerSysProxy)(enable, onlyActiveDevice)
   )
-  ipcMain.handle('restartHelper', ipcErrorWrapper(restartHelper))
-  ipcMain.handle('isHelperInstalled', ipcErrorWrapper(isHelperInstalled))
   ipcMain.handle('manualGrantCorePermition', (_e, cores?: ('mihomo' | 'mihomo-alpha')[]) =>
     ipcErrorWrapper(manualGrantCorePermition)(cores)
   )

@@ -1,14 +1,13 @@
 import { getAppConfig, getControledMihomoConfig } from '../config'
 import { pacPort, startPacServer, stopPacServer } from '../resolve/server'
 import { promisify } from 'util'
-import { exec, execFile } from 'child_process'
-import { sysproxyPath } from '../utils/dirs'
+import { execFile } from 'child_process'
+import { servicePath } from '../utils/dirs'
 import { net } from 'electron'
-import axios from 'axios'
+import { disableProxy, setPac, setProxy } from '../service/api'
 
 let defaultBypass: string[]
 let triggerSysProxyTimer: NodeJS.Timeout | null = null
-const helperSocketPath = '/tmp/sparkle-helper.sock'
 
 export async function triggerSysProxy(enable: boolean, onlyActiveDevice: boolean): Promise<void> {
   if (net.isOnline()) {
@@ -71,24 +70,21 @@ async function setSysProxy(onlyActiveDevice: boolean): Promise<void> {
     ]
   await startPacServer()
   const { sysProxy } = await getAppConfig()
-  const { mode, host, bypass = defaultBypass } = sysProxy
+  const { mode, host, bypass = defaultBypass, useSysproxyHelper = false } = sysProxy
   const { 'mixed-port': port = 7890 } = await getControledMihomoConfig()
   const execFilePromise = promisify(execFile)
+  const useDarwinHelper = process.platform === 'darwin' && useSysproxyHelper
+
   switch (mode || 'manual') {
     case 'auto': {
-      if (process.platform === 'darwin') {
-        await axios.post(
-          'http://localhost/pac',
-          {
-            url: `http://${host || '127.0.0.1'}:${pacPort}/pac`,
-            only_active_device: onlyActiveDevice
-          },
-          {
-            socketPath: helperSocketPath
-          }
-        )
+      if (useDarwinHelper) {
+        try {
+          await setPac(`http://${host || '127.0.0.1'}:${pacPort}/pac`, '', onlyActiveDevice)
+        } catch {
+          throw new Error('服务可能未安装')
+        }
       } else {
-        await execFilePromise(sysproxyPath(), [
+        await execFilePromise(servicePath(), [
           'pac',
           '--url',
           `http://${host || '127.0.0.1'}:${pacPort}/pac`
@@ -99,20 +95,14 @@ async function setSysProxy(onlyActiveDevice: boolean): Promise<void> {
 
     case 'manual': {
       if (port != 0) {
-        if (process.platform === 'darwin') {
-          await axios.post(
-            'http://localhost/proxy',
-            {
-              server: `${host || '127.0.0.1'}:${port}`,
-              bypass: bypass.join(','),
-              only_active_device: onlyActiveDevice
-            },
-            {
-              socketPath: helperSocketPath
-            }
-          )
+        if (useDarwinHelper) {
+          try {
+            await setProxy(`${host || '127.0.0.1'}:${port}`, bypass.join(','), '', onlyActiveDevice)
+          } catch {
+            throw new Error('服务可能未安装')
+          }
         } else {
-          await execFilePromise(sysproxyPath(), [
+          await execFilePromise(servicePath(), [
             'proxy',
             '--server',
             `${host || '127.0.0.1'}:${port}`,
@@ -128,43 +118,18 @@ async function setSysProxy(onlyActiveDevice: boolean): Promise<void> {
 
 export async function disableSysProxy(onlyActiveDevice: boolean): Promise<void> {
   await stopPacServer()
+  const { sysProxy } = await getAppConfig()
+  const { useSysproxyHelper = false } = sysProxy
   const execFilePromise = promisify(execFile)
-  if (process.platform === 'darwin') {
-    await axios.post(
-      'http://localhost/disable',
-      { only_active_device: onlyActiveDevice },
-      {
-        socketPath: helperSocketPath
-      }
-    )
-  } else {
-    await execFilePromise(sysproxyPath(), ['disable'])
-  }
-}
+  const useDarwinHelper = process.platform === 'darwin' && useSysproxyHelper
 
-export async function isHelperInstalled(): Promise<boolean> {
-  if (process.platform !== 'darwin') {
-    return true
-  }
-  try {
-    await axios.get('http://localhost/ping', {
-      socketPath: helperSocketPath
-    })
-    return true
-  } catch (error) {
-    return false
-  }
-}
-
-export async function restartHelper(): Promise<void> {
-  if (process.platform === 'darwin') {
+  if (useDarwinHelper) {
     try {
-      const execPromise = promisify(exec)
-      await execPromise(
-        `osascript -e 'do shell script "launchctl unload /Library/LaunchDaemons/sparkle.helper.plist 2>/dev/null; launchctl load /Library/LaunchDaemons/sparkle.helper.plist 2>/dev/null; launchctl start sparkle.helper 2>/dev/null" with administrator privileges'`
-      )
-    } catch {
-      // ignore
+      await disableProxy('', onlyActiveDevice)
+    } catch (e) {
+      throw new Error('服务可能未安装')
     }
+  } else {
+    await execFilePromise(servicePath(), ['disable'])
   }
 }

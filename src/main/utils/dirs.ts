@@ -106,11 +106,6 @@ function systemCorePath(): string {
   return systemCorePath
 }
 
-export function sysproxyPath(): string {
-  const isWin = process.platform === 'win32'
-  return path.join(resourcesFilesDir(), `sysproxy${isWin ? '.exe' : ''}`)
-}
-
 export function servicePath(): string {
   const isWin = process.platform === 'win32'
   return path.join(resourcesFilesDir(), `sparkle-service${isWin ? '.exe' : ''}`)

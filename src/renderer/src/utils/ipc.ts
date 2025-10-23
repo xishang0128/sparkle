@@ -225,14 +225,6 @@ export async function triggerSysProxy(enable: boolean, onlyActiveDevice: boolean
   )
 }
 
-export async function restartHelper(): Promise<void> {
-  return ipcErrorWrapper(await window.electron.ipcRenderer.invoke('restartHelper'))
-}
-
-export async function isHelperInstalled(): Promise<boolean> {
-  return ipcErrorWrapper(await window.electron.ipcRenderer.invoke('isHelperInstalled'))
-}
-
 export async function manualGrantCorePermition(
   cores?: ('mihomo' | 'mihomo-alpha')[]
 ): Promise<void> {

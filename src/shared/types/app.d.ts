@@ -9,6 +9,7 @@ interface ISysProxyConfig {
   mode?: SysProxyMode
   bypass?: string[]
   pacScript?: string
+  useSysproxyHelper?: boolean
 }
 
 interface IHost {
@@ -20,7 +21,7 @@ interface AppConfig {
   updateChannel: 'stable' | 'beta'
   core: 'mihomo' | 'mihomo-alpha' | 'system'
   systemCorePath?: string
-  corePermissionMode?: 'none' | 'elevated' | 'service'
+  corePermissionMode?: 'elevated' | 'service'
   serviceAuthKey?: string
   disableLoopbackDetector: boolean
   disableEmbedCA: boolean

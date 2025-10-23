@@ -125,27 +125,25 @@ const Mihomo: React.FC = () => {
       if (!appConfig?.systemCorePath || !paths.includes(appConfig.systemCorePath)) {
         await patchAppConfig({ systemCorePath: paths[0] })
       }
-
-      if (corePermissionMode === 'elevated' && platform !== 'win32') {
-        await patchAppConfig({ corePermissionMode: 'none' })
-      }
     }
     handleConfigChangeWithRestart('core', newCore)
   }
 
   const handlePermissionModeChange = async (key: string): Promise<void> => {
-    if (key !== 'elevated' && corePermissionMode === 'elevated' && platform === 'win32') {
-      if (await checkElevateTask()) {
+    if (platform === 'win32') {
+      if (key !== 'elevated') {
+        if (await checkElevateTask()) {
+          setPendingPermissionMode(key)
+          setShowUnGrantConfirm(true)
+        } else {
+          patchAppConfig({ corePermissionMode: key as 'elevated' | 'service' })
+        }
+      } else if (key === 'elevated') {
         setPendingPermissionMode(key)
-        setShowUnGrantConfirm(true)
-      } else {
-        patchAppConfig({ corePermissionMode: key as 'none' | 'elevated' | 'service' })
+        setShowGrantConfirm(true)
       }
-    } else if (key === 'elevated' && corePermissionMode !== 'elevated' && platform === 'win32') {
-      setPendingPermissionMode(key)
-      setShowGrantConfirm(true)
     } else {
-      patchAppConfig({ corePermissionMode: key as 'none' | 'elevated' | 'service' })
+      patchAppConfig({ corePermissionMode: key as 'elevated' | 'service' })
     }
   }
 
@@ -170,7 +168,7 @@ const Mihomo: React.FC = () => {
             new Notification('内核权限已撤销')
           }
           await patchAppConfig({
-            corePermissionMode: pendingPermissionMode as 'none' | 'elevated' | 'service'
+            corePermissionMode: pendingPermissionMode as 'elevated' | 'service'
           })
 
           await restartCore()
@@ -190,7 +188,7 @@ const Mihomo: React.FC = () => {
                 await deleteElevateTask()
                 new Notification('任务计划已取消注册')
                 await patchAppConfig({
-                  corePermissionMode: pendingPermissionMode as 'none' | 'elevated' | 'service'
+                  corePermissionMode: pendingPermissionMode as 'elevated' | 'service'
                 })
                 await relaunchApp()
               } catch (e) {
@@ -211,7 +209,7 @@ const Mihomo: React.FC = () => {
           description="确认后将退出应用，请手动使用管理员运行一次程序"
           onConfirm={async () => {
             await patchAppConfig({
-              corePermissionMode: pendingPermissionMode as 'none' | 'elevated' | 'service'
+              corePermissionMode: pendingPermissionMode as 'elevated' | 'service'
             })
             await notDialogQuit()
           }}
@@ -345,7 +343,6 @@ const Mihomo: React.FC = () => {
             disabledKeys={core === 'system' && platform !== 'win32' ? ['elevated'] : []}
             onSelectionChange={(key) => handlePermissionModeChange(key as string)}
           >
-            <Tab key="none" title="无" />
             <Tab key="elevated" title={platform === 'win32' ? '任务计划' : '授权运行'} />
             <Tab key="service" title="系统服务" />
           </Tabs>

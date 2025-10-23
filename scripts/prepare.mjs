@@ -278,29 +278,6 @@ const resolveEnableLoopback = () =>
     file: 'enableLoopback.exe',
     downloadURL: `https://github.com/Kuingsmile/uwp-tool/releases/download/latest/enableLoopback.exe`
   })
-const resolveSysproxy = () => {
-  const map = {
-    'win32-x64': 'sysproxy-windows-amd64-v3',
-    'win32-ia32': 'sysproxy-windows-386',
-    'win32-arm64': 'sysproxy-windows-arm64',
-    'darwin-x64': 'sysproxy-darwin-amd64-v3',
-    'darwin-arm64': 'sysproxy-darwin-arm64',
-    'linux-x64': 'sysproxy-linux-amd64-v3',
-    'linux-arm64': 'sysproxy-linux-arm64',
-    'linux-loong64': 'sysproxy-linux-loong64-abi2'
-  }
-  if (!map[`${platform}-${arch}`]) {
-    throw new Error(`unsupported platform "${platform}-${arch}"`)
-  }
-  const base = map[`${platform}-${arch}`]
-  const ext = platform == 'win32' ? '.exe' : ''
-
-  return resolveResource({
-    file: `sysproxy${ext}`,
-    downloadURL: `https://github.com/xishang0128/sysproxy-go/releases/download/pre-release/${base}${ext}`,
-    needExecutable: true
-  })
-}
 const resolveSparkleService = () => {
   const map = {
     'win32-x64': 'sparkle-service-windows-amd64-v3',
@@ -447,12 +424,6 @@ const tasks = [
     func: resolveEnableLoopback,
     retry: 5,
     winOnly: true
-  },
-  {
-    name: 'sysproxy',
-    func: resolveSysproxy,
-    retry: 5
-    // winOnly: true
   },
   {
     name: 'sparkle-service',

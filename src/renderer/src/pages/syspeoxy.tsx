@@ -73,7 +73,8 @@ const Sysproxy: React.FC = () => {
     host: sysProxy.host ?? '',
     bypass: sysProxy.bypass ?? defaultBypass,
     mode: sysProxy.mode ?? 'manual',
-    pacScript: sysProxy.pacScript ?? defaultPacScript
+    pacScript: sysProxy.pacScript ?? defaultPacScript,
+    useSysproxyHelper: sysProxy.useSysproxyHelper ?? false
   })
   useEffect(() => {
     originSetValues((prev) => ({
@@ -172,25 +173,47 @@ const Sysproxy: React.FC = () => {
           </SettingItem>
         )}
         {platform == 'darwin' && (
-          <SettingItem
-            title="仅为活跃接口设置"
-            actions={
-              <Tooltip content="开启后，系统代理仅会为当前活跃的网络接口设置，其他接口将不会被设置代理">
-                <Button isIconOnly size="sm" variant="light">
-                  <IoIosHelpCircle className="text-lg" />
-                </Button>
-              </Tooltip>
-            }
-            divider
-          >
-            <Switch
-              size="sm"
-              isSelected={onlyActiveDevice}
-              onValueChange={(v) => {
-                patchAppConfig({ onlyActiveDevice: v })
-              }}
-            />
-          </SettingItem>
+          <>
+            <SettingItem
+              title="使用服务模式"
+              actions={
+                <Tooltip content="开启后，使用服务模式设置系统代理关闭后，使用 Exec 模式（需要关闭“访问系统范围的设置需要输入管理员密码”）">
+                  <Button isIconOnly size="sm" variant="light">
+                    <IoIosHelpCircle className="text-lg" />
+                  </Button>
+                </Tooltip>
+              }
+              divider
+            >
+              <Switch
+                size="sm"
+                isSelected={values.useSysproxyHelper}
+                onValueChange={(v) => {
+                  setValues({ ...values, useSysproxyHelper: v })
+                }}
+              />
+            </SettingItem>
+            <SettingItem
+              title="仅为活跃接口设置"
+              actions={
+                <Tooltip content="开启后，系统代理仅会为当前活跃的网络接口设置，其他接口将不会被设置代理（仅服务模式模式可用）">
+                  <Button isIconOnly size="sm" variant="light">
+                    <IoIosHelpCircle className="text-lg" />
+                  </Button>
+                </Tooltip>
+              }
+              divider
+            >
+              <Switch
+                size="sm"
+                isSelected={onlyActiveDevice}
+                isDisabled={!values.useSysproxyHelper}
+                onValueChange={(v) => {
+                  patchAppConfig({ onlyActiveDevice: v })
+                }}
+              />
+            </SettingItem>
+          </>
         )}
         {values.mode === 'auto' && (
           <SettingItem title="代理模式">

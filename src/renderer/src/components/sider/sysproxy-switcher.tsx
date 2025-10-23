@@ -3,12 +3,11 @@ import BorderSwitch from '@renderer/components/base/border-swtich'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useAppConfig } from '@renderer/hooks/use-app-config'
 import { useControledMihomoConfig } from '@renderer/hooks/use-controled-mihomo-config'
-import { isHelperInstalled, restartHelper, triggerSysProxy } from '@renderer/utils/ipc'
+import { triggerSysProxy } from '@renderer/utils/ipc'
 import { AiOutlineGlobal } from 'react-icons/ai'
-import React, { useState } from 'react'
+import React from 'react'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import ConfirmModal from '../base/base-confirm'
 
 interface Props {
   iconOnly?: boolean
@@ -39,15 +38,10 @@ const SysproxySwitcher: React.FC<Props> = (props) => {
   } = useSortable({
     id: 'sysproxy'
   })
-  const [showInstallConfirm, setShowInstallConfirm] = useState(false)
 
   const transform = tf ? { x: tf.x, y: tf.y, scaleX: 1, scaleY: 1 } : null
   const disabled = mixedPort == 0
   const onChange = async (enable: boolean): Promise<void> => {
-    if (!(await isHelperInstalled())) {
-      setShowInstallConfirm(true)
-      return
-    }
     if (mode == 'manual' && disabled) return
     try {
       await triggerSysProxy(enable, onlyActiveDevice)
@@ -89,24 +83,6 @@ const SysproxySwitcher: React.FC<Props> = (props) => {
       }}
       className={`${sysproxyCardStatus} sysproxy-card`}
     >
-      {showInstallConfirm && (
-        <ConfirmModal
-          title="重新运行 Sparkle Helper"
-          description={
-            <div>
-              <p>修改系统代理需要运行 Helper</p>
-            </div>
-          }
-          confirmText="重新运行"
-          cancelText="取消"
-          onChange={() => {
-            setShowInstallConfirm(false)
-          }}
-          onConfirm={async () => {
-            restartHelper()
-          }}
-        />
-      )}
       <Card
         fullWidth
         ref={setNodeRef}
