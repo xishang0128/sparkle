@@ -209,8 +209,8 @@ export async function serviceStatus(): Promise<
   const execFilePromise = promisify(execFile)
 
   try {
-    const { stdout } = await execFilePromise(execPath, ['service', 'status'])
-    if (stdout.includes('the service is not installed')) {
+    const { stderr } = await execFilePromise(execPath, ['service', 'status'])
+    if (stderr.includes('the service is not installed')) {
       return 'not-installed'
     } else {
       try {
