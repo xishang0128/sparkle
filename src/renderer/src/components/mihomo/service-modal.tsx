@@ -276,7 +276,7 @@ const ServiceModal: React.FC<Props> = (props) => {
               >
                 重启
               </Button>
-              {status === 'running' ? (
+              {status === 'running' || status === 'need-init' ? (
                 <Button
                   size="sm"
                   color="warning"

@@ -371,8 +371,7 @@ export async function restartCore(): Promise<void> {
 
 export async function keepCoreAlive(): Promise<void> {
   try {
-    const promises = await startCore(true)
-    await Promise.all(promises)
+    await startCore(true)
     if (child && child.pid) {
       await writeFile(path.join(dataDir(), 'core.pid'), child.pid.toString())
     }

@@ -76,7 +76,7 @@ export function mihomoIpcPath(): string {
 
 export function serviceIpcPath(): string {
   if (process.platform === 'win32') {
-    return '\\\\.\\pipe\\sparkle\\service-api'
+    return '\\\\.\\pipe\\sparkle\\service'
   }
   return '/tmp/sparkle-service.sock'
 }
