@@ -48,7 +48,17 @@ export function getPublicKey(): string {
   return getKeyManager().getPublicKey()
 }
 
+class UserCancelledError extends Error {
+  constructor(message = '用户取消操作') {
+    super(message)
+    this.name = 'UserCancelledError'
+  }
+}
+
 function isUserCancelledError(error: unknown): boolean {
+  if (error instanceof UserCancelledError) {
+    return true
+  }
   const errorMsg = error instanceof Error ? error.message : String(error)
   return (
     errorMsg.includes('用户已取消') ||
@@ -99,7 +109,7 @@ export async function initService(): Promise<void> {
     }
   } catch (error) {
     if (isUserCancelledError(error)) {
-      return
+      throw new UserCancelledError()
     }
     throw new Error(`服务初始化失败：${error instanceof Error ? error.message : String(error)}`)
   }
@@ -125,7 +135,7 @@ export async function installService(): Promise<void> {
     }
   } catch (error) {
     if (isUserCancelledError(error)) {
-      return
+      throw new UserCancelledError()
     }
     throw new Error(`服务安装失败：${error instanceof Error ? error.message : String(error)}`)
   }
@@ -149,7 +159,7 @@ export async function uninstallService(): Promise<void> {
     }
   } catch (error) {
     if (isUserCancelledError(error)) {
-      return
+      throw new UserCancelledError()
     }
     throw new Error(`服务卸载失败：${error instanceof Error ? error.message : String(error)}`)
   }
@@ -173,7 +183,7 @@ export async function startService(): Promise<void> {
     }
   } catch (error) {
     if (isUserCancelledError(error)) {
-      return
+      throw new UserCancelledError()
     }
     throw new Error(`服务启动失败：${error instanceof Error ? error.message : String(error)}`)
   }
@@ -197,7 +207,7 @@ export async function stopService(): Promise<void> {
     }
   } catch (error) {
     if (isUserCancelledError(error)) {
-      return
+      throw new UserCancelledError()
     }
     throw new Error(`服务停止失败：${error instanceof Error ? error.message : String(error)}`)
   }
@@ -221,7 +231,7 @@ export async function restartService(): Promise<void> {
     }
   } catch (error) {
     if (isUserCancelledError(error)) {
-      return
+      throw new UserCancelledError()
     }
     throw new Error(`服务重启失败：${error instanceof Error ? error.message : String(error)}`)
   }

@@ -89,6 +89,13 @@ const ServiceModal: React.FC<Props> = (props) => {
       setStatus(result)
       await checkServiceConnection()
     } catch (e) {
+      const errorMsg = String(e)
+      if (errorMsg.includes('用户取消操作') || errorMsg.includes('UserCancelledError')) {
+        const result = await serviceStatus()
+        setStatus(result)
+        await checkServiceConnection()
+        return
+      }
       alert(e)
     } finally {
       setLoading(false)
