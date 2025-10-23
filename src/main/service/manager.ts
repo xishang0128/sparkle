@@ -74,26 +74,22 @@ export async function initService(): Promise<void> {
   const execPath = servicePath()
   const execFilePromise = promisify(execFile)
 
-  console.log('Initializing service with public key:', publicKey)
-
   try {
     if (process.platform === 'win32') {
       await execFilePromise(execPath, ['service', 'init', '--public-key', publicKey])
     } else if (process.platform === 'linux') {
       await execFilePromise('pkexec', [execPath, 'service', 'init', '--public-key', publicKey])
     } else if (process.platform === 'darwin') {
-      const cmd = `${execPath} service init --public-key ${publicKey} > /tmp/sparkle-init.log 2>&1`
-      const out = await execFilePromise('osascript', [
+      const cmd = `${execPath} service init --public-key ${publicKey}`
+      await execFilePromise('osascript', [
         '-e',
         `do shell script "${cmd}" with administrator privileges`
       ])
-      console.log(out)
     }
   } catch (error) {
     throw new Error(`服务初始化失败：${error instanceof Error ? error.message : String(error)}`)
   }
 
-  // 初始化完成后，等待一下让服务加载公钥
   await new Promise((resolve) => setTimeout(resolve, 500))
 }
 
@@ -203,7 +199,7 @@ export async function restartService(): Promise<void> {
 }
 
 export async function serviceStatus(): Promise<
-  'running' | 'stopped' | 'not-installed' | 'paused' | 'unknown'
+  'running' | 'stopped' | 'not-installed' | 'paused' | 'unknown' | 'need-init'
 > {
   const execPath = servicePath()
   const execFilePromise = promisify(execFile)
@@ -215,7 +211,15 @@ export async function serviceStatus(): Promise<
     } else {
       try {
         await ping()
-        return 'running'
+        try {
+          const out = await test()
+          if (out && typeof out === 'object' && 'status' in out && out.status === 'error') {
+            return 'need-init'
+          }
+          return 'running'
+        } catch (e) {
+          return 'need-init'
+        }
       } catch (e) {
         return 'stopped'
       }
@@ -227,7 +231,10 @@ export async function serviceStatus(): Promise<
 
 export async function testServiceConnection(): Promise<boolean> {
   try {
-    await test()
+    const out = await test()
+    if (out && typeof out === 'object' && 'status' in out && out.status === 'error') {
+      return false
+    }
     return true
   } catch {
     return false

@@ -25,7 +25,7 @@ interface Props {
   onStop: () => Promise<void>
 }
 
-type ServiceStatusType = 'running' | 'stopped' | 'not-installed' | 'unknown'
+type ServiceStatusType = 'running' | 'stopped' | 'not-installed' | 'unknown' | 'need-init'
 type ConnectionStatusType = 'connected' | 'disconnected' | 'checking' | 'unknown'
 
 const ServiceModal: React.FC<Props> = (props) => {
@@ -65,15 +65,29 @@ const ServiceModal: React.FC<Props> = (props) => {
     checkServiceConnection()
   }, [status, checkServiceConnection])
 
-  const handleAction = async (action: () => Promise<void>): Promise<void> => {
+  const handleAction = async (
+    action: () => Promise<void>,
+    isStartAction = false
+  ): Promise<void> => {
     setLoading(true)
     try {
       await action()
-      const result = await serviceStatus()
-      setStatus(result)
-      // Re-check connection status after action
+
       await new Promise((resolve) => setTimeout(resolve, 500))
-      checkServiceConnection()
+
+      let result = await serviceStatus()
+
+      if (isStartAction) {
+        let retries = 5
+        while (retries > 0 && result === 'stopped') {
+          await new Promise((resolve) => setTimeout(resolve, 1000))
+          result = await serviceStatus()
+          retries--
+        }
+      }
+
+      setStatus(result)
+      await checkServiceConnection()
     } catch (e) {
       alert(e)
     } finally {
@@ -90,6 +104,8 @@ const ServiceModal: React.FC<Props> = (props) => {
         return '已停止'
       case 'not-installed':
         return '未安装'
+      case 'need-init':
+        return '需要初始化'
       default:
         return '未知状态'
     }
@@ -153,7 +169,9 @@ const ServiceModal: React.FC<Props> = (props) => {
                             ? 'warning'
                             : status === 'not-installed'
                               ? 'danger'
-                              : 'default'
+                              : status === 'need-init'
+                                ? 'warning'
+                                : 'default'
                       }
                       variant="flat"
                       size="sm"
@@ -263,7 +281,7 @@ const ServiceModal: React.FC<Props> = (props) => {
                   size="sm"
                   color="success"
                   variant="shadow"
-                  onPress={() => handleAction(onStart)}
+                  onPress={() => handleAction(onStart, true)}
                   isLoading={loading}
                 >
                   启动

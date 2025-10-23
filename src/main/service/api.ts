@@ -16,7 +16,7 @@ export const initServiceAPI = (km: KeyManager): void => {
 
   serviceAxios.interceptors.request.use((config) => {
     if (keyManager?.isInitialized()) {
-      const timestamp = Date.now().toString()
+      const timestamp = Math.floor(Date.now() / 1000).toString()
       const signature = keyManager.signData(timestamp)
 
       config.headers['X-Timestamp'] = timestamp
@@ -86,7 +86,11 @@ export const getProxyStatus = async (): Promise<Record<string, unknown>> => {
   return await instance.get('/sysproxy/status')
 }
 
-export const setPac = async (url: string, device?: string, onlyActiveDevice?: boolean): Promise<void> => {
+export const setPac = async (
+  url: string,
+  device?: string,
+  onlyActiveDevice?: boolean
+): Promise<void> => {
   const instance = getServiceAxios()
   return await instance.post('/sysproxy/pac', { url, device, only_active_device: onlyActiveDevice })
 }
@@ -110,4 +114,3 @@ export const disableProxy = async (device?: string, onlyActiveDevice?: boolean):
   const instance = getServiceAxios()
   return await instance.post('/sysproxy/disable', { device, only_active_device: onlyActiveDevice })
 }
-
