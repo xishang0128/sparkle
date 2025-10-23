@@ -108,7 +108,7 @@ const Tun: React.FC = () => {
             </SettingItem>
           )}
           {platform === 'darwin' && (
-            <SettingItem title="自动设置系统DNS" divider>
+            <SettingItem title="自动设置系统 DNS" divider>
               <Switch
                 size="sm"
                 isSelected={autoSetDNS}
@@ -173,7 +173,7 @@ const Tun: React.FC = () => {
               />
             </SettingItem>
           )}
-          <SettingItem title="自动选择流量出口接口" divider>
+          <SettingItem title="自动选择流量出口" divider>
             <Switch
               size="sm"
               isSelected={values.autoDetectInterface}

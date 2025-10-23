@@ -295,6 +295,28 @@ const resolveSysproxy = () => {
     downloadURL: `https://github.com/xishang0128/sysproxy-go/releases/download/pre-release/${base}${ext}`
   })
 }
+const resolveSparkleService = () => {
+  const map = {
+    'win32-x64': 'sparkle-service-windows-amd64-v3',
+    'win32-ia32': 'sparkle-service-windows-386',
+    'win32-arm64': 'sparkle-service-windows-arm64',
+    'darwin-x64': 'sparkle-service-darwin-amd64-v3',
+    'darwin-arm64': 'sparkle-service-darwin-arm64',
+    'linux-x64': 'sparkle-service-linux-amd64-v3',
+    'linux-arm64': 'sparkle-service-linux-arm64',
+    'linux-loong64': 'sparkle-service-linux-loong64-abi2'
+  }
+  if (!map[`${platform}-${arch}`]) {
+    throw new Error(`unsupported platform "${platform}-${arch}"`)
+  }
+  const base = map[`${platform}-${arch}`]
+  const ext = platform == 'win32' ? '.exe' : ''
+
+  return resolveResource({
+    file: `sparkle-service${ext}`,
+    downloadURL: `https://github.com/xishang0128/sparkle-service/releases/download/pre-release/${base}${ext}`
+  })
+}
 const resolveRunner = () =>
   resolveResource({
     file: 'sparkle-run.exe',
@@ -424,6 +446,11 @@ const tasks = [
     func: resolveSysproxy,
     retry: 5
     // winOnly: true
+  },
+  {
+    name: 'sparkle-service',
+    func: resolveSparkleService,
+    retry: 5
   },
   {
     name: 'runner',

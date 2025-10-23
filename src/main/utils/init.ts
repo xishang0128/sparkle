@@ -40,6 +40,7 @@ import {
 import { app } from 'electron'
 import { startSSIDCheck } from '../sys/ssid'
 import { startNetworkDetection } from '../core/manager'
+import { initKeyManager } from '../service/manager'
 
 async function initDirs(): Promise<void> {
   if (!existsSync(dataDir())) {
@@ -250,6 +251,7 @@ export async function init(): Promise<void> {
   await migration()
   await initFiles()
   await cleanup()
+  await initKeyManager()
   await startSubStoreFrontendServer()
   await startSubStoreBackendServer()
   const { sysProxy, onlyActiveDevice = false, networkDetection = false } = await getAppConfig()

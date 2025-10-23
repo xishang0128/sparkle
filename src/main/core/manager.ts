@@ -1,4 +1,4 @@
-import { ChildProcess, exec, execFile, spawn } from 'child_process'
+import { ChildProcess, execFile, execFileSync, spawn } from 'child_process'
 import {
   dataDir,
   logPath,
@@ -149,17 +149,6 @@ export async function startCore(detached = false): Promise<Promise<void>[]> {
     child.stdout?.on('data', async (data) => {
       const str = data.toString()
       if (
-        str.includes(
-          'Start TUN listening error: configure tun interface: Connect: operation not permitted'
-        )
-      ) {
-        patchControledMihomoConfig({ tun: { enable: false } })
-        mainWindow?.webContents.send('controledMihomoConfigUpdated')
-        ipcMain.emit('updateTrayMenu')
-        reject('虚拟网卡启动失败，前往内核设置页尝试手动授予内核权限')
-      }
-
-      if (
         (process.platform !== 'win32' && str.includes('External controller unix listen error')) ||
         (process.platform === 'win32' && str.includes('External controller pipe listen error'))
       ) {
@@ -169,7 +158,8 @@ export async function startCore(detached = false): Promise<Promise<void>[]> {
       if (process.platform === 'win32' && str.includes('updater: finished')) {
         try {
           await stopCore(true)
-          await startCore()
+          const promises = await startCore()
+          await Promise.all(promises)
         } catch (e) {
           dialog.showErrorBox('内核启动出错', `${e}`)
         }
@@ -180,12 +170,23 @@ export async function startCore(detached = false): Promise<Promise<void>[]> {
         (process.platform === 'win32' && str.includes('RESTful API pipe listening at'))
       ) {
         resolve([
-          new Promise((resolve) => {
+          new Promise((resolve, reject) => {
             const handleProviderInitialization = async (logLine: string): Promise<void> => {
               for (const match of logLine.matchAll(
                 /Start initial provider ([\w\-!@#$%^&*()\p{Script=Han}]+)/gu
               )) {
                 matchedProviders.add(match[1])
+              }
+
+              if (
+                logLine.includes(
+                  'Start TUN listening error: configure tun interface: Connect: operation not permitted'
+                )
+              ) {
+                patchControledMihomoConfig({ tun: { enable: false } })
+                mainWindow?.webContents.send('controledMihomoConfigUpdated')
+                ipcMain.emit('updateTrayMenu')
+                reject('虚拟网卡启动失败，前往内核设置页尝试手动授予内核权限')
               }
 
               const isDefaultProvider = logLine.includes(
@@ -361,7 +362,8 @@ async function stopChildProcess(process: ChildProcess): Promise<void> {
 export async function restartCore(): Promise<void> {
   try {
     await stopCore()
-    await startCore()
+    const promises = await startCore()
+    await Promise.all(promises)
   } catch (e) {
     dialog.showErrorBox('内核启动出错', `${e}`)
   }
@@ -369,7 +371,8 @@ export async function restartCore(): Promise<void> {
 
 export async function keepCoreAlive(): Promise<void> {
   try {
-    await startCore(true)
+    const promises = await startCore(true)
+    await Promise.all(promises)
     if (child && child.pid) {
       await writeFile(path.join(dataDir(), 'core.pid'), child.pid.toString())
     }
@@ -418,62 +421,101 @@ async function checkProfile(): Promise<void> {
   }
 }
 
-export async function manualGrantCorePermition(): Promise<void> {
-  const { core = 'mihomo' } = await getAppConfig()
-  const corePath = mihomoCorePath(core)
-  const execPromise = promisify(exec)
+export async function manualGrantCorePermition(
+  cores?: ('mihomo' | 'mihomo-alpha')[]
+): Promise<void> {
   const execFilePromise = promisify(execFile)
-  if (process.platform === 'darwin') {
-    const shell = `chown root:admin ${corePath.replace(' ', '\\\\ ')}\nchmod +sx ${corePath.replace(' ', '\\\\ ')}`
-    const command = `do shell script "${shell}" with administrator privileges`
-    await execPromise(`osascript -e '${command}'`)
+
+  const grantPermission = async (coreName: 'mihomo' | 'mihomo-alpha'): Promise<void> => {
+    const corePath = mihomoCorePath(coreName)
+    if (process.platform === 'darwin') {
+      const escapedPath = corePath.replace(/"/g, '\\"')
+      const shell = `chown root:admin \\"${escapedPath}\\" && chmod +sx \\"${escapedPath}\\"`
+      const command = `do shell script "${shell}" with administrator privileges`
+      await execFilePromise('osascript', ['-e', command])
+    }
+    if (process.platform === 'linux') {
+      await execFilePromise('pkexec', [
+        'bash',
+        '-c',
+        `chown root:root "${corePath}" && chmod +sx "${corePath}"`
+      ])
+    }
   }
-  if (process.platform === 'linux') {
-    await execFilePromise('pkexec', [
-      'bash',
-      '-c',
-      `chown root:root "${corePath}" && chmod +sx "${corePath}"`
-    ])
-  }
+
+  const targetCores = cores || ['mihomo', 'mihomo-alpha']
+  await Promise.all(targetCores.map((core) => grantPermission(core)))
 }
 
-export async function checkCorePermission(): Promise<boolean> {
-  const { core = 'mihomo' } = await getAppConfig()
-  const corePath = mihomoCorePath(core)
-  const execPromise = promisify(exec)
-
+export function checkCorePermissionSync(coreName: 'mihomo' | 'mihomo-alpha'): boolean {
+  if (process.platform === 'win32') return true
   try {
-    const { stdout } = await execPromise(`ls -l "${corePath}"`)
+    const corePath = mihomoCorePath(coreName)
+    const stdout = execFileSync('ls', ['-l', corePath], { encoding: 'utf8' })
     const permissions = stdout.trim().split(/\s+/)[0]
     return permissions.includes('s') || permissions.includes('S')
-  } catch (error) {
+  } catch {
     return false
   }
 }
 
-export async function revokeCorePermission(): Promise<void> {
-  const { core = 'mihomo' } = await getAppConfig()
-  const corePath = mihomoCorePath(core)
-  const execPromise = promisify(exec)
+export async function checkCorePermission(): Promise<{ mihomo: boolean; 'mihomo-alpha': boolean }> {
   const execFilePromise = promisify(execFile)
 
-  if (process.platform === 'darwin') {
-    const shell = `chmod a-s ${corePath.replace(' ', '\\\\ ')} && rm -f ${mihomoIpcPath()}`
-    const command = `do shell script "${shell}" with administrator privileges`
-    await execPromise(`osascript -e '${command}'`)
+  const checkPermission = async (coreName: 'mihomo' | 'mihomo-alpha'): Promise<boolean> => {
+    try {
+      const corePath = mihomoCorePath(coreName)
+      const { stdout } = await execFilePromise('ls', ['-l', corePath])
+      const permissions = stdout.trim().split(/\s+/)[0]
+      return permissions.includes('s') || permissions.includes('S')
+    } catch (error) {
+      return false
+    }
   }
-  if (process.platform === 'linux') {
-    await execFilePromise('pkexec', [
-      'bash',
-      '-c',
-      `chmod a-s "${corePath}" && rm -f "${mihomoIpcPath()}"`
-    ])
+
+  const [mihomoPermission, mihomoAlphaPermission] = await Promise.all([
+    checkPermission('mihomo'),
+    checkPermission('mihomo-alpha')
+  ])
+
+  return {
+    mihomo: mihomoPermission,
+    'mihomo-alpha': mihomoAlphaPermission
+  }
+}
+
+export async function revokeCorePermission(cores?: ('mihomo' | 'mihomo-alpha')[]): Promise<void> {
+  const execFilePromise = promisify(execFile)
+
+  const revokePermission = async (coreName: 'mihomo' | 'mihomo-alpha'): Promise<void> => {
+    const corePath = mihomoCorePath(coreName)
+    if (process.platform === 'darwin') {
+      const escapedPath = corePath.replace(/"/g, '\\"')
+      const shell = `chmod a-s \\"${escapedPath}\\"`
+      const command = `do shell script "${shell}" with administrator privileges`
+      await execFilePromise('osascript', ['-e', command])
+    }
+    if (process.platform === 'linux') {
+      await execFilePromise('pkexec', ['bash', '-c', `chmod a-s "${corePath}"`])
+    }
+  }
+
+  const targetCores = cores || ['mihomo', 'mihomo-alpha']
+  await Promise.all(targetCores.map((core) => revokePermission(core)))
+
+  try {
+    const ipcPath = mihomoIpcPath()
+    if (process.platform === 'darwin' || process.platform === 'linux') {
+      await execFilePromise('rm', ['-f', ipcPath])
+    }
+  } catch {
+    // ignore
   }
 }
 
 export async function getDefaultDevice(): Promise<string> {
-  const execPromise = promisify(exec)
-  const { stdout: deviceOut } = await execPromise(`route -n get default`)
+  const execFilePromise = promisify(execFile)
+  const { stdout: deviceOut } = await execFilePromise('route', ['-n', 'get', 'default'])
   let device = deviceOut.split('\n').find((s) => s.includes('interface:'))
   device = device?.trim().split(' ').slice(1).join(' ')
   if (!device) throw new Error('Get device failed')
@@ -481,9 +523,9 @@ export async function getDefaultDevice(): Promise<string> {
 }
 
 async function getDefaultService(): Promise<string> {
-  const execPromise = promisify(exec)
+  const execFilePromise = promisify(execFile)
   const device = await getDefaultDevice()
-  const { stdout: order } = await execPromise(`networksetup -listnetworkserviceorder`)
+  const { stdout: order } = await execFilePromise('networksetup', ['-listnetworkserviceorder'])
   const block = order.split('\n\n').find((s) => s.includes(`Device: ${device}`))
   if (!block) throw new Error('Get networkservice failed')
   for (const line of block.split('\n')) {
@@ -495,9 +537,9 @@ async function getDefaultService(): Promise<string> {
 }
 
 async function getOriginDNS(): Promise<void> {
-  const execPromise = promisify(exec)
+  const execFilePromise = promisify(execFile)
   const service = await getDefaultService()
-  const { stdout: dns } = await execPromise(`networksetup -getdnsservers "${service}"`)
+  const { stdout: dns } = await execFilePromise('networksetup', ['-getdnsservers', service])
   if (dns.startsWith("There aren't any DNS Servers set on")) {
     await patchAppConfig({ originDNS: 'Empty' })
   } else {
@@ -507,8 +549,9 @@ async function getOriginDNS(): Promise<void> {
 
 async function setDNS(dns: string): Promise<void> {
   const service = await getDefaultService()
-  const execPromise = promisify(exec)
-  await execPromise(`networksetup -setdnsservers "${service}" ${dns}`)
+  const execFilePromise = promisify(execFile)
+  const dnsServers = dns.split(' ')
+  await execFilePromise('networksetup', ['-setdnsservers', service, ...dnsServers])
 }
 
 async function setPublicDNS(): Promise<void> {
@@ -558,7 +601,8 @@ export async function startNetworkDetection(): Promise<void> {
   networkDetectionTimer = setInterval(async () => {
     if (isAnyNetworkInterfaceUp(extendedBypass) && net.isOnline()) {
       if ((networkDownHandled && !child) || (child && child.killed)) {
-        startCore()
+        const promises = await startCore()
+        await Promise.all(promises)
         if (sysProxy.enable) triggerSysProxy(true, onlyActiveDevice)
         networkDownHandled = false
       }

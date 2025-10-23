@@ -78,6 +78,16 @@ import {
   setNativeTheme,
   setupFirewall
 } from '../sys/misc'
+import {
+  serviceStatus,
+  installService,
+  uninstallService,
+  startService,
+  stopService,
+  initService,
+  testServiceConnection,
+  restartService
+} from '../service/manager'
 import { findSystemMihomo } from '../utils/dirs'
 import {
   getRuntimeConfig,
@@ -208,11 +218,23 @@ export function registerIpcMainHandlers(): void {
   )
   ipcMain.handle('restartHelper', ipcErrorWrapper(restartHelper))
   ipcMain.handle('isHelperInstalled', ipcErrorWrapper(isHelperInstalled))
-  ipcMain.handle('manualGrantCorePermition', () => ipcErrorWrapper(manualGrantCorePermition)())
+  ipcMain.handle('manualGrantCorePermition', (_e, cores?: ('mihomo' | 'mihomo-alpha')[]) =>
+    ipcErrorWrapper(manualGrantCorePermition)(cores)
+  )
   ipcMain.handle('checkCorePermission', () => ipcErrorWrapper(checkCorePermission)())
-  ipcMain.handle('revokeCorePermission', () => ipcErrorWrapper(revokeCorePermission)())
+  ipcMain.handle('revokeCorePermission', (_e, cores?: ('mihomo' | 'mihomo-alpha')[]) =>
+    ipcErrorWrapper(revokeCorePermission)(cores)
+  )
   ipcMain.handle('checkElevateTask', () => ipcErrorWrapper(checkElevateTask)())
   ipcMain.handle('deleteElevateTask', () => ipcErrorWrapper(deleteElevateTask)())
+  ipcMain.handle('serviceStatus', () => ipcErrorWrapper(serviceStatus)())
+  ipcMain.handle('testServiceConnection', () => ipcErrorWrapper(testServiceConnection)())
+  ipcMain.handle('initService', () => ipcErrorWrapper(initService)())
+  ipcMain.handle('installService', () => ipcErrorWrapper(installService)())
+  ipcMain.handle('uninstallService', () => ipcErrorWrapper(uninstallService)())
+  ipcMain.handle('startService', () => ipcErrorWrapper(startService)())
+  ipcMain.handle('restartService', () => ipcErrorWrapper(restartService)())
+  ipcMain.handle('stopService', () => ipcErrorWrapper(stopService)())
   ipcMain.handle('findSystemMihomo', () => findSystemMihomo())
   ipcMain.handle('getFilePath', (_e, ext) => getFilePath(ext))
   ipcMain.handle('readTextFile', (_e, filePath) => ipcErrorWrapper(readTextFile)(filePath))

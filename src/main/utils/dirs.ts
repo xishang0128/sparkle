@@ -4,6 +4,7 @@ import { app } from 'electron'
 import path from 'path'
 import { execSync } from 'child_process'
 import { getAppConfigSync } from '../config/app'
+import { checkCorePermissionSync } from '../core/manager'
 
 export const homeDir = app.getPath('home')
 
@@ -67,7 +68,17 @@ export function mihomoIpcPath(): string {
   if (core === 'system') {
     return '/tmp/sparkle-mihomo-external.sock'
   }
+  if (!checkCorePermissionSync(core as 'mihomo' | 'mihomo-alpha')) {
+    return '/tmp/sparkle-mihomo-api-noperm.sock'
+  }
   return '/tmp/sparkle-mihomo-api.sock'
+}
+
+export function serviceIpcPath(): string {
+  if (process.platform === 'win32') {
+    return '\\\\.\\pipe\\sparkle\\service-api'
+  }
+  return '/tmp/sparkle-service.sock'
 }
 
 export function mihomoCoreDir(): string {
@@ -98,6 +109,11 @@ function systemCorePath(): string {
 export function sysproxyPath(): string {
   const isWin = process.platform === 'win32'
   return path.join(resourcesFilesDir(), `sysproxy${isWin ? '.exe' : ''}`)
+}
+
+export function servicePath(): string {
+  const isWin = process.platform === 'win32'
+  return path.join(resourcesFilesDir(), `sparkle-service${isWin ? '.exe' : ''}`)
 }
 
 export function appConfigPath(): string {

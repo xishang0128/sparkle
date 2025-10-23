@@ -21,6 +21,7 @@ interface AppConfig {
   core: 'mihomo' | 'mihomo-alpha' | 'system'
   systemCorePath?: string
   corePermissionMode?: 'none' | 'elevated' | 'service'
+  serviceAuthKey?: string
   disableLoopbackDetector: boolean
   disableEmbedCA: boolean
   disableSystemCA: boolean
