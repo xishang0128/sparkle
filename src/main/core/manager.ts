@@ -43,6 +43,27 @@ import { getAxios } from './mihomoApi'
 
 const ctlParam = process.platform === 'win32' ? '-ext-ctl-pipe' : '-ext-ctl-unix'
 
+class UserCancelledError extends Error {
+  constructor(message = '用户取消操作') {
+    super(message)
+    this.name = 'UserCancelledError'
+  }
+}
+
+function isUserCancelledError(error: unknown): boolean {
+  if (error instanceof UserCancelledError) {
+    return true
+  }
+  const errorMsg = error instanceof Error ? error.message : String(error)
+  return (
+    errorMsg.includes('用户已取消') ||
+    errorMsg.includes('User canceled') ||
+    errorMsg.includes('(-128)') ||
+    errorMsg.includes('user cancelled') ||
+    errorMsg.includes('dismissed')
+  )
+}
+
 let setPublicDNSTimer: NodeJS.Timeout | null = null
 let recoverDNSTimer: NodeJS.Timeout | null = null
 let networkDetectionTimer: NodeJS.Timeout | null = null
@@ -427,18 +448,25 @@ export async function manualGrantCorePermition(
 
   const grantPermission = async (coreName: 'mihomo' | 'mihomo-alpha'): Promise<void> => {
     const corePath = mihomoCorePath(coreName)
-    if (process.platform === 'darwin') {
-      const escapedPath = corePath.replace(/"/g, '\\"')
-      const shell = `chown root:admin \\"${escapedPath}\\" && chmod +sx \\"${escapedPath}\\"`
-      const command = `do shell script "${shell}" with administrator privileges`
-      await execFilePromise('osascript', ['-e', command])
-    }
-    if (process.platform === 'linux') {
-      await execFilePromise('pkexec', [
-        'bash',
-        '-c',
-        `chown root:root "${corePath}" && chmod +sx "${corePath}"`
-      ])
+    try {
+      if (process.platform === 'darwin') {
+        const escapedPath = corePath.replace(/"/g, '\\"')
+        const shell = `chown root:admin \\"${escapedPath}\\" && chmod +sx \\"${escapedPath}\\"`
+        const command = `do shell script "${shell}" with administrator privileges`
+        await execFilePromise('osascript', ['-e', command])
+      }
+      if (process.platform === 'linux') {
+        await execFilePromise('pkexec', [
+          'bash',
+          '-c',
+          `chown root:root "${corePath}" && chmod +sx "${corePath}"`
+        ])
+      }
+    } catch (error) {
+      if (isUserCancelledError(error)) {
+        throw new UserCancelledError()
+      }
+      throw error
     }
   }
 
@@ -488,14 +516,21 @@ export async function revokeCorePermission(cores?: ('mihomo' | 'mihomo-alpha')[]
 
   const revokePermission = async (coreName: 'mihomo' | 'mihomo-alpha'): Promise<void> => {
     const corePath = mihomoCorePath(coreName)
-    if (process.platform === 'darwin') {
-      const escapedPath = corePath.replace(/"/g, '\\"')
-      const shell = `chmod a-s \\"${escapedPath}\\"`
-      const command = `do shell script "${shell}" with administrator privileges`
-      await execFilePromise('osascript', ['-e', command])
-    }
-    if (process.platform === 'linux') {
-      await execFilePromise('pkexec', ['bash', '-c', `chmod a-s "${corePath}"`])
+    try {
+      if (process.platform === 'darwin') {
+        const escapedPath = corePath.replace(/"/g, '\\"')
+        const shell = `chmod a-s \\"${escapedPath}\\"`
+        const command = `do shell script "${shell}" with administrator privileges`
+        await execFilePromise('osascript', ['-e', command])
+      }
+      if (process.platform === 'linux') {
+        await execFilePromise('pkexec', ['bash', '-c', `chmod a-s "${corePath}"`])
+      }
+    } catch (error) {
+      if (isUserCancelledError(error)) {
+        throw new UserCancelledError()
+      }
+      throw error
     }
   }
 

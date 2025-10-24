@@ -55,6 +55,13 @@ const PermissionModal: React.FC<Props> = (props) => {
       await action()
       onChange(false)
     } catch (e) {
+      // 忽略用户取消操作的错误
+      const errorMsg = String(e)
+      if (errorMsg.includes('用户取消操作') || errorMsg.includes('UserCancelledError')) {
+        // 静默失败，只刷新状态
+        await checkPermissions()
+        return
+      }
       alert(e)
     } finally {
       setLoading({})
@@ -74,6 +81,13 @@ const PermissionModal: React.FC<Props> = (props) => {
       }
       await checkPermissions()
     } catch (e) {
+      // 忽略用户取消操作的错误
+      const errorMsg = String(e)
+      if (errorMsg.includes('用户取消操作') || errorMsg.includes('UserCancelledError')) {
+        // 静默失败，只刷新状态
+        await checkPermissions()
+        return
+      }
       alert(e)
     } finally {
       setLoading({ ...loading, [coreName]: false })
