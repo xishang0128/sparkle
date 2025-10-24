@@ -67,7 +67,7 @@ interface AppConfig {
   mihomoCpuPriority?: Priority
   customSubStoreUrl?: string
   diffWorkDir?: boolean
-  autoSetDNS?: boolean
+  autoSetDNSMode?: 'none' | 'exec' | 'service'
   originDNS?: string
   useWindowFrame: boolean
   proxyInTray: boolean

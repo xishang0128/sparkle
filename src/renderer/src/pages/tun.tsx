@@ -12,7 +12,7 @@ import { useAppConfig } from '@renderer/hooks/use-app-config'
 const Tun: React.FC = () => {
   const { controledMihomoConfig, patchControledMihomoConfig } = useControledMihomoConfig()
   const { appConfig, patchAppConfig } = useAppConfig()
-  const { autoSetDNS = true } = appConfig || {}
+  const { autoSetDNSMode = 'exec' } = appConfig || {}
   const { tun } = controledMihomoConfig || {}
   const [loading, setLoading] = useState(false)
   const {
@@ -109,13 +109,18 @@ const Tun: React.FC = () => {
           )}
           {platform === 'darwin' && (
             <SettingItem title="自动设置系统 DNS" divider>
-              <Switch
+              <Tabs
                 size="sm"
-                isSelected={autoSetDNS}
-                onValueChange={async (v) => {
-                  await patchAppConfig({ autoSetDNS: v })
+                color="primary"
+                selectedKey={autoSetDNSMode}
+                onSelectionChange={async (key: Key) => {
+                  await patchAppConfig({ autoSetDNSMode: key as 'none' | 'exec' | 'service' })
                 }}
-              />
+              >
+                <Tab key="none" title="不自动设置" />
+                <Tab key="exec" title="执行命令" />
+                <Tab key="service" title="通过服务" />
+              </Tabs>
             </SettingItem>
           )}
           <SettingItem title="Tun 模式堆栈" divider>

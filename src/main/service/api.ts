@@ -114,3 +114,8 @@ export const disableProxy = async (device?: string, onlyActiveDevice?: boolean):
   const instance = getServiceAxios()
   return await instance.post('/sysproxy/disable', { device, only_active_device: onlyActiveDevice })
 }
+
+export const setSysDns = async (device?: string, servers?: string[]): Promise<void> => {
+  const instance = getServiceAxios()
+  return await instance.post('/sys/dns/set', { servers, device })
+}

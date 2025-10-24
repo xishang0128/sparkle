@@ -40,6 +40,7 @@ import { uploadRuntimeConfig } from '../resolve/gistApi'
 import { startMonitor } from '../resolve/trafficMonitor'
 import { disableSysProxy, triggerSysProxy } from '../sys/sysproxy'
 import { getAxios } from './mihomoApi'
+import { setSysDns } from '../service/api'
 
 const ctlParam = process.platform === 'win32' ? '-ext-ctl-pipe' : '-ext-ctl-unix'
 
@@ -75,7 +76,7 @@ let retry = 10
 export async function startCore(detached = false): Promise<Promise<void>[]> {
   const {
     core = 'mihomo',
-    autoSetDNS = true,
+    autoSetDNSMode = 'exec',
     diffWorkDir = false,
     mihomoCpuPriority = 'PRIORITY_NORMAL',
     disableLoopbackDetector = false,
@@ -102,7 +103,7 @@ export async function startCore(detached = false): Promise<Promise<void>[]> {
   await generateProfile()
   await checkProfile()
   await stopCore()
-  if (tun?.enable && autoSetDNS) {
+  if (tun?.enable && autoSetDNSMode !== 'none') {
     try {
       await setPublicDNS()
     } catch (error) {
@@ -536,15 +537,6 @@ export async function revokeCorePermission(cores?: ('mihomo' | 'mihomo-alpha')[]
 
   const targetCores = cores || ['mihomo', 'mihomo-alpha']
   await Promise.all(targetCores.map((core) => revokePermission(core)))
-
-  try {
-    const ipcPath = mihomoIpcPath()
-    if (process.platform === 'darwin' || process.platform === 'linux') {
-      await execFilePromise('rm', ['-f', ipcPath])
-    }
-  } catch {
-    // ignore
-  }
 }
 
 export async function getDefaultDevice(): Promise<string> {
@@ -581,20 +573,27 @@ async function getOriginDNS(): Promise<void> {
   }
 }
 
-async function setDNS(dns: string): Promise<void> {
+async function setDNS(dns: string, mode: 'none' | 'exec' | 'service'): Promise<void> {
   const service = await getDefaultService()
-  const execFilePromise = promisify(execFile)
   const dnsServers = dns.split(' ')
-  await execFilePromise('networksetup', ['-setdnsservers', service, ...dnsServers])
+  if (mode === 'exec') {
+    const execFilePromise = promisify(execFile)
+    await execFilePromise('networksetup', ['-setdnsservers', service, ...dnsServers])
+    return
+  }
+  if (mode === 'service') {
+    await setSysDns(service, dnsServers)
+    return
+  }
 }
 
 async function setPublicDNS(): Promise<void> {
   if (process.platform !== 'darwin') return
   if (net.isOnline()) {
-    const { originDNS } = await getAppConfig()
+    const { originDNS, autoSetDNSMode = 'none' } = await getAppConfig()
     if (!originDNS) {
       await getOriginDNS()
-      await setDNS('223.5.5.5')
+      await setDNS('223.5.5.5', autoSetDNSMode)
     }
   } else {
     if (setPublicDNSTimer) clearTimeout(setPublicDNSTimer)
@@ -605,9 +604,9 @@ async function setPublicDNS(): Promise<void> {
 async function recoverDNS(): Promise<void> {
   if (process.platform !== 'darwin') return
   if (net.isOnline()) {
-    const { originDNS } = await getAppConfig()
+    const { originDNS, autoSetDNSMode = 'none' } = await getAppConfig()
     if (originDNS) {
-      await setDNS(originDNS)
+      await setDNS(originDNS, autoSetDNSMode)
       await patchAppConfig({ originDNS: undefined })
     }
   } else {
