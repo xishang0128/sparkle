@@ -177,7 +177,16 @@ const Sysproxy: React.FC = () => {
             <SettingItem
               title="使用服务模式"
               actions={
-                <Tooltip content="开启后，使用服务模式设置系统代理关闭后，使用 Exec 模式（需要关闭“访问系统范围的设置需要输入管理员密码”）">
+                <Tooltip
+                  content={
+                    <>
+                      <div>开启后，使用服务模式设置系统代理</div>
+                      <div>
+                        关闭后，使用 Exec 模式（需要关闭“访问系统范围的设置需要输入管理员密码”）
+                      </div>
+                    </>
+                  }
+                >
                   <Button isIconOnly size="sm" variant="light">
                     <IoIosHelpCircle className="text-lg" />
                   </Button>
@@ -196,7 +205,14 @@ const Sysproxy: React.FC = () => {
             <SettingItem
               title="仅为活跃接口设置"
               actions={
-                <Tooltip content="开启后，系统代理仅会为当前活跃的网络接口设置，其他接口将不会被设置代理（仅服务模式模式可用）">
+                <Tooltip
+                  content={
+                    <>
+                      <div>开启后，系统代理仅会为当前活跃的网络接口设置</div>
+                      <div>其他接口将不会被设置代理（仅服务模式可用）</div>
+                    </>
+                  }
+                >
                   <Button isIconOnly size="sm" variant="light">
                     <IoIosHelpCircle className="text-lg" />
                   </Button>
