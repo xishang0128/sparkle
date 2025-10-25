@@ -74,7 +74,7 @@ const Sysproxy: React.FC = () => {
     bypass: sysProxy.bypass ?? defaultBypass,
     mode: sysProxy.mode ?? 'manual',
     pacScript: sysProxy.pacScript ?? defaultPacScript,
-    useSysproxyHelper: sysProxy.useSysproxyHelper ?? false
+    settingMode: sysProxy.settingMode ?? 'exec'
   })
   useEffect(() => {
     originSetValues((prev) => ({
@@ -174,33 +174,18 @@ const Sysproxy: React.FC = () => {
         )}
         {platform == 'darwin' && (
           <>
-            <SettingItem
-              title="使用服务模式"
-              actions={
-                <Tooltip
-                  content={
-                    <>
-                      <div>开启后，使用服务模式设置系统代理</div>
-                      <div>
-                        关闭后，使用 Exec 模式（需要关闭“访问系统范围的设置需要输入管理员密码”）
-                      </div>
-                    </>
-                  }
-                >
-                  <Button isIconOnly size="sm" variant="light">
-                    <IoIosHelpCircle className="text-lg" />
-                  </Button>
-                </Tooltip>
-              }
-              divider
-            >
-              <Switch
+            <SettingItem title="设置方式" divider>
+              <Tabs
                 size="sm"
-                isSelected={values.useSysproxyHelper}
-                onValueChange={(v) => {
-                  setValues({ ...values, useSysproxyHelper: v })
+                color="primary"
+                selectedKey={values.settingMode}
+                onSelectionChange={(key) => {
+                  setValues({ ...values, settingMode: key as 'exec' | 'service' })
                 }}
-              />
+              >
+                <Tab key="exec" title="执行命令" />
+                <Tab key="service" title="服务模式" />
+              </Tabs>
             </SettingItem>
             <SettingItem
               title="仅为活跃接口设置"
@@ -208,8 +193,7 @@ const Sysproxy: React.FC = () => {
                 <Tooltip
                   content={
                     <>
-                      <div>开启后，系统代理仅会为当前活跃的网络接口设置</div>
-                      <div>其他接口将不会被设置代理（仅服务模式可用）</div>
+                      <div>开启后，系统代理仅会为当前活跃的网络接口设置，仅服务模式下生效</div>
                     </>
                   }
                 >
@@ -223,7 +207,7 @@ const Sysproxy: React.FC = () => {
               <Switch
                 size="sm"
                 isSelected={onlyActiveDevice}
-                isDisabled={!values.useSysproxyHelper}
+                isDisabled={!values.settingMode || values.settingMode !== 'service'}
                 onValueChange={(v) => {
                   patchAppConfig({ onlyActiveDevice: v })
                 }}

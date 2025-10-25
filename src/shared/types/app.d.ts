@@ -9,7 +9,7 @@ interface ISysProxyConfig {
   mode?: SysProxyMode
   bypass?: string[]
   pacScript?: string
-  useSysproxyHelper?: boolean
+  settingMode?: 'exec' | 'service'
 }
 
 interface IHost {
