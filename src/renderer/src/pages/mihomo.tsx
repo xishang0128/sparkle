@@ -335,7 +335,7 @@ const Mihomo: React.FC = () => {
             )}
           </SettingItem>
         )}
-        <SettingItem title="内核提权模式" divider>
+        <SettingItem title="运行模式" divider>
           <Tabs
             size="sm"
             color="primary"
