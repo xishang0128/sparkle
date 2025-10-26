@@ -119,7 +119,7 @@ const Tun: React.FC = () => {
               >
                 <Tab key="none" title="不自动设置" />
                 <Tab key="exec" title="执行命令" />
-                <Tab key="service" title="通过服务" />
+                <Tab key="service" title="服务模式" />
               </Tabs>
             </SettingItem>
           )}
