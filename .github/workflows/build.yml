@@ -107,7 +107,7 @@ jobs:
       - name: Install Build Tools
         if: matrix.os == 'ubuntu-latest' && matrix.format == 'pacman'
         run: |
-          sudo apt-get update && sudo apt-get install -y libarchive-tools
+          sudo apt-get update && sudo apt-get install -y libarchive-tools fakeroot
 
       - name: Adaptation to the loongarch64 architecture
         env:
@@ -167,9 +167,9 @@ jobs:
           set -e
           VERSION=$(jq -r '.version' package.json)
           mkdir workdir
-          dpkg-deb -R dist/sparkle-linux-${VERSION}-loong64.deb workdir
-          sed -i 's/^Architecture: .*/Architecture: loongarch64/' workdir/DEBIAN/control
-          dpkg-deb -b workdir dist/sparkle-linux-${VERSION}-loongarch64.deb
+          fakeroot dpkg-deb -R dist/sparkle-linux-${VERSION}-loong64.deb workdir
+          fakeroot sed -i 's/^Architecture: .*/Architecture: loongarch64/' workdir/DEBIAN/control
+          fakeroot dpkg-deb -b workdir dist/sparkle-linux-${VERSION}-loongarch64.deb
           rm -rf workdir
 
       - name: Create Changelog
