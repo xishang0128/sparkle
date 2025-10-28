@@ -204,6 +204,7 @@ function cleanDnsConfig(profile: MihomoConfig, controlDns: boolean): void {
   const dnsConfig = profile.dns as MihomoDNSConfig
   const dnsArrayConfigs = [
     'fake-ip-range',
+    'fake-ip-range6',
     'fake-ip-filter',
     'proxy-server-nameserver',
     'direct-nameserver',

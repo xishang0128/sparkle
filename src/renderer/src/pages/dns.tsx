@@ -16,6 +16,7 @@ const DNS: React.FC = () => {
   const {
     ipv6 = false,
     'fake-ip-range': fakeIPRange = '198.18.0.1/16',
+    'fake-ip-range6': fakeIPRange6 = '',
     'fake-ip-filter': fakeIPFilter = [
       '*',
       '+.lan',
@@ -43,6 +44,7 @@ const DNS: React.FC = () => {
     useHosts,
     enhancedMode,
     fakeIPRange,
+    fakeIPRange6,
     fakeIPFilter,
     useSystemHosts,
     respectRules,
@@ -89,6 +91,7 @@ const DNS: React.FC = () => {
               const dnsConfig = {
                 ipv6: values.ipv6,
                 'fake-ip-range': values.fakeIPRange,
+                'fake-ip-range6': values.fakeIPRange6,
                 'fake-ip-filter': values.fakeIPFilter,
                 'enhanced-mode': values.enhancedMode,
                 'use-hosts': values.useHosts,
@@ -148,16 +151,30 @@ const DNS: React.FC = () => {
         </SettingItem>
         {values.enhancedMode === 'fake-ip' && (
           <>
-            <SettingItem title="回应范围" divider>
+            <SettingItem title="虚假 IP 范围 (IPv4)" divider>
               <Input
                 size="sm"
-                className="w-[50%]"
+                className="w-[40%]"
+                placeholder="例：198.18.0.1/16"
                 value={values.fakeIPRange}
                 onValueChange={(v) => {
                   setValues({ ...values, fakeIPRange: v })
                 }}
               />
             </SettingItem>
+            {values.ipv6 && (
+              <SettingItem title="虚假 IP 范围 (IPv6)" divider>
+                <Input
+                  size="sm"
+                  className="w-[40%]"
+                  placeholder="例：fc00::/18"
+                  value={values.fakeIPRange6}
+                  onValueChange={(v) => {
+                    setValues({ ...values, fakeIPRange6: v })
+                  }}
+                />
+              </SettingItem>
+            )}
             <EditableList
               title="虚假 IP 过滤器"
               items={values.fakeIPFilter}
