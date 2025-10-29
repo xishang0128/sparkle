@@ -16,6 +16,7 @@ interface EditableListProps {
   disableFirst?: boolean
   divider?: boolean
   objectMode?: 'keyValue' | 'array' | 'record'
+  validate?: (part1: string, part2?: string) => boolean
 }
 
 const EditableList: React.FC<EditableListProps> = ({
@@ -28,7 +29,8 @@ const EditableList: React.FC<EditableListProps> = ({
   format,
   disableFirst = false,
   divider = true,
-  objectMode
+  objectMode,
+  validate
 }) => {
   const isDual = !!parse && !!format
 
@@ -109,6 +111,10 @@ const EditableList: React.FC<EditableListProps> = ({
         {title && <h4 className="text-base font-medium">{title}</h4>}
         {displayed.map((entry, idx) => {
           const disabled = disableFirst && idx === 0
+          const isExtra = idx === processedItems.length
+          const isEmpty = !entry.part1.trim() && (!entry.part2 || !entry.part2.trim())
+          const valid =
+            isExtra || isEmpty ? true : validate ? validate(entry.part1, entry.part2) : true
           return (
             <div key={idx} className="flex items-center space-x-2">
               {isDual || objectMode ? (
@@ -117,6 +123,7 @@ const EditableList: React.FC<EditableListProps> = ({
                     <Input
                       size="sm"
                       fullWidth
+                      className={valid ? '' : 'border-red-500 ring-1 ring-red-500 rounded-lg'}
                       disabled={disabled}
                       placeholder={placeholder}
                       value={entry.part1}
@@ -128,6 +135,7 @@ const EditableList: React.FC<EditableListProps> = ({
                     <Input
                       size="sm"
                       fullWidth
+                      className={valid ? '' : 'border-red-500 ring-1 ring-red-500 rounded-lg'}
                       disabled={disabled}
                       placeholder={part2Placeholder}
                       value={entry.part2 || ''}
@@ -139,6 +147,7 @@ const EditableList: React.FC<EditableListProps> = ({
                 <Input
                   size="sm"
                   fullWidth
+                  className={valid ? '' : 'border-red-500 ring-1 ring-red-500 rounded-lg'}
                   disabled={disabled}
                   placeholder={placeholder}
                   value={entry.part1}

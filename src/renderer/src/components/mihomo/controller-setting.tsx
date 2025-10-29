@@ -8,6 +8,7 @@ import EditableList from '../base/base-list-editor'
 import { IoMdCloudDownload, IoMdRefresh } from 'react-icons/io'
 import { HiExternalLink } from 'react-icons/hi'
 import { AiOutlineEye, AiOutlineEyeInvisible } from 'react-icons/ai'
+import { isValidListenAddress } from '@renderer/utils/validate'
 
 const ControllerSetting: React.FC = () => {
   const { controledMihomoConfig, patchControledMihomoConfig } = useControledMihomoConfig()
@@ -31,6 +32,9 @@ const ControllerSetting: React.FC = () => {
   const [enableExternalUi, setEnableExternalUi] = useState(externalUi == 'ui')
   const [upgrading, setUpgrading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
+  const [externalControllerError, setExternalControllerError] = useState(
+    !isValidListenAddress(externalController)
+  )
 
   const upgradeUI = async (): Promise<void> => {
     try {
@@ -64,6 +68,7 @@ const ControllerSetting: React.FC = () => {
               size="sm"
               color="primary"
               className="mr-2"
+              isDisabled={externalControllerError}
               onPress={() => {
                 onChangeNeedRestart({
                   'external-controller': externalControllerInput
@@ -75,9 +80,12 @@ const ControllerSetting: React.FC = () => {
           )}
           <Input
             size="sm"
-            className="w-[200px]"
+            className={`w-[200px] ${externalControllerError ? 'border-red-500 ring-1 ring-red-500 rounded-lg' : ''}`}
             value={externalControllerInput}
-            onValueChange={setExternalControllerInput}
+            onValueChange={(v) => {
+              setExternalControllerInput(v)
+              setExternalControllerError(!isValidListenAddress(v))
+            }}
           />
         </div>
       </SettingItem>

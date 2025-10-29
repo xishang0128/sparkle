@@ -7,6 +7,7 @@ import { useControledMihomoConfig } from '@renderer/hooks/use-controled-mihomo-c
 import { useAppConfig } from '@renderer/hooks/use-app-config'
 import { restartCore } from '@renderer/utils/ipc'
 import React, { Key, useState } from 'react'
+import { isValidIPv4Cidr, isValidIPv6Cidr, isValidDomainWildcard } from '@renderer/utils/validate'
 
 const DNS: React.FC = () => {
   const { controledMihomoConfig, patchControledMihomoConfig } = useControledMihomoConfig()
@@ -55,6 +56,11 @@ const DNS: React.FC = () => {
     nameserverPolicy,
     hosts: useHosts ? hosts : undefined
   })
+  const [fakeIPRangeError, setFakeIPRangeError] = useState(!isValidIPv4Cidr(fakeIPRange))
+  const [fakeIPRange6Error, setFakeIPRange6Error] = useState(!isValidIPv6Cidr(fakeIPRange6))
+  const [fakeIPFilterError, setFakeIPFilterError] = useState(
+    Array.isArray(fakeIPFilter) ? fakeIPFilter.some((f) => !isValidDomainWildcard(f)) : false
+  )
 
   const setValues = (v: typeof values): void => {
     originSetValues(v)
@@ -83,6 +89,11 @@ const DNS: React.FC = () => {
             size="sm"
             className="app-nodrag"
             color="primary"
+            isDisabled={
+              values && values.enhancedMode === 'fake-ip'
+                ? fakeIPRangeError || (values.ipv6 && fakeIPRange6Error) || fakeIPFilterError
+                : false
+            }
             onPress={() => {
               const hostsObject =
                 values.useHosts && values.hosts && values.hosts.length > 0
@@ -154,11 +165,15 @@ const DNS: React.FC = () => {
             <SettingItem title="虚假 IP 范围 (IPv4)" divider>
               <Input
                 size="sm"
-                className="w-[40%]"
+                className={
+                  `w-[40%] ` +
+                  (fakeIPRangeError ? 'border-red-500 ring-1 ring-red-500 rounded-lg' : '')
+                }
                 placeholder="例：198.18.0.1/16"
                 value={values.fakeIPRange}
                 onValueChange={(v) => {
                   setValues({ ...values, fakeIPRange: v })
+                  setFakeIPRangeError(!isValidIPv4Cidr(v))
                 }}
               />
             </SettingItem>
@@ -166,11 +181,15 @@ const DNS: React.FC = () => {
               <SettingItem title="虚假 IP 范围 (IPv6)" divider>
                 <Input
                   size="sm"
-                  className="w-[40%]"
+                  className={
+                    `w-[40%] ` +
+                    (fakeIPRange6Error ? 'border-red-500 ring-1 ring-red-500 rounded-lg' : '')
+                  }
                   placeholder="例：fc00::/18"
                   value={values.fakeIPRange6}
                   onValueChange={(v) => {
                     setValues({ ...values, fakeIPRange6: v })
+                    setFakeIPRange6Error(!isValidIPv6Cidr(v))
                   }}
                 />
               </SettingItem>
@@ -178,7 +197,12 @@ const DNS: React.FC = () => {
             <EditableList
               title="虚假 IP 过滤器"
               items={values.fakeIPFilter}
-              onChange={(list) => setValues({ ...values, fakeIPFilter: list as string[] })}
+              validate={(part1) => isValidDomainWildcard(part1)}
+              onChange={(list) => {
+                const arr = list as string[]
+                setValues({ ...values, fakeIPFilter: arr })
+                setFakeIPFilterError(arr.some((f) => !isValidDomainWildcard(f)))
+              }}
               placeholder="例：+.lan"
             />
           </>
