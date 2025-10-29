@@ -11,7 +11,10 @@ export const initServiceAPI = (km: KeyManager): void => {
   serviceAxios = axios.create({
     baseURL: 'http://localhost',
     socketPath: serviceIpcPath(),
-    timeout: 15000
+    timeout: 15000,
+    headers: {
+      'Content-Type': 'application/json'
+    }
   })
 
   serviceAxios.interceptors.request.use((config) => {

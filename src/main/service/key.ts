@@ -37,6 +37,9 @@ export class KeyManager {
   }
 
   setKeyPair(publicKey: string, privateKey: string): void {
+    if (!publicKey || !privateKey || publicKey.trim() === '' || privateKey.trim() === '') {
+      throw new Error('密钥不能为空')
+    }
     this.publicKey = publicKey
     this.privateKey = privateKey
   }
@@ -70,7 +73,12 @@ export class KeyManager {
   }
 
   isInitialized(): boolean {
-    return this.publicKey !== null && this.privateKey !== null
+    return (
+      this.publicKey !== null &&
+      this.privateKey !== null &&
+      this.publicKey.trim() !== '' &&
+      this.privateKey.trim() !== ''
+    )
   }
 
   clear(): void {

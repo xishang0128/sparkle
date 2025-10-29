@@ -82,13 +82,8 @@ export async function initService(): Promise<void> {
 
   const newKeyManager = new KeyManager()
   const keyPair = newKeyManager.generateKeyPair()
-  keyManager = newKeyManager
 
   initServiceAPI(newKeyManager)
-
-  await patchAppConfig({
-    serviceAuthKey: `${keyPair.publicKey}:${keyPair.privateKey}`
-  })
 
   const publicKey = keyPair.publicKey
 
@@ -107,6 +102,12 @@ export async function initService(): Promise<void> {
         `do shell script "${cmd}" with administrator privileges`
       ])
     }
+
+    await patchAppConfig({
+      serviceAuthKey: `${keyPair.publicKey}:${keyPair.privateKey}`
+    })
+
+    keyManager = newKeyManager
   } catch (error) {
     if (isUserCancelledError(error)) {
       throw new UserCancelledError()

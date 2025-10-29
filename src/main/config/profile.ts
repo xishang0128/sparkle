@@ -233,20 +233,32 @@ export async function createProfile(item: Partial<ProfileItem>): Promise<Profile
 
       const data = res.data
       const headers = res.headers
-      if (headers['content-disposition'] && newItem.name === 'Remote File') {
-        newItem.name = parseFilename(headers['content-disposition'])
+      const contentDispositionKey = Object.keys(headers).find((k) =>
+        k.toLowerCase().endsWith('content-disposition')
+      )
+      if (contentDispositionKey && newItem.name === 'Remote File') {
+        newItem.name = parseFilename(headers[contentDispositionKey])
       }
-      if (headers['profile-web-page-url']) {
-        newItem.home = headers['profile-web-page-url']
+      const homeKey = Object.keys(headers).find((k) =>
+        k.toLowerCase().endsWith('profile-web-page-url')
+      )
+      if (homeKey) {
+        newItem.home = headers[homeKey]
       }
-      if (headers['profile-update-interval']) {
-        newItem.interval = parseInt(headers['profile-update-interval']) * 60
+      const intervalKey = Object.keys(headers).find((k) =>
+        k.toLowerCase().endsWith('profile-update-interval')
+      )
+      if (intervalKey) {
+        newItem.interval = parseInt(headers[intervalKey]) * 60
         if (newItem.interval) {
           newItem.locked = true
         }
       }
-      if (headers['subscription-userinfo']) {
-        newItem.extra = parseSubinfo(headers['subscription-userinfo'])
+      const userinfoKey = Object.keys(headers).find((k) =>
+        k.toLowerCase().endsWith('subscription-userinfo')
+      )
+      if (userinfoKey) {
+        newItem.extra = parseSubinfo(headers[userinfoKey])
       }
       if (newItem.verify) {
         try {
