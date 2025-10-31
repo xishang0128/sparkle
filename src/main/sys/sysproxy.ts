@@ -70,14 +70,14 @@ async function setSysProxy(onlyActiveDevice: boolean): Promise<void> {
     ]
   await startPacServer()
   const { sysProxy } = await getAppConfig()
-  const { mode, host, bypass = defaultBypass, useSysproxyHelper = false } = sysProxy
+  const { mode, host, bypass = defaultBypass, settingMode = 'exec' } = sysProxy
   const { 'mixed-port': port = 7890 } = await getControledMihomoConfig()
   const execFilePromise = promisify(execFile)
-  const useDarwinHelper = process.platform === 'darwin' && useSysproxyHelper
+  const useService = process.platform === 'darwin' && settingMode === 'service'
 
   switch (mode || 'manual') {
     case 'auto': {
-      if (useDarwinHelper) {
+      if (useService) {
         try {
           await setPac(`http://${host || '127.0.0.1'}:${pacPort}/pac`, '', onlyActiveDevice)
         } catch {
@@ -95,7 +95,7 @@ async function setSysProxy(onlyActiveDevice: boolean): Promise<void> {
 
     case 'manual': {
       if (port != 0) {
-        if (useDarwinHelper) {
+        if (useService) {
           try {
             await setProxy(`${host || '127.0.0.1'}:${port}`, bypass.join(','), '', onlyActiveDevice)
           } catch {
@@ -119,11 +119,11 @@ async function setSysProxy(onlyActiveDevice: boolean): Promise<void> {
 export async function disableSysProxy(onlyActiveDevice: boolean): Promise<void> {
   await stopPacServer()
   const { sysProxy } = await getAppConfig()
-  const { useSysproxyHelper = false } = sysProxy
+  const { settingMode = 'exec' } = sysProxy
   const execFilePromise = promisify(execFile)
-  const useDarwinHelper = process.platform === 'darwin' && useSysproxyHelper
+  const useService = process.platform === 'darwin' && settingMode === 'service'
 
-  if (useDarwinHelper) {
+  if (useService) {
     try {
       await disableProxy('', onlyActiveDevice)
     } catch (e) {
