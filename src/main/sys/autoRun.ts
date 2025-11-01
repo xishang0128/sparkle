@@ -1,4 +1,5 @@
 import { exePath, homeDir, taskDir } from '../utils/dirs'
+import { execWithElevation } from '../utils/elevation'
 import { mkdir, readFile, rm, writeFile } from 'fs/promises'
 import { exec } from 'child_process'
 import { existsSync } from 'fs'
@@ -78,12 +79,16 @@ export async function checkAutoRun(): Promise<boolean> {
 
 export async function enableAutoRun(): Promise<void> {
   if (process.platform === 'win32') {
-    const execPromise = promisify(exec)
     const taskFilePath = path.join(taskDir(), `${appName}.xml`)
     await writeFile(taskFilePath, Buffer.from(`\ufeff${taskXml}`, 'utf-16le'))
-    await execPromise(
-      `%SystemRoot%\\System32\\schtasks.exe /create /tn "${appName}" /xml "${taskFilePath}" /f`
-    )
+    await execWithElevation('schtasks.exe', [
+      '/create',
+      '/tn',
+      `"${appName}"`,
+      '/xml',
+      `"${taskFilePath}"`,
+      '/f'
+    ])
   }
   if (process.platform === 'darwin') {
     const execPromise = promisify(exec)
@@ -118,8 +123,7 @@ Categories=Utility;
 
 export async function disableAutoRun(): Promise<void> {
   if (process.platform === 'win32') {
-    const execPromise = promisify(exec)
-    await execPromise(`%SystemRoot%\\System32\\schtasks.exe /delete /tn "${appName}" /f`)
+    await execWithElevation('schtasks.exe', ['/delete', '/tn', `"${appName}"`, '/f'])
   }
   if (process.platform === 'darwin') {
     const execPromise = promisify(exec)
