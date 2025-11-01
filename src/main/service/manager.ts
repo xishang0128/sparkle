@@ -1,9 +1,10 @@
-import { execFile } from 'child_process'
-import { promisify } from 'util'
 import { servicePath } from '../utils/dirs'
+import { execWithElevation } from '../utils/elevation'
 import { KeyManager } from './key'
 import { initServiceAPI, getServiceAxios, ping, test } from './api'
 import { getAppConfig, patchAppConfig } from '../config/app'
+import { execFile } from 'child_process'
+import { promisify } from 'util'
 
 let keyManager: KeyManager | null = null
 
@@ -88,20 +89,9 @@ export async function initService(): Promise<void> {
   const publicKey = keyPair.publicKey
 
   const execPath = servicePath()
-  const execFilePromise = promisify(execFile)
 
   try {
-    if (process.platform === 'win32') {
-      await execFilePromise(execPath, ['service', 'init', '--public-key', publicKey])
-    } else if (process.platform === 'linux') {
-      await execFilePromise('pkexec', [execPath, 'service', 'init', '--public-key', publicKey])
-    } else if (process.platform === 'darwin') {
-      const cmd = `${execPath} service init --public-key ${publicKey}`
-      await execFilePromise('osascript', [
-        '-e',
-        `do shell script "${cmd}" with administrator privileges`
-      ])
-    }
+    await execWithElevation(execPath, ['service', 'init', '--public-key', publicKey])
 
     await patchAppConfig({
       serviceAuthKey: `${keyPair.publicKey}:${keyPair.privateKey}`
@@ -120,20 +110,9 @@ export async function initService(): Promise<void> {
 
 export async function installService(): Promise<void> {
   const execPath = servicePath()
-  const execFilePromise = promisify(execFile)
 
   try {
-    if (process.platform === 'win32') {
-      await execFilePromise(execPath, ['service', 'install'])
-    } else if (process.platform === 'linux') {
-      await execFilePromise('pkexec', [execPath, 'service', 'install'])
-    } else if (process.platform === 'darwin') {
-      const cmd = `${execPath} service install`
-      await execFilePromise('osascript', [
-        '-e',
-        `do shell script "${cmd}" with administrator privileges`
-      ])
-    }
+    await execWithElevation(execPath, ['service', 'install'])
   } catch (error) {
     if (isUserCancelledError(error)) {
       throw new UserCancelledError()
@@ -144,20 +123,9 @@ export async function installService(): Promise<void> {
 
 export async function uninstallService(): Promise<void> {
   const execPath = servicePath()
-  const execFilePromise = promisify(execFile)
 
   try {
-    if (process.platform === 'win32') {
-      await execFilePromise(execPath, ['service', 'uninstall'])
-    } else if (process.platform === 'linux') {
-      await execFilePromise('pkexec', [execPath, 'service', 'uninstall'])
-    } else if (process.platform === 'darwin') {
-      const cmd = `${execPath} service uninstall`
-      await execFilePromise('osascript', [
-        '-e',
-        `do shell script "${cmd}" with administrator privileges`
-      ])
-    }
+    await execWithElevation(execPath, ['service', 'uninstall'])
   } catch (error) {
     if (isUserCancelledError(error)) {
       throw new UserCancelledError()
@@ -168,20 +136,9 @@ export async function uninstallService(): Promise<void> {
 
 export async function startService(): Promise<void> {
   const execPath = servicePath()
-  const execFilePromise = promisify(execFile)
 
   try {
-    if (process.platform === 'win32') {
-      await execFilePromise(execPath, ['service', 'start'])
-    } else if (process.platform === 'linux') {
-      await execFilePromise('pkexec', [execPath, 'service', 'start'])
-    } else if (process.platform === 'darwin') {
-      const cmd = `${execPath} service start`
-      await execFilePromise('osascript', [
-        '-e',
-        `do shell script "${cmd}" with administrator privileges`
-      ])
-    }
+    await execWithElevation(execPath, ['service', 'start'])
   } catch (error) {
     if (isUserCancelledError(error)) {
       throw new UserCancelledError()
@@ -192,20 +149,9 @@ export async function startService(): Promise<void> {
 
 export async function stopService(): Promise<void> {
   const execPath = servicePath()
-  const execFilePromise = promisify(execFile)
 
   try {
-    if (process.platform === 'win32') {
-      await execFilePromise(execPath, ['service', 'stop'])
-    } else if (process.platform === 'linux') {
-      await execFilePromise('pkexec', [execPath, 'service', 'stop'])
-    } else if (process.platform === 'darwin') {
-      const cmd = `${execPath} service stop`
-      await execFilePromise('osascript', [
-        '-e',
-        `do shell script "${cmd}" with administrator privileges`
-      ])
-    }
+    await execWithElevation(execPath, ['service', 'stop'])
   } catch (error) {
     if (isUserCancelledError(error)) {
       throw new UserCancelledError()
@@ -216,20 +162,9 @@ export async function stopService(): Promise<void> {
 
 export async function restartService(): Promise<void> {
   const execPath = servicePath()
-  const execFilePromise = promisify(execFile)
 
   try {
-    if (process.platform === 'win32') {
-      await execFilePromise(execPath, ['service', 'restart'])
-    } else if (process.platform === 'linux') {
-      await execFilePromise('pkexec', [execPath, 'service', 'restart'])
-    } else if (process.platform === 'darwin') {
-      const cmd = `${execPath} service restart`
-      await execFilePromise('osascript', [
-        '-e',
-        `do shell script "${cmd}" with administrator privileges`
-      ])
-    }
+    await execWithElevation(execPath, ['service', 'restart'])
   } catch (error) {
     if (isUserCancelledError(error)) {
       throw new UserCancelledError()
