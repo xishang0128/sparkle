@@ -41,7 +41,7 @@ if (
   process.platform === 'win32' &&
   !is.dev &&
   !process.argv.includes('noadmin') &&
-  syncConfig.corePermissionMode === 'elevated'
+  syncConfig.corePermissionMode !== 'service'
 ) {
   try {
     createElevateTaskSync()
