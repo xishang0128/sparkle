@@ -62,7 +62,7 @@ export function themesDir(): string {
 
 export function mihomoIpcPath(): string {
   if (process.platform === 'win32') {
-    return '\\\\.\\pipe\\sparkle\\mihomo-api'
+    return '\\\\.\\pipe\\Sparkle\\mihomo'
   }
   const { core = 'mihomo' } = getAppConfigSync()
   if (core === 'system') {
