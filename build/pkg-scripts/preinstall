@@ -1,24 +1,14 @@
 #!/bin/sh
 
-# 检查新的 sysproxy 文件是否存在
-NEW_SYSPROXY="$2/Sparkle.app/Contents/Resources/files/sysproxy"
 OLD_SYSPROXY="/Library/PrivilegedHelperTools/sparkle.helper"
 
-if [ ! -f "$NEW_SYSPROXY" ]; then
-    exit 0
-fi
-
-NEED_UPDATE=false
+UNINSTALL=false
 
 if [ ! -f "$OLD_SYSPROXY" ]; then
-    NEED_UPDATE=true
-else
-    if ! cmp -s "$NEW_SYSPROXY" "$OLD_SYSPROXY"; then
-        NEED_UPDATE=true
-    fi
+    UNINSTALL=true
 fi
 
-if [ "$NEED_UPDATE" = true ]; then
+if [ "$UNINSTALL" = true ]; then
     if launchctl list | grep -q "sparkle.helper"; then
         launchctl stop sparkle.helper 2>/dev/null || true
         launchctl unload /Library/LaunchDaemons/sparkle.helper.plist 2>/dev/null || true
