@@ -139,95 +139,47 @@ async function cleanup(): Promise<void> {
 }
 
 async function migration(): Promise<void> {
-  const {
-    siderOrder = [
-      'sysproxy',
-      'tun',
-      'profile',
-      'proxy',
-      'rule',
-      'resource',
-      'override',
-      'connection',
-      'mihomo',
-      'dns',
-      'sniff',
-      'log',
-      'substore'
-    ],
-    appTheme = 'system',
-    envType = [process.platform === 'win32' ? 'powershell' : 'bash'],
-    useSubStore = true,
-    showFloatingWindow = false,
-    disableTray = false,
-    encryptedPassword,
-    hosts = []
-  } = await getAppConfig()
-  const {
-    'external-controller-pipe': externalControllerPipe,
-    'external-controller-unix': externalControllerUnix,
-    'external-controller': externalController,
-    'skip-auth-prefixes': skipAuthPrefixes,
-    authentication,
-    'bind-address': bindAddress,
-    'lan-allowed-ips': lanAllowedIps,
-    'lan-disallowed-ips': lanDisallowedIps
-  } = await getControledMihomoConfig()
-  // add substore sider card
-  if (useSubStore && !siderOrder.includes('substore')) {
-    await patchAppConfig({ siderOrder: [...siderOrder, 'substore'] })
+  const appConfig = await getAppConfig()
+  const mihomoConfig = await getControledMihomoConfig()
+
+  const mihomoConfigPatch: Partial<MihomoConfig> = {}
+
+  for (const key in defaultControledMihomoConfig) {
+    if (
+      !(key in mihomoConfig) &&
+      defaultControledMihomoConfig[key as keyof MihomoConfig] !== undefined
+    ) {
+      ;(mihomoConfigPatch as Record<string, unknown>)[key] =
+        defaultControledMihomoConfig[key as keyof MihomoConfig]
+    }
   }
-  // add default skip auth prefix
-  if (!skipAuthPrefixes) {
-    await patchControledMihomoConfig({ 'skip-auth-prefixes': ['127.0.0.1/32'] })
+
+  // 清理已弃用的配置
+  if (mihomoConfig['external-controller-pipe' as keyof MihomoConfig]) {
+    mihomoConfigPatch['external-controller-pipe' as keyof MihomoConfig] = undefined as never
   }
-  // add default authentication
-  if (!authentication) {
-    await patchControledMihomoConfig({ authentication: [] })
+  if (mihomoConfig['external-controller-unix' as keyof MihomoConfig]) {
+    mihomoConfigPatch['external-controller-unix' as keyof MihomoConfig] = undefined as never
   }
-  // add default bind address
-  if (!bindAddress) {
-    await patchControledMihomoConfig({ 'bind-address': '*' })
+
+  if (mihomoConfig['external-controller'] === undefined) {
+    mihomoConfigPatch['external-controller'] = ''
   }
-  // add default lan allowed ips
-  if (!lanAllowedIps) {
-    await patchControledMihomoConfig({ 'lan-allowed-ips': ['0.0.0.0/0', '::/0'] })
+
+  if (Object.keys(mihomoConfigPatch).length > 0) {
+    await patchControledMihomoConfig(mihomoConfigPatch)
   }
-  // add default lan disallowed ips
-  if (!lanDisallowedIps) {
-    await patchControledMihomoConfig({ 'lan-disallowed-ips': [] })
+
+  const appConfigPatch: Partial<AppConfig> = {}
+
+  for (const key in defaultConfig) {
+    if (!(key in appConfig) && defaultConfig[key as keyof AppConfig] !== undefined) {
+      ;(appConfigPatch as Record<string, unknown>)[key] = defaultConfig[key as keyof AppConfig]
+    }
   }
-  // add default hosts
-  if (!hosts.length) {
-    await patchAppConfig({ hosts: [] })
-  }
-  // remove custom app theme
-  if (!['system', 'light', 'dark'].includes(appTheme)) {
-    await patchAppConfig({ appTheme: 'system' })
-  }
-  // change env type
-  if (typeof envType === 'string') {
-    await patchAppConfig({ envType: [envType] })
-  }
-  // use unix socket
-  if (externalControllerUnix) {
-    await patchControledMihomoConfig({ 'external-controller-unix': undefined })
-  }
-  // use named pipe
-  if (externalControllerPipe) {
-    await patchControledMihomoConfig({
-      'external-controller-pipe': undefined
-    })
-  }
-  if (externalController === undefined) {
-    await patchControledMihomoConfig({ 'external-controller': '' })
-  }
-  if (!showFloatingWindow && disableTray) {
-    await patchAppConfig({ disableTray: false })
-  }
-  // remove password
-  if (encryptedPassword) {
-    await patchAppConfig({ encryptedPassword: undefined })
+
+  if (Object.keys(appConfigPatch).length > 0) {
+    await patchAppConfig(appConfigPatch)
   }
 }
 

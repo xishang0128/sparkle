@@ -40,6 +40,7 @@ type DnsMode = 'normal' | 'fake-ip' | 'redir-host'
 type FilterMode = 'blacklist' | 'whitelist'
 type NetworkInterfaceInfo = os.NetworkInterfaceInfo
 type Fingerprints =
+  | ''
   | 'random'
   | 'randomized'
   | 'chrome'
