@@ -27,7 +27,7 @@ package() {
     asar extract $srcdir/opt/sparkle/resources/app.asar ${pkgdir}/opt/sparkle
     cp -r $srcdir/opt/sparkle/resources/sidecar ${pkgdir}/opt/sparkle/resources/
     cp -r $srcdir/opt/sparkle/resources/files ${pkgdir}/opt/sparkle/resources/
-    chmod +x ${pkgdir}/opt/sparkle/resources/files/sysproxy
+    chmod +x ${pkgdir}/opt/sparkle/resources/files/sparkle-service
     chmod +sx ${pkgdir}/opt/sparkle/resources/sidecar/mihomo
     chmod +sx ${pkgdir}/opt/sparkle/resources/sidecar/mihomo-alpha
     install -Dm755 "${srcdir}/${_pkgname}.sh" "${pkgdir}/usr/bin/${_pkgname}"

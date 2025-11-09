@@ -39,7 +39,7 @@ package() {
     bsdtar -xf sparkle-linux-$(jq '.version' $srcdir/${_pkgname}/package.json | tr -d 'v"')*.deb
     bsdtar -xf data.tar.xz -C "${pkgdir}/"
     chmod +x ${pkgdir}/opt/sparkle/sparkle
-    chmod +x ${pkgdir}/opt/sparkle/resources/files/sysproxy
+    chmod +x ${pkgdir}/opt/sparkle/resources/files/sparkle-service
     chmod +sx ${pkgdir}/opt/sparkle/resources/sidecar/mihomo
     chmod +sx ${pkgdir}/opt/sparkle/resources/sidecar/mihomo-alpha
     install -Dm755 "${srcdir}/../${_pkgname}.sh" "${pkgdir}/usr/bin/${_pkgname}"
