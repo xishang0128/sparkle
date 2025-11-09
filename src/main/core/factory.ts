@@ -64,7 +64,7 @@ async function cleanProfile(profile: MihomoConfig): Promise<void> {
 
   configureLanSettings(profile)
   cleanBooleanConfigs(profile)
-  cleanPortConfigs(profile)
+  cleanNumberConfigs(profile)
   cleanStringConfigs(profile)
   cleanAuthenticationConfig(profile)
   cleanTunConfig(profile)
@@ -78,7 +78,13 @@ function cleanBooleanConfigs(profile: MihomoConfig): void {
     delete (profile as Partial<MihomoConfig>).ipv6
   }
 
-  const booleanConfigs = ['unified-delay', 'tcp-concurrent', 'geodata-mode', 'geo-auto-update']
+  const booleanConfigs = [
+    'unified-delay',
+    'tcp-concurrent',
+    'geodata-mode',
+    'geo-auto-update',
+    'disable-keep-alive'
+  ]
 
   booleanConfigs.forEach((key) => {
     if (!profile[key]) delete (profile as Partial<MihomoConfig>)[key]
@@ -97,8 +103,16 @@ function cleanBooleanConfigs(profile: MihomoConfig): void {
   }
 }
 
-function cleanPortConfigs(profile: MihomoConfig): void {
-  ;['port', 'socks-port', 'redir-port', 'tproxy-port', 'mixed-port'].forEach((key) => {
+function cleanNumberConfigs(profile: MihomoConfig): void {
+  ;[
+    'port',
+    'socks-port',
+    'redir-port',
+    'tproxy-port',
+    'mixed-port',
+    'keep-alive-idle',
+    'keep-alive-interval'
+  ].forEach((key) => {
     if (profile[key] === 0) delete (profile as Partial<MihomoConfig>)[key]
   })
 }
