@@ -232,6 +232,9 @@ const ServiceModal: React.FC<Props> = (props) => {
               <div className="flex items-start gap-2">
                 <span>暂未支持全部功能，目前仅支持安装以及管理服务本身</span>
               </div>
+              <div className="flex items-start gap-2">
+                <span>暂时不要报告问题</span>
+              </div>
             </div>
           </div>
         </ModalBody>
