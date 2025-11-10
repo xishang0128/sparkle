@@ -3,6 +3,7 @@ import BasePage from '@renderer/components/base/base-page'
 import SettingCard from '@renderer/components/base/base-setting-card'
 import SettingItem from '@renderer/components/base/base-setting-item'
 import EditableList from '@renderer/components/base/base-list-editor'
+import AdvancedDnsSetting from '@renderer/components/dns/advanced-dns-setting'
 import { useControledMihomoConfig } from '@renderer/hooks/use-controled-mihomo-config'
 import { useAppConfig } from '@renderer/hooks/use-app-config'
 import { restartCore } from '@renderer/utils/ipc'
@@ -37,10 +38,7 @@ const DNS: React.FC = () => {
     'respect-rules': respectRules = false,
     'default-nameserver': defaultNameserver = ['tls://223.5.5.5'],
     nameserver = ['https://doh.pub/dns-query', 'https://dns.alidns.com/dns-query'],
-    'proxy-server-nameserver': proxyServerNameserver = [
-      'https://doh.pub/dns-query',
-      'https://dns.alidns.com/dns-query'
-    ],
+    'proxy-server-nameserver': proxyServerNameserver = [],
     'direct-nameserver': directNameserver = [],
     'nameserver-policy': nameserverPolicy = {}
   } = dns || {}
@@ -76,32 +74,16 @@ const DNS: React.FC = () => {
   })
   const [defaultNameserverError, setDefaultNameserverError] = useState<string | null>(() => {
     if (!Array.isArray(defaultNameserver)) return null
-    const firstInvalid = defaultNameserver.find((f) => !isValidDnsServer(f).ok)
-    return firstInvalid ? (isValidDnsServer(firstInvalid).error ?? '格式错误') : null
+    const firstInvalid = defaultNameserver.find((f) => !isValidDnsServer(f, true).ok)
+    return firstInvalid ? (isValidDnsServer(firstInvalid, true).error ?? '格式错误') : null
   })
   const [nameserverError, setNameserverError] = useState<string | null>(() => {
     if (!Array.isArray(nameserver)) return null
     const firstInvalid = nameserver.find((f) => !isValidDnsServer(f).ok)
     return firstInvalid ? (isValidDnsServer(firstInvalid).error ?? '格式错误') : null
   })
-  const [proxyNameserverError, setProxyNameserverError] = useState<string | null>(() => {
-    if (!Array.isArray(proxyServerNameserver)) return null
-    const firstInvalid = proxyServerNameserver.find((f) => !isValidDnsServer(f).ok)
-    return firstInvalid ? (isValidDnsServer(firstInvalid).error ?? '格式错误') : null
-  })
-  const [directNameserverError, setDirectNameserverError] = useState<string | null>(() => {
-    if (!Array.isArray(directNameserver)) return null
-    const firstInvalid = directNameserver.find((f) => !isValidDnsServer(f).ok)
-    return firstInvalid ? (isValidDnsServer(firstInvalid).error ?? '格式错误') : null
-  })
-  const [nameserverPolicyError, setNameserverPolicyError] = useState<string | null>(null)
-  const hasDnsErrors = Boolean(
-    defaultNameserverError ||
-      nameserverError ||
-      proxyNameserverError ||
-      directNameserverError ||
-      nameserverPolicyError
-  )
+  const [advancedDnsError, setAdvancedDnsError] = useState(false)
+  const hasDnsErrors = Boolean(defaultNameserverError || nameserverError || advancedDnsError)
 
   const setValues = (v: typeof values): void => {
     originSetValues(v)
@@ -176,19 +158,6 @@ const DNS: React.FC = () => {
             isSelected={values.ipv6}
             onValueChange={(v) => {
               setValues({ ...values, ipv6: v })
-            }}
-          />
-        </SettingItem>
-        <SettingItem title="连接遵守规则" divider>
-          <Switch
-            size="sm"
-            isSelected={values.respectRules}
-            isDisabled={values.proxyServerNameserver.length === 0}
-            onValueChange={(v) => {
-              setValues({
-                ...values,
-                respectRules: values.proxyServerNameserver.length === 0 ? false : v
-              })
             }}
           />
         </SettingItem>
@@ -277,13 +246,13 @@ const DNS: React.FC = () => {
         <EditableList
           title="基础服务器"
           items={values.defaultNameserver}
-          validate={(part) => isValidDnsServer(part as string)}
+          validate={(part) => isValidDnsServer(part as string, true)}
           onChange={(list) => {
             const arr = list as string[]
             setValues({ ...values, defaultNameserver: arr })
-            const firstInvalid = arr.find((f) => !isValidDnsServer(f).ok)
+            const firstInvalid = arr.find((f) => !isValidDnsServer(f, true).ok)
             setDefaultNameserverError(
-              firstInvalid ? (isValidDnsServer(firstInvalid).error ?? '格式错误') : null
+              firstInvalid ? (isValidDnsServer(firstInvalid, true).error ?? '格式错误') : null
             )
           }}
           placeholder="例：223.5.5.5"
@@ -301,118 +270,41 @@ const DNS: React.FC = () => {
             )
           }}
           placeholder="例：tls://dns.alidns.com"
+          divider={false}
         />
-        <EditableList
-          title="直连解析服务器"
-          items={values.directNameserver}
-          validate={(part) => isValidDnsServer(part as string)}
-          onChange={(list) => {
-            const arr = list as string[]
-            setValues({ ...values, directNameserver: arr })
-            const firstInvalid = arr.find((f) => !isValidDnsServer(f).ok)
-            setDirectNameserverError(
-              firstInvalid ? (isValidDnsServer(firstInvalid).error ?? '格式错误') : null
-            )
-          }}
-          placeholder="例：tls://dns.alidns.com"
-        />
-        <EditableList
-          title="代理节点解析服务器"
-          items={values.proxyServerNameserver}
-          validate={(part) => isValidDnsServer(part as string)}
-          onChange={(list) => {
-            const arr = list as string[]
-            setValues({
-              ...values,
-              proxyServerNameserver: arr,
-              respectRules: arr.length === 0 ? false : values.respectRules
-            })
-            const firstInvalid = arr.find((f) => !isValidDnsServer(f).ok)
-            setProxyNameserverError(
-              firstInvalid ? (isValidDnsServer(firstInvalid).error ?? '格式错误') : null
-            )
-          }}
-          placeholder="例：tls://dns.alidns.com"
-        />
-        <EditableList
-          title="域名解析策略"
-          items={values.nameserverPolicy}
-          onChange={(newValue) => {
-            setValues({
-              ...values,
-              nameserverPolicy: newValue as { [key: string]: string | string[] }
-            })
-            try {
-              const rec = newValue as { [key: string]: string | string[] }
-              for (const v of Object.values(rec)) {
-                if (Array.isArray(v)) {
-                  for (const vv of v) {
-                    if (!isValidDnsServer(vv).ok) {
-                      setNameserverPolicyError(isValidDnsServer(vv).error ?? '格式错误')
-                      return
-                    }
-                  }
-                } else {
-                  const parts = (v as string)
-                    .split(',')
-                    .map((p) => p.trim())
-                    .filter(Boolean)
-                  for (const p of parts) {
-                    if (!isValidDnsServer(p).ok) {
-                      setNameserverPolicyError(isValidDnsServer(p).error ?? '格式错误')
-                      return
-                    }
-                  }
-                }
-              }
-              setNameserverPolicyError(null)
-            } catch (e) {
-              setNameserverPolicyError('策略格式错误')
-            }
-          }}
-          placeholder="域名"
-          part2Placeholder="DNS 服务器，用逗号分隔"
-          objectMode="record"
-        />
-        <SettingItem title="使用系统 Hosts" divider>
-          <Switch
-            size="sm"
-            isSelected={values.useSystemHosts}
-            onValueChange={(v) => {
-              setValues({ ...values, useSystemHosts: v })
-            }}
-          />
-        </SettingItem>
-        <SettingItem title="自定义 Hosts">
-          <Switch
-            size="sm"
-            isSelected={values.useHosts}
-            onValueChange={(v) => {
-              setValues({ ...values, useHosts: v })
-            }}
-          />
-        </SettingItem>
-        {values.useHosts && (
-          <EditableList
-            items={
-              values.hosts ? Object.fromEntries(values.hosts.map((h) => [h.domain, h.value])) : {}
-            }
-            onChange={(rec) => {
-              const hostArr: IHost[] = Object.entries(rec as Record<string, string | string[]>).map(
-                ([domain, value]) => ({
-                  domain,
-                  value: value as string | string[]
-                })
-              )
-              setValues({ ...values, hosts: hostArr })
-            }}
-            placeholder="域名"
-            part2Placeholder="域名或 IP，用逗号分隔多个值"
-            objectMode="record"
-            divider={false}
-          />
-        )}
       </SettingCard>
+      <AdvancedDnsSetting
+        respectRules={values.respectRules}
+        directNameserver={values.directNameserver}
+        proxyServerNameserver={values.proxyServerNameserver}
+        nameserverPolicy={values.nameserverPolicy}
+        hosts={values.hosts}
+        useHosts={values.useHosts}
+        useSystemHosts={values.useSystemHosts}
+        onRespectRulesChange={(v) => {
+          setValues({
+            ...values,
+            respectRules: values.proxyServerNameserver.length === 0 ? false : v
+          })
+        }}
+        onDirectNameserverChange={(arr) => {
+          setValues({ ...values, directNameserver: arr })
+        }}
+        onProxyNameserverChange={(arr) => {
+          setValues({
+            ...values,
+            proxyServerNameserver: arr,
+            respectRules: arr.length === 0 ? false : values.respectRules
+          })
+        }}
+        onNameserverPolicyChange={(newValue) => {
+          setValues({ ...values, nameserverPolicy: newValue })
+        }}
+        onUseSystemHostsChange={(v) => setValues({ ...values, useSystemHosts: v })}
+        onUseHostsChange={(v) => setValues({ ...values, useHosts: v })}
+        onHostsChange={(hostArr) => setValues({ ...values, hosts: hostArr })}
+        onErrorChange={setAdvancedDnsError}
+      />
     </BasePage>
   )
 }

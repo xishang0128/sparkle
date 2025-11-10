@@ -98,7 +98,7 @@ export const defaultControledMihomoConfig: Partial<MihomoConfig> = {
     'use-system-hosts': false,
     'default-nameserver': ['tls://223.5.5.5'],
     nameserver: ['https://doh.pub/dns-query', 'https://dns.alidns.com/dns-query'],
-    'proxy-server-nameserver': ['https://doh.pub/dns-query', 'https://dns.alidns.com/dns-query'],
+    'proxy-server-nameserver': [],
     'direct-nameserver': []
   },
   sniffer: {
