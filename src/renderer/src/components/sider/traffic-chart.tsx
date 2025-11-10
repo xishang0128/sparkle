@@ -24,9 +24,7 @@ const TrafficChart: React.FC<TrafficChartProps> = (props) => {
   }, [data])
 
   const chartColor = useMemo(() => {
-    return isActive 
-      ? 'hsl(var(--heroui-primary-foreground))' 
-      : 'hsl(var(--heroui-foreground))'
+    return isActive ? 'hsl(var(--heroui-primary-foreground))' : 'hsl(var(--heroui-foreground))'
   }, [isActive])
 
   return (

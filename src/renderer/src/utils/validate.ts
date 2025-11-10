@@ -135,11 +135,48 @@ export const isValidPortRange = (s: string | undefined): boolean => {
 export const isValidDnsServer = (s: string | undefined): ValidationResult => {
   if (!s || s.trim() === '') return { ok: false, error: '不能为空' }
   const v = s.trim()
-  const [serverPart, paramsPart] = v.split('#')
+  const hashIndex = v.indexOf('#')
+  const serverPart = hashIndex === -1 ? v : v.slice(0, hashIndex)
+  const paramsPart = hashIndex === -1 ? '' : v.slice(hashIndex + 1)
+
   if (!serverPart) return { ok: false, error: '服务器地址不能为空' }
   if (paramsPart) {
-    if (!/^[a-zA-Z0-9-_]+(?:,[a-zA-Z0-9-_]+)*$/.test(paramsPart)) {
-      return { ok: false, error: '参数格式不合法（仅允许字母数字、- 和 _，可逗号分隔）' }
+    const boolParams = [
+      'ecs-override',
+      'h3',
+      'prefer-h3',
+      'skip-cert-verify',
+      'disable-ipv4',
+      'disable-ipv6'
+    ]
+
+    const params = paramsPart
+      .split('&')
+      .map((p) => p.trim())
+      .filter(Boolean)
+    for (const param of params) {
+      if (param.includes('=')) {
+        const [key, value] = param.split('=')
+        if (!key || !value) {
+          return { ok: false, error: '参数格式不合法，key=value 格式中 key 和 value 都不能为空' }
+        }
+        if (!/^[a-zA-Z0-9-_]+$/.test(key)) {
+          return { ok: false, error: `参数名 "${key}" 不合法` }
+        }
+        if (boolParams.includes(key) && value !== 'true' && value !== 'false') {
+          return { ok: false, error: `参数 "${key}" 的值必须是 true 或 false` }
+        }
+        if (key === 'ecs' && !/^[a-zA-Z0-9-_./:]+$/.test(value)) {
+          return { ok: false, error: `参数值 "${value}" 不合法` }
+        }
+      } else {
+        if (boolParams.includes(param) || param === 'ecs') {
+          return { ok: false, error: `参数 "${param}" 必须指定值` }
+        }
+        if (!/^[a-zA-Z0-9-_]+$/.test(param)) {
+          return { ok: false, error: `参数 "${param}" 不合法` }
+        }
+      }
     }
   }
 
