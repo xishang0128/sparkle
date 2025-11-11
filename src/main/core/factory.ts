@@ -30,19 +30,26 @@ let runtimeConfigStr: string,
 
 export async function generateProfile(): Promise<void> {
   const { current } = await getProfileConfig()
-  const { diffWorkDir = false } = await getAppConfig()
+  const { diffWorkDir = false, controlDns = true, controlSniff = true } = await getAppConfig()
   const currentProfileConfig = await getProfile(current)
   rawProfileStr = await getProfileStr(current)
   currentProfileStr = stringifyYaml(currentProfileConfig)
   const currentProfile = await overrideProfile(current, currentProfileConfig)
   overrideProfileStr = stringifyYaml(currentProfile)
   const controledMihomoConfig = await getControledMihomoConfig()
-  const profile = deepMerge(
-    JSON.parse(JSON.stringify(currentProfile)),
-    JSON.parse(JSON.stringify(controledMihomoConfig))
-  )
 
-  await cleanProfile(profile)
+  const configToMerge = JSON.parse(JSON.stringify(controledMihomoConfig))
+  if (!controlDns) {
+    delete configToMerge.dns
+    delete configToMerge.hosts
+  }
+  if (!controlSniff) {
+    delete configToMerge.sniffer
+  }
+
+  const profile = deepMerge(JSON.parse(JSON.stringify(currentProfile)), configToMerge)
+
+  await cleanProfile(profile, controlDns, controlSniff)
 
   runtimeConfig = profile
   runtimeConfigStr = stringifyYaml(profile)
@@ -55,9 +62,11 @@ export async function generateProfile(): Promise<void> {
   )
 }
 
-async function cleanProfile(profile: MihomoConfig): Promise<void> {
-  const { controlDns = true } = await getAppConfig()
-
+async function cleanProfile(
+  profile: MihomoConfig,
+  controlDns: boolean,
+  controlSniff: boolean
+): Promise<void> {
   if (!['info', 'debug'].includes(profile['log-level'])) {
     profile['log-level'] = 'info'
   }
@@ -69,7 +78,7 @@ async function cleanProfile(profile: MihomoConfig): Promise<void> {
   cleanAuthenticationConfig(profile)
   cleanTunConfig(profile)
   cleanDnsConfig(profile, controlDns)
-  cleanSnifferConfig(profile)
+  cleanSnifferConfig(profile, controlSniff)
   cleanProxyConfigs(profile)
 }
 
@@ -237,7 +246,8 @@ function cleanDnsConfig(profile: MihomoConfig, controlDns: boolean): void {
   delete dnsConfig['fallback-filter']
 }
 
-function cleanSnifferConfig(profile: MihomoConfig): void {
+function cleanSnifferConfig(profile: MihomoConfig, controlSniff: boolean): void {
+  if (!controlSniff) return
   if (!profile.sniffer?.enable) {
     delete (profile as Partial<MihomoConfig>).sniffer
   }
