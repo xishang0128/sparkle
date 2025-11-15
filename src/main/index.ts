@@ -178,12 +178,20 @@ app.on('before-quit', async (e) => {
 
     if (confirmed) {
       isQuitting = true
+      if (quitTimeout) {
+        clearTimeout(quitTimeout)
+        quitTimeout = null
+      }
       triggerSysProxy(false, false)
       await stopCore()
       app.exit()
     }
   } else if (notQuitDialog) {
     isQuitting = true
+    if (quitTimeout) {
+      clearTimeout(quitTimeout)
+      quitTimeout = null
+    }
     triggerSysProxy(false, false)
     await stopCore()
     app.exit()
@@ -191,6 +199,10 @@ app.on('before-quit', async (e) => {
 })
 
 powerMonitor.on('shutdown', async () => {
+  if (quitTimeout) {
+    clearTimeout(quitTimeout)
+    quitTimeout = null
+  }
   triggerSysProxy(false, false)
   await stopCore()
   app.exit()
