@@ -51,9 +51,11 @@ const ControllerSetting: React.FC = () => {
   const onChangeNeedRestart = async (patch: Partial<MihomoConfig>): Promise<void> => {
     await patchControledMihomoConfig(patch)
     await restartCore()
-    setTimeout(async () => {
-      await upgradeUI()
-    }, 1000)
+    if ('external-ui-url' in patch) {
+      setTimeout(async () => {
+        await upgradeUI()
+      }, 1000)
+    }
   }
   const generateRandomString = (length: number): string => {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
