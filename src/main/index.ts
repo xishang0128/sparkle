@@ -11,7 +11,7 @@ import {
   powerMonitor,
   ipcMain
 } from 'electron'
-import { addOverrideItem, addProfileItem, getAppConfig } from './config'
+import { addOverrideItem, addProfileItem, getAppConfig, patchControledMihomoConfig } from './config'
 import { quitWithoutCore, startCore, stopCore } from './core/manager'
 import { triggerSysProxy } from './sys/sysproxy'
 import icon from '../../resources/icon.png?asset'
@@ -74,6 +74,10 @@ if (
       app.exit()
     }
   }
+}
+
+if (process.platform === 'win32' && is.dev) {
+  patchControledMihomoConfig({ tun: { enable: false } })
 }
 
 const gotTheLock = app.requestSingleInstanceLock()

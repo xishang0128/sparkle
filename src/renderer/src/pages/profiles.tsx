@@ -52,6 +52,7 @@ const Profiles: React.FC = () => {
   const [subStoreImporting, setSubStoreImporting] = useState(false)
   const [importing, setImporting] = useState(false)
   const [updating, setUpdating] = useState(false)
+  const [switching, setSwitching] = useState(false)
   const [fileOver, setFileOver] = useState(false)
   const [showEditModal, setShowEditModal] = useState(false)
   const [editingItem, setEditingItem] = useState<ProfileItem | null>(null)
@@ -444,8 +445,12 @@ const Profiles: React.FC = () => {
                 mutateProfileConfig={mutateProfileConfig}
                 updateProfileItem={updateProfileItem}
                 info={item}
+                switching={switching}
                 onClick={async () => {
+                  setSwitching(true)
                   await changeCurrentProfile(item.id)
+                  await new Promise((resolve) => setTimeout(resolve, 500))
+                  setSwitching(false)
                 }}
               />
             ))}

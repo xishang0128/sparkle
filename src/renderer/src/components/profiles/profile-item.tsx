@@ -31,6 +31,7 @@ interface Props {
   removeProfileItem: (id: string) => Promise<void>
   mutateProfileConfig: () => void
   onClick: () => Promise<void>
+  switching: boolean
 }
 
 interface MenuItem {
@@ -48,7 +49,8 @@ const ProfileItem: React.FC<Props> = (props) => {
     mutateProfileConfig,
     updateProfileItem,
     onClick,
-    isCurrent
+    isCurrent,
+    switching
   } = props
   const extra = info?.extra
   const usage = (extra?.upload ?? 0) + (extra?.download ?? 0)
@@ -195,7 +197,7 @@ const ProfileItem: React.FC<Props> = (props) => {
         fullWidth
         isPressable
         onPress={() => {
-          if (disableSelect) return
+          if (disableSelect || switching) return
           setSelecting(true)
           onClick().finally(() => {
             setSelecting(false)

@@ -19,6 +19,7 @@ export async function getControledMihomoConfig(force = false): Promise<Partial<M
 }
 
 export async function patchControledMihomoConfig(patch: Partial<MihomoConfig>): Promise<void> {
+  await getControledMihomoConfig()
   const { controlDns = true, controlSniff = true } = await getAppConfig()
   if (!controlDns) {
     delete controledMihomoConfig.dns
