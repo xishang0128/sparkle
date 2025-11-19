@@ -12,6 +12,7 @@ body:
         - label: 我已经关闭所有杀毒软件/代理软件后测试过，问题依旧存在
         - label: 我已经使用最新的测试版本测试过，问题依旧存在
         - label: 我已经尝试过重启程序/电脑，问题依旧存在
+        - label: 我已确认在其他设备（例如全新虚拟机）上该问题依旧存在
     id: ensure
     type: checkboxes
   - attributes:
@@ -26,24 +27,25 @@ body:
     validations:
       required: true
   - attributes:
-      description: 请提供出现问题的操作系统版本
+      description: 请提供出现问题的操作系统版本，需要具体到小版本号，如果没有该 issues 将会被直接关闭
       label: 系统版本
     type: input
     validations:
       required: true
   - attributes:
-      label: 发生问题 sparkle 版本
+      description: 请提供出现问题的 sparkle 版本，需要具体到小版本号，如果没有该 issues 将会被直接关闭
+      label: 发生问题的 sparkle 版本
     type: input
     validations:
       required: true
   - attributes:
-      description: 请提供错误的详细描述。
+      description: 请提供错误的详细描述，如果没有该 issues 将会被直接关闭
       label: 描述
     type: textarea
     validations:
       required: true
   - attributes:
-      description: 请提供重现错误的步骤
+      description: 请提供重现错误的步骤，如果没有该 issues 将会被直接关闭
       label: 重现方式
     type: textarea
     validations:
