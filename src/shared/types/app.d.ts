@@ -135,6 +135,7 @@ interface ProfileItem {
   extra?: SubscriptionUserInfo
   substore?: boolean
   locked?: boolean
+  autoUpdate?: boolean
 }
 
 interface SubscriptionUserInfo {

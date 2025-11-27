@@ -11,7 +11,8 @@ import {
   Dropdown,
   DropdownTrigger,
   DropdownMenu,
-  DropdownItem
+  DropdownItem,
+  Tooltip
 } from '@heroui/react'
 import React, { useState } from 'react'
 import SettingItem from '../base/base-setting-item'
@@ -20,6 +21,7 @@ import { restartCore } from '@renderer/utils/ipc'
 import { MdDeleteForever } from 'react-icons/md'
 import { FaPlus } from 'react-icons/fa6'
 import { useAppConfig } from '@renderer/hooks/use-app-config'
+import { IoIosHelpCircle } from 'react-icons/io'
 
 interface Props {
   item: ProfileItem
@@ -32,7 +34,7 @@ const EditInfoModal: React.FC<Props> = (props) => {
   const { appConfig: { disableAnimation = false } = {} } = useAppConfig()
   const { overrideConfig } = useOverrideConfig()
   const { items: overrideItems = [] } = overrideConfig || {}
-  const [values, setValues] = useState(item)
+  const [values, setValues] = useState({ ...item, autoUpdate: item.autoUpdate ?? true })
   const inputWidth = 'w-[400px] md:w-[400px] lg:w-[600px] xl:w-[800px]'
 
   const onSave = async (): Promise<void> => {
@@ -132,18 +134,40 @@ const EditInfoModal: React.FC<Props> = (props) => {
                   }}
                 />
               </SettingItem>
-              <SettingItem title="更新间隔（分钟）">
-                <Input
+              <SettingItem title="自动更新">
+                <Switch
                   size="sm"
-                  type="number"
-                  className={cn(inputWidth)}
-                  value={values.interval?.toString() ?? ''}
+                  isSelected={values.autoUpdate ?? false}
                   onValueChange={(v) => {
-                    setValues({ ...values, interval: parseInt(v) })
+                    setValues({ ...values, autoUpdate: v })
                   }}
-                  disabled={values.locked}
                 />
               </SettingItem>
+              {values.autoUpdate && (
+                <SettingItem
+                  title="更新间隔（分钟）"
+                  actions={
+                    values.locked && (
+                      <Tooltip content="当前更新间隔由远程管理">
+                        <Button isIconOnly size="sm" variant="light">
+                          <IoIosHelpCircle className="text-lg" />
+                        </Button>
+                      </Tooltip>
+                    )
+                  }
+                >
+                  <Input
+                    size="sm"
+                    type="number"
+                    className={cn(inputWidth)}
+                    value={values.interval?.toString() ?? ''}
+                    onValueChange={(v) => {
+                      setValues({ ...values, interval: parseInt(v) })
+                    }}
+                    disabled={values.locked}
+                  />
+                </SettingItem>
+              )}
             </>
           )}
           <SettingItem title="覆写">

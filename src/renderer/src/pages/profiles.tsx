@@ -133,7 +133,7 @@ const Profiles: React.FC = () => {
   }, [subs, collections])
   const handleImport = async (importUrl: string): Promise<void> => {
     setImporting(true)
-    await addProfileItem({ name: '', type: 'remote', url: importUrl, useProxy })
+    await addProfileItem({ name: '', type: 'remote', url: importUrl, useProxy, autoUpdate: true })
     setUrl('')
     setImporting(false)
   }
@@ -410,7 +410,8 @@ const Profiles: React.FC = () => {
                       name: '',
                       type: 'remote',
                       url: '',
-                      useProxy: false
+                      useProxy: false,
+                      autoUpdate: true
                     }
                     setEditingItem(newRemoteProfile)
                     setShowEditModal(true)

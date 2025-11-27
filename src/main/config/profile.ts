@@ -125,6 +125,7 @@ export async function createProfile(item: Partial<ProfileItem>): Promise<Profile
     fingerprint: item.fingerprint,
     ua: item.ua,
     verify: item.verify ?? false,
+    autoUpdate: item.autoUpdate ?? true,
     substore: item.substore || false,
     interval: item.interval || 0,
     override: item.override || [],
