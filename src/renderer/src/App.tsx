@@ -369,7 +369,7 @@ const App: React.FC = () => {
       ) : (
         <div
           style={{ width: `${siderWidthValue}px` }}
-          className="side h-full overflow-y-auto no-scrollbar"
+          className="side h-full overflow-y-auto overflow-x-hidden no-scrollbar"
         >
           <div
             className={`app-drag sticky top-0 z-40 ${disableAnimation ? 'bg-background/95 backdrop-blur-sm' : 'bg-transparent backdrop-blur'} h-[49px]`}
@@ -399,7 +399,7 @@ const App: React.FC = () => {
             <OutboundModeSwitcher />
           </div>
           <DndContext sensors={sensors} collisionDetection={closestCorners} onDragEnd={onDragEnd}>
-            <div className="grid grid-cols-2 gap-2 m-2">
+            <div className="grid grid-cols-2 gap-2 m-2 overflow-hidden">
               <SortableContext items={order}>
                 {order.map((key: string) => {
                   const Component = componentMap[key]
