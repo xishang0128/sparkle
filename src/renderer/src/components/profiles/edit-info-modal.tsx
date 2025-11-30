@@ -25,12 +25,13 @@ import { IoIosHelpCircle } from 'react-icons/io'
 
 interface Props {
   item: ProfileItem
+  isCurrent: boolean
   updateProfileItem: (item: ProfileItem) => Promise<void>
   onClose: () => void
 }
 
 const EditInfoModal: React.FC<Props> = (props) => {
-  const { item, updateProfileItem, onClose } = props
+  const { item, isCurrent, updateProfileItem, onClose } = props
   const { appConfig: { disableAnimation = false } = {} } = useAppConfig()
   const { overrideConfig } = useOverrideConfig()
   const { items: overrideItems = [] } = overrideConfig || {}
@@ -48,7 +49,7 @@ const EditInfoModal: React.FC<Props> = (props) => {
       }
 
       await updateProfileItem(itemToSave)
-      if (item.id) {
+      if (item.id && isCurrent) {
         await restartCore()
       }
       onClose()

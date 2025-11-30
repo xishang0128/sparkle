@@ -242,6 +242,7 @@ const Profiles: React.FC = () => {
       {showEditModal && editingItem && (
         <EditInfoModal
           item={editingItem}
+          isCurrent={editingItem.id === current}
           updateProfileItem={async (item: ProfileItem) => {
             await addProfileItem(item)
             setShowEditModal(false)

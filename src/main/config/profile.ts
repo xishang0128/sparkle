@@ -66,6 +66,7 @@ export async function updateProfileItem(item: ProfileItem): Promise<void> {
     throw new Error('Profile not found')
   }
   config.items[index] = item
+  if (!item.autoUpdate) await delProfileUpdater(item.id)
   await setProfileConfig(config)
 }
 
