@@ -81,10 +81,12 @@ const ConfigViewer: React.FC<Props> = ({ onClose }) => {
         </ModalBody>
         <ModalFooter className="pt-0 flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <Switch size="sm" isSelected={isDiff} onValueChange={setIsDiff} />
-            <span className="text-sm">对比当前配置</span>
-            <Switch size="sm" isSelected={sideBySide} onValueChange={setSideBySide} />
-            <span className="text-sm">侧边显示</span>
+            <Switch size="sm" isSelected={isDiff} onValueChange={setIsDiff}>
+              对比当前配置
+            </Switch>
+            <Switch size="sm" isSelected={sideBySide} onValueChange={setSideBySide}>
+              侧边显示
+            </Switch>
             <Switch
               size="sm"
               isSelected={isRaw}
@@ -94,8 +96,9 @@ const ConfigViewer: React.FC<Props> = ({ onClose }) => {
                   setIsOverride(false)
                 }
               }}
-            />
-            <span className="text-sm">显示原始文本</span>
+            >
+              显示原始文本
+            </Switch>
             <Switch
               size="sm"
               isSelected={isOverride}
@@ -105,8 +108,9 @@ const ConfigViewer: React.FC<Props> = ({ onClose }) => {
                   setIsRaw(false)
                 }
               }}
-            />
-            <span className="text-sm">显示覆写后文本</span>
+            >
+              显示覆写后文本
+            </Switch>
           </div>
           <Button size="sm" variant="light" onPress={onClose}>
             关闭

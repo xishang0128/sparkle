@@ -1,9 +1,18 @@
-import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button } from '@heroui/react'
+import {
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  Button,
+  Switch
+} from '@heroui/react'
 import React, { useEffect, useState } from 'react'
 import { BaseEditor } from '../base/base-editor-lazy'
 import { getProfileStr, setProfileStr } from '@renderer/utils/ipc'
 import { useNavigate } from 'react-router-dom'
 import { useAppConfig } from '@renderer/hooks/use-app-config'
+import ConfirmModal from '../base/base-confirm'
 
 interface Props {
   id: string
@@ -12,13 +21,29 @@ interface Props {
 }
 
 const EditFileModal: React.FC<Props> = (props) => {
-  const { id, onClose } = props
+  const { id, isRemote, onClose } = props
   const { appConfig: { disableAnimation = false } = {} } = useAppConfig()
   const [currData, setCurrData] = useState('')
+  const [originalData, setOriginalData] = useState('')
+  const [isDiff, setIsDiff] = useState(false)
+  const [sideBySide, setSideBySide] = useState(false)
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false)
   const navigate = useNavigate()
 
+  const isModified = currData !== originalData
+
+  const handleClose = (): void => {
+    if (isModified) {
+      setIsConfirmOpen(true)
+    } else {
+      onClose()
+    }
+  }
+
   const getContent = async (): Promise<void> => {
-    setCurrData(await getProfileStr(id))
+    const data = await getProfileStr(id)
+    setCurrData(data)
+    setOriginalData(data)
   }
 
   useEffect(() => {
@@ -36,14 +61,24 @@ const EditFileModal: React.FC<Props> = (props) => {
       size="5xl"
       hideCloseButton
       isOpen={true}
-      onOpenChange={onClose}
+      onOpenChange={handleClose}
       scrollBehavior="inside"
     >
+      {isConfirmOpen && (
+        <ConfirmModal
+          title="确认取消"
+          description="您有未保存的修改，确定要取消吗？"
+          confirmText="放弃修改"
+          cancelText="继续编辑"
+          onChange={setIsConfirmOpen}
+          onConfirm={onClose}
+        />
+      )}
       <ModalContent className="h-full w-[calc(100%-100px)]">
         <ModalHeader className="flex pb-0 app-drag">
           <div className="flex justify-start">
             <div className="flex items-center">编辑订阅</div>
-            {props.isRemote && (
+            {isRemote && (
               <small className="ml-2 text-foreground-500">
                 注意：此处编辑配置更新订阅后会还原，如需要自定义配置请使用
                 <Button
@@ -63,22 +98,38 @@ const EditFileModal: React.FC<Props> = (props) => {
           </div>
         </ModalHeader>
         <ModalBody className="h-full">
-          <BaseEditor language="yaml" value={currData} onChange={(value) => setCurrData(value)} />
+          <BaseEditor
+            language="yaml"
+            value={currData}
+            originalValue={isDiff ? originalData : undefined}
+            onChange={(value) => setCurrData(value)}
+            diffRenderSideBySide={sideBySide}
+          />
         </ModalBody>
-        <ModalFooter className="pt-0">
-          <Button size="sm" variant="light" onPress={onClose}>
-            取消
-          </Button>
-          <Button
-            size="sm"
-            color="primary"
-            onPress={async () => {
-              await setProfileStr(id, currData)
-              onClose()
-            }}
-          >
-            确认
-          </Button>
+        <ModalFooter className="pt-0 flex justify-between">
+          <div className="flex items-center space-x-2">
+            <Switch size="sm" isSelected={isDiff} onValueChange={setIsDiff}>
+              显示修改
+            </Switch>
+            <Switch size="sm" isSelected={sideBySide} onValueChange={setSideBySide}>
+              侧边显示
+            </Switch>
+          </div>
+          <div className="flex gap-2">
+            <Button size="sm" variant="light" onPress={handleClose}>
+              取消
+            </Button>
+            <Button
+              size="sm"
+              color="primary"
+              onPress={async () => {
+                await setProfileStr(id, currData)
+                onClose()
+              }}
+            >
+              保存
+            </Button>
+          </div>
         </ModalFooter>
       </ModalContent>
     </Modal>
