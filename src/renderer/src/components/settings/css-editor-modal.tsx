@@ -1,5 +1,5 @@
 import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button } from '@heroui/react'
-import { BaseEditor } from '@renderer/components/base/base-editor'
+import { BaseEditor } from '@renderer/components/base/base-editor-lazy'
 import { useAppConfig } from '@renderer/hooks/use-app-config'
 import { readTheme } from '@renderer/utils/ipc'
 import React, { useEffect, useState } from 'react'

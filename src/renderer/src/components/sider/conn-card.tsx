@@ -2,7 +2,7 @@ import { Button, Card, CardBody, CardFooter, Tooltip } from '@heroui/react'
 import { FaCircleArrowDown, FaCircleArrowUp } from 'react-icons/fa6'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { calcTraffic } from '@renderer/utils/calc'
-import React, { useEffect, useState, useCallback, useRef } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { IoLink } from 'react-icons/io5'
@@ -27,6 +27,9 @@ const ConnCard: React.FC<Props> = (props) => {
     connectionCardStatus = 'col-span-2',
     disableAnimation = false
   } = appConfig || {}
+  const showTrafficRef = useRef(showTraffic)
+  showTrafficRef.current = showTraffic
+
   const location = useLocation()
   const navigate = useNavigate()
   const match = location.pathname.includes('/connections')
@@ -52,10 +55,10 @@ const ConnCard: React.FC<Props> = (props) => {
 
   const transform = tf ? { x: tf.x, y: tf.y, scaleX: 1, scaleY: 1 } : null
 
-  const handleTraffic = useCallback(
-    async (_e: unknown, info: ControllerTraffic) => {
-      setUpload((prev) => (prev !== info.up ? info.up : prev))
-      setDownload((prev) => (prev !== info.down ? info.down : prev))
+  useEffect(() => {
+    const handleTraffic = async (_e: unknown, info: ControllerTraffic): Promise<void> => {
+      setUpload(info.up)
+      setDownload(info.down)
 
       if (updateTimeoutRef.current) {
         clearTimeout(updateTimeoutRef.current)
@@ -71,7 +74,7 @@ const ConnCard: React.FC<Props> = (props) => {
         updateTimeoutRef.current = null
       }, 100)
 
-      if (platform === 'darwin' && showTraffic) {
+      if (platform === 'darwin' && showTrafficRef.current) {
         if (drawing) return
         drawing = true
         try {
@@ -87,11 +90,8 @@ const ConnCard: React.FC<Props> = (props) => {
         window.electron.ipcRenderer.send('trayIconUpdate', trayIconBase64)
         hasShowTraffic = false
       }
-    },
-    [showTraffic]
-  )
+    }
 
-  useEffect(() => {
     window.electron.ipcRenderer.on('mihomoTraffic', handleTraffic)
 
     return (): void => {
@@ -100,7 +100,7 @@ const ConnCard: React.FC<Props> = (props) => {
         clearTimeout(updateTimeoutRef.current)
       }
     }
-  }, [handleTraffic])
+  }, [])
 
   if (iconOnly) {
     return (

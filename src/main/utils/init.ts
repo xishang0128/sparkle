@@ -46,44 +46,47 @@ async function initDirs(): Promise<void> {
   if (!existsSync(dataDir())) {
     await mkdir(dataDir())
   }
-  if (!existsSync(themesDir())) {
-    await mkdir(themesDir())
-  }
-  if (!existsSync(profilesDir())) {
-    await mkdir(profilesDir())
-  }
-  if (!existsSync(overrideDir())) {
-    await mkdir(overrideDir())
-  }
-  if (!existsSync(mihomoWorkDir())) {
-    await mkdir(mihomoWorkDir())
-  }
-  if (!existsSync(logDir())) {
-    await mkdir(logDir())
-  }
-  if (!existsSync(mihomoTestDir())) {
-    await mkdir(mihomoTestDir())
-  }
-  if (!existsSync(subStoreDir())) {
-    await mkdir(subStoreDir())
-  }
+  const dirs = [
+    themesDir(),
+    profilesDir(),
+    overrideDir(),
+    mihomoWorkDir(),
+    logDir(),
+    mihomoTestDir(),
+    subStoreDir()
+  ]
+  await Promise.all(
+    dirs.map(async (dir) => {
+      if (!existsSync(dir)) {
+        await mkdir(dir, { recursive: true })
+      }
+    })
+  )
 }
 
 async function initConfig(): Promise<void> {
+  const configTasks: Promise<void>[] = []
+
   if (!existsSync(appConfigPath())) {
-    await writeFile(appConfigPath(), stringifyYaml(defaultConfig))
+    configTasks.push(writeFile(appConfigPath(), stringifyYaml(defaultConfig)))
   }
   if (!existsSync(profileConfigPath())) {
-    await writeFile(profileConfigPath(), stringifyYaml(defaultProfileConfig))
+    configTasks.push(writeFile(profileConfigPath(), stringifyYaml(defaultProfileConfig)))
   }
   if (!existsSync(overrideConfigPath())) {
-    await writeFile(overrideConfigPath(), stringifyYaml(defaultOverrideConfig))
+    configTasks.push(writeFile(overrideConfigPath(), stringifyYaml(defaultOverrideConfig)))
   }
   if (!existsSync(profilePath('default'))) {
-    await writeFile(profilePath('default'), stringifyYaml(defaultProfile))
+    configTasks.push(writeFile(profilePath('default'), stringifyYaml(defaultProfile)))
   }
   if (!existsSync(controledMihomoConfigPath())) {
-    await writeFile(controledMihomoConfigPath(), stringifyYaml(defaultControledMihomoConfig))
+    configTasks.push(
+      writeFile(controledMihomoConfigPath(), stringifyYaml(defaultControledMihomoConfig))
+    )
+  }
+
+  if (configTasks.length > 0) {
+    await Promise.all(configTasks)
   }
 }
 
@@ -199,26 +202,43 @@ function initDeeplink(): void {
 
 export async function init(): Promise<void> {
   await initDirs()
-  await initConfig()
+  await Promise.all([initConfig(), initFiles()])
   await migration()
-  await initFiles()
-  await cleanup()
-  await initKeyManager()
-  await startSubStoreFrontendServer()
-  await startSubStoreBackendServer()
-  const { sysProxy, onlyActiveDevice = false, networkDetection = false } = await getAppConfig()
+
+  const [appConfig] = await Promise.all([
+    getAppConfig(),
+    initKeyManager(),
+    cleanup().catch(() => {
+      // ignore
+    })
+  ])
+
+  const { sysProxy, onlyActiveDevice = false, networkDetection = false } = appConfig
+
+  const initTasks: Promise<void>[] = [
+    startSubStoreFrontendServer(),
+    startSubStoreBackendServer(),
+    startSSIDCheck()
+  ]
+
   if (networkDetection) {
-    await startNetworkDetection()
+    initTasks.push(startNetworkDetection())
   }
-  try {
-    if (sysProxy.enable) {
-      await startPacServer()
-    }
-    await triggerSysProxy(sysProxy.enable, onlyActiveDevice)
-  } catch {
-    // ignore
-  }
-  await startSSIDCheck()
+
+  initTasks.push(
+    (async (): Promise<void> => {
+      try {
+        if (sysProxy.enable) {
+          await startPacServer()
+        }
+        await triggerSysProxy(sysProxy.enable, onlyActiveDevice)
+      } catch {
+        // ignore
+      }
+    })()
+  )
+
+  await Promise.all(initTasks)
 
   initDeeplink()
 }

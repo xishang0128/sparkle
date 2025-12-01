@@ -4,6 +4,6 @@ import { webUtils } from 'electron'
 declare global {
   interface Window {
     electron: ElectronAPI
-    api: { webUtils: typeof webUtils }
+    api: { webUtils: typeof webUtils; platform: NodeJS.Platform }
   }
 }

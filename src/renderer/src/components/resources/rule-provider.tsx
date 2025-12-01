@@ -45,7 +45,20 @@ const RuleProvider: React.FC = () => {
     }
   }, [showDetails.title])
 
-  const { data, mutate } = useSWR('mihomoRuleProviders', mihomoRuleProviders)
+  const { data, mutate } = useSWR('mihomoRuleProviders', mihomoRuleProviders, {
+    errorRetryInterval: 200,
+    errorRetryCount: 10
+  })
+
+  useEffect(() => {
+    window.electron.ipcRenderer.on('core-started', () => {
+      mutate()
+    })
+    return (): void => {
+      window.electron.ipcRenderer.removeAllListeners('core-started')
+    }
+  }, [])
+
   const providers = useMemo(() => {
     if (!data) return []
     return Object.values(data.providers).sort((a, b) => {

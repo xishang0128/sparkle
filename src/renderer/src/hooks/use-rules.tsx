@@ -19,8 +19,12 @@ export const RulesProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     window.electron.ipcRenderer.on('rulesUpdated', () => {
       mutate()
     })
+    window.electron.ipcRenderer.on('core-started', () => {
+      mutate()
+    })
     return (): void => {
       window.electron.ipcRenderer.removeAllListeners('rulesUpdated')
+      window.electron.ipcRenderer.removeAllListeners('core-started')
     }
   }, [])
 

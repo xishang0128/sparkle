@@ -19,7 +19,10 @@ const MihomoCoreCard: React.FC<Props> = (props) => {
   const { appConfig } = useAppConfig()
   const { iconOnly } = props
   const { mihomoCoreCardStatus = 'col-span-2', disableAnimation = false } = appConfig || {}
-  const { data: version, mutate } = useSWR('mihomoVersion', mihomoVersion)
+  const { data: version, mutate } = useSWR('mihomoVersion', mihomoVersion, {
+    errorRetryInterval: 200,
+    errorRetryCount: 10
+  })
   const location = useLocation()
   const navigate = useNavigate()
   const match = location.pathname.includes('/mihomo')
@@ -44,9 +47,13 @@ const MihomoCoreCard: React.FC<Props> = (props) => {
     window.electron.ipcRenderer.on('mihomoMemory', (_e, info: ControllerMemory) => {
       setMem(info.inuse)
     })
+    window.electron.ipcRenderer.on('core-started', () => {
+      mutate()
+    })
     return (): void => {
       PubSub.unsubscribe(token)
       window.electron.ipcRenderer.removeAllListeners('mihomoMemory')
+      window.electron.ipcRenderer.removeAllListeners('core-started')
     }
   }, [])
 

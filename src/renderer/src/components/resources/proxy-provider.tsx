@@ -45,7 +45,20 @@ const ProxyProvider: React.FC = () => {
     }
   }, [showDetails.title])
 
-  const { data, mutate } = useSWR('mihomoProxyProviders', mihomoProxyProviders)
+  const { data, mutate } = useSWR('mihomoProxyProviders', mihomoProxyProviders, {
+    errorRetryInterval: 200,
+    errorRetryCount: 10
+  })
+
+  useEffect(() => {
+    window.electron.ipcRenderer.on('core-started', () => {
+      mutate()
+    })
+    return (): void => {
+      window.electron.ipcRenderer.removeAllListeners('core-started')
+    }
+  }, [])
+
   const providers = useMemo(() => {
     if (!data) return []
     return Object.values(data.providers)

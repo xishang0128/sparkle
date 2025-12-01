@@ -27,6 +27,8 @@ import { FaPlus } from 'react-icons/fa6'
 import { HiOutlineDocumentText } from 'react-icons/hi'
 import { RiArchiveLine } from 'react-icons/ri'
 
+const emptyItems: OverrideItem[] = []
+
 const Override: React.FC = () => {
   const {
     overrideConfig,
@@ -36,8 +38,9 @@ const Override: React.FC = () => {
     removeOverrideItem,
     mutateOverrideConfig
   } = useOverrideConfig()
-  const { items = [] } = overrideConfig || {}
-  const [sortedItems, setSortedItems] = useState(items)
+  const { items } = overrideConfig || {}
+  const itemsArray = items ?? emptyItems
+  const [sortedItems, setSortedItems] = useState(itemsArray)
   const [importing, setImporting] = useState(false)
   const [fileOver, setFileOver] = useState(false)
   const [url, setUrl] = useState('')
@@ -76,7 +79,7 @@ const Override: React.FC = () => {
         const activeIndex = newOrder.findIndex((item) => item.id === active.id)
         const overIndex = newOrder.findIndex((item) => item.id === over.id)
         newOrder.splice(activeIndex, 1)
-        newOrder.splice(overIndex, 0, items[activeIndex])
+        newOrder.splice(overIndex, 0, itemsArray[activeIndex])
         setSortedItems(newOrder)
         await setOverrideConfig({ items: newOrder })
       }
@@ -137,8 +140,8 @@ const Override: React.FC = () => {
   }, [])
 
   useEffect(() => {
-    setSortedItems(items)
-  }, [items])
+    setSortedItems(itemsArray)
+  }, [itemsArray])
 
   return (
     <BasePage

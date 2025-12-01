@@ -224,19 +224,6 @@ app.whenReady().then(async () => {
     dialog.showErrorBox('应用初始化失败', `${e}`)
     app.quit()
   }
-  try {
-    const [startPromise] = await startCore()
-    startPromise.then(async () => {
-      await initProfileUpdater()
-    })
-  } catch (e) {
-    dialog.showErrorBox('内核启动出错', `${e}`)
-  }
-  try {
-    await startMonitor()
-  } catch {
-    // ignore
-  }
 
   // Default open or close DevTools by F12 in development
   // and ignore CommandOrControl + R in production.
@@ -244,16 +231,53 @@ app.whenReady().then(async () => {
   app.on('browser-window-created', (_, window) => {
     optimizer.watchWindowShortcuts(window)
   })
-  const { showFloatingWindow: showFloating = false, disableTray = false } = await getAppConfig()
+  const appConfig = await getAppConfig()
+  const { showFloatingWindow: showFloating = false, disableTray = false } = appConfig
   registerIpcMainHandlers()
-  await createWindow()
+
+  const createWindowPromise = createWindow(appConfig)
+
+  let coreStarted = false
+
+  const coreStartPromise = (async (): Promise<void> => {
+    try {
+      const [startPromise] = await startCore()
+      startPromise.then(async () => {
+        await initProfileUpdater()
+      })
+      coreStarted = true
+    } catch (e) {
+      dialog.showErrorBox('内核启动出错', `${e}`)
+    }
+  })()
+
+  const monitorPromise = (async (): Promise<void> => {
+    try {
+      await startMonitor()
+    } catch {
+      // ignore
+    }
+  })()
+
+  await createWindowPromise
+
+  const uiTasks: Promise<void>[] = [initShortcut()]
+
   if (showFloating) {
-    showFloatingWindow()
+    uiTasks.push(Promise.resolve(showFloatingWindow()))
   }
   if (!disableTray) {
-    await createTray()
+    uiTasks.push(createTray())
   }
-  await initShortcut()
+
+  await Promise.all(uiTasks)
+
+  await Promise.all([coreStartPromise, monitorPromise])
+
+  if (coreStarted) {
+    mainWindow?.webContents.send('core-started')
+  }
+
   app.on('activate', function () {
     // On macOS it's common to re-create a window in the app when the
     // dock icon is clicked and there are no other windows open.
@@ -400,19 +424,22 @@ function showOverrideInstallConfirm(url: string, name?: string | null): Promise<
   })
 }
 
-export async function createWindow(): Promise<void> {
-  const { useWindowFrame = false } = await getAppConfig()
-  const mainWindowState = windowStateKeeper({
-    defaultWidth: 800,
-    defaultHeight: 700,
-    file: 'window-state.json'
-  })
-  // https://github.com/electron/electron/issues/16521#issuecomment-582955104
-  if (process.platform === 'darwin') {
-    await createApplicationMenu()
-  } else {
-    Menu.setApplicationMenu(null)
-  }
+export async function createWindow(appConfig?: AppConfig): Promise<void> {
+  const config = appConfig ?? (await getAppConfig())
+  const { useWindowFrame = false } = config
+
+  const [mainWindowState] = await Promise.all([
+    Promise.resolve(
+      windowStateKeeper({
+        defaultWidth: 800,
+        defaultHeight: 700,
+        file: 'window-state.json'
+      })
+    ),
+    process.platform === 'darwin'
+      ? createApplicationMenu()
+      : Promise.resolve(Menu.setApplicationMenu(null))
+  ])
   mainWindow = new BrowserWindow({
     minWidth: 800,
     minHeight: 600,

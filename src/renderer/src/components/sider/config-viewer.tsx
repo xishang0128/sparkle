@@ -8,7 +8,7 @@ import {
   Switch
 } from '@heroui/react'
 import React, { useEffect, useState, useCallback } from 'react'
-import { BaseEditor } from '../base/base-editor'
+import { BaseEditor } from '../base/base-editor-lazy'
 import {
   getProfileConfig,
   getRawProfileStr,

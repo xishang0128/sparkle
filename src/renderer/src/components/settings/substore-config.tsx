@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import SettingCard from '@renderer/components/base/base-setting-card'
 import SettingItem from '@renderer/components/base/base-setting-item'
 import { Button, Input, Switch } from '@heroui/react'
@@ -25,17 +25,36 @@ const SubStoreConfig: React.FC = () => {
     subStoreBackendUploadCron
   } = appConfig || {}
 
-  const [customSubStoreUrlValue, setCustomSubStoreUrlValue] = useState(customSubStoreUrl)
+  const [customSubStoreUrlValue, setCustomSubStoreUrlValue] = useState(customSubStoreUrl ?? '')
   const setCustomSubStoreUrl = debounce(async (v: string) => {
     await patchAppConfig({ customSubStoreUrl: v })
   }, 500)
-  const [subStoreBackendSyncCronValue, setSubStoreBackendSyncCronValue] =
-    useState(subStoreBackendSyncCron)
-  const [subStoreBackendDownloadCronValue, setSubStoreBackendDownloadCronValue] = useState(
-    subStoreBackendDownloadCron
+  const [subStoreBackendSyncCronValue, setSubStoreBackendSyncCronValue] = useState(
+    subStoreBackendSyncCron ?? ''
   )
-  const [subStoreBackendUploadCronValue, setSubStoreBackendUploadCronValue] =
-    useState(subStoreBackendUploadCron)
+  const [subStoreBackendDownloadCronValue, setSubStoreBackendDownloadCronValue] = useState(
+    subStoreBackendDownloadCron ?? ''
+  )
+  const [subStoreBackendUploadCronValue, setSubStoreBackendUploadCronValue] = useState(
+    subStoreBackendUploadCron ?? ''
+  )
+
+  useEffect(() => {
+    setCustomSubStoreUrlValue(customSubStoreUrl ?? '')
+  }, [customSubStoreUrl])
+
+  useEffect(() => {
+    setSubStoreBackendSyncCronValue(subStoreBackendSyncCron ?? '')
+  }, [subStoreBackendSyncCron])
+
+  useEffect(() => {
+    setSubStoreBackendDownloadCronValue(subStoreBackendDownloadCron ?? '')
+  }, [subStoreBackendDownloadCron])
+
+  useEffect(() => {
+    setSubStoreBackendUploadCronValue(subStoreBackendUploadCron ?? '')
+  }, [subStoreBackendUploadCron])
+
   return (
     <SettingCard title="Sub-Store 设置">
       <SettingItem title="启用 Sub-Store" divider={useSubStore}>

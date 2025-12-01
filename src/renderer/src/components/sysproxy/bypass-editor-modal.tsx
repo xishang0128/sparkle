@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react'
 import yaml from 'js-yaml'
 import { Button, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader } from '@heroui/react'
-import { BaseEditor } from '../base/base-editor'
+import { BaseEditor } from '../base/base-editor-lazy'
 import { useAppConfig } from '@renderer/hooks/use-app-config'
 
 interface Props {

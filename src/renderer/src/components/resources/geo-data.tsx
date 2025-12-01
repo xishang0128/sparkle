@@ -3,27 +3,39 @@ import SettingCard from '@renderer/components/base/base-setting-card'
 import SettingItem from '@renderer/components/base/base-setting-item'
 import { useControledMihomoConfig } from '@renderer/hooks/use-controled-mihomo-config'
 import { mihomoUpgradeGeo } from '@renderer/utils/ipc'
-import { useState } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { IoMdRefresh } from 'react-icons/io'
+
+const defaultGeoxUrl = {
+  geoip: 'https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geoip-lite.dat',
+  geosite: 'https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geosite.dat',
+  mmdb: 'https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geoip.metadb',
+  asn: 'https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/GeoLite2-ASN.mmdb'
+}
 
 const GeoData: React.FC = () => {
   const { controledMihomoConfig, patchControledMihomoConfig } = useControledMihomoConfig()
   const {
-    'geox-url': geoxUrl = {
-      geoip: 'https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geoip-lite.dat',
-      geosite: 'https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geosite.dat',
-      mmdb: 'https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geoip.metadb',
-      asn: 'https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/GeoLite2-ASN.mmdb'
-    },
+    'geox-url': geoxUrlRaw,
     'geodata-mode': geoMode = false,
     'geo-auto-update': geoAutoUpdate = false,
     'geo-update-interval': geoUpdateInterval = 24
   } = controledMihomoConfig || {}
+
+  const geoxUrl = useMemo(() => ({ ...defaultGeoxUrl, ...geoxUrlRaw }), [geoxUrlRaw])
+
   const [geoipInput, setGeoIpInput] = useState(geoxUrl.geoip)
   const [geositeInput, setGeositeInput] = useState(geoxUrl.geosite)
   const [mmdbInput, setMmdbInput] = useState(geoxUrl.mmdb)
   const [asnInput, setAsnInput] = useState(geoxUrl.asn)
   const [updating, setUpdating] = useState(false)
+
+  useEffect(() => {
+    setGeoIpInput(geoxUrl.geoip)
+    setGeositeInput(geoxUrl.geosite)
+    setMmdbInput(geoxUrl.mmdb)
+    setAsnInput(geoxUrl.asn)
+  }, [geoxUrl])
 
   return (
     <SettingCard>

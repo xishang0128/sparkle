@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import SettingCard from '../base/base-setting-card'
 import SettingItem from '../base/base-setting-item'
 import { Button, Input, Select, SelectItem, Switch, Tab, Tabs, Tooltip } from '@heroui/react'
@@ -15,6 +15,8 @@ import { BiCopy } from 'react-icons/bi'
 import { IoIosHelpCircle } from 'react-icons/io'
 import { platform } from '@renderer/utils/init'
 
+const emptyArray: string[] = []
+
 const MihomoConfig: React.FC = () => {
   const { appConfig, patchAppConfig } = useAppConfig()
   const {
@@ -25,7 +27,7 @@ const MihomoConfig: React.FC = () => {
     delayTestTimeout,
     githubToken = '',
     autoCloseConnection = true,
-    pauseSSID = [],
+    pauseSSID,
     delayTestUrl,
     userAgent,
     mihomoCpuPriority = 'PRIORITY_NORMAL',
@@ -33,22 +35,42 @@ const MihomoConfig: React.FC = () => {
     groupDisplayLayout = 'single',
     proxyDisplayLayout = 'double'
   } = appConfig || {}
-  const [url, setUrl] = useState(delayTestUrl)
-  const [pauseSSIDInput, setPauseSSIDInput] = useState(pauseSSID)
+
+  const pauseSSIDArray = pauseSSID ?? emptyArray
+
+  const [url, setUrl] = useState(delayTestUrl ?? '')
+  const [pauseSSIDInput, setPauseSSIDInput] = useState(pauseSSIDArray)
   const setUrlDebounce = debounce((v: string) => {
     patchAppConfig({ delayTestUrl: v })
   }, 500)
-  const [ua, setUa] = useState(userAgent)
+  const [ua, setUa] = useState(userAgent ?? '')
   const setUaDebounce = debounce((v: string) => {
     patchAppConfig({ userAgent: v })
   }, 500)
 
   const [defaultUserAgent, setDefaultUserAgent] = useState<string>('')
-  if (!defaultUserAgent) {
-    getUserAgent().then((ua) => {
-      setDefaultUserAgent(ua)
-    })
-  }
+  const userAgentFetched = useRef(false)
+
+  useEffect(() => {
+    if (!userAgentFetched.current) {
+      userAgentFetched.current = true
+      getUserAgent().then((ua) => {
+        setDefaultUserAgent(ua)
+      })
+    }
+  }, [])
+
+  useEffect(() => {
+    setUrl(delayTestUrl ?? '')
+  }, [delayTestUrl])
+
+  useEffect(() => {
+    setUa(userAgent ?? '')
+  }, [userAgent])
+
+  useEffect(() => {
+    setPauseSSIDInput(pauseSSIDArray)
+  }, [pauseSSIDArray])
 
   return (
     <SettingCard title="订阅与代理组设置">
@@ -277,7 +299,7 @@ const MihomoConfig: React.FC = () => {
         />
       </SettingItem>
       <SettingItem title="在特定的 WiFi SSID 下直连">
-        {pauseSSIDInput.join('') !== pauseSSID.join('') && (
+        {pauseSSIDInput.join('') !== pauseSSIDArray.join('') && (
           <Button
             size="sm"
             color="primary"

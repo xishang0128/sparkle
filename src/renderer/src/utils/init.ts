@@ -1,4 +1,4 @@
-import { getPlatform, getVersion } from './ipc'
+import { getVersion } from './ipc'
 // const originError = console.error
 // const originWarn = console.warn
 // console.error = function (...args: any[]): void {
@@ -14,10 +14,9 @@ import { getPlatform, getVersion } from './ipc'
 //   originWarn.call(console, args)
 // }
 
-export let platform: NodeJS.Platform
-export let version: string
+export const platform: NodeJS.Platform = window.api.platform
+export let version: string = ''
 
 export async function init(): Promise<void> {
-  platform = await getPlatform()
   version = await getVersion()
 }

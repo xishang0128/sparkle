@@ -276,7 +276,9 @@ export function registerIpcMainHandlers(): void {
   })
   ipcMain.handle('setTitleBarOverlay', (_e, overlay) =>
     ipcErrorWrapper(async (overlay): Promise<void> => {
-      mainWindow?.setTitleBarOverlay(overlay)
+      if (typeof mainWindow?.setTitleBarOverlay === 'function') {
+        mainWindow.setTitleBarOverlay(overlay)
+      }
     })(overlay)
   )
   ipcMain.handle('setAlwaysOnTop', (_e, alwaysOnTop) => {

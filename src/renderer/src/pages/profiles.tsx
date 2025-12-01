@@ -33,6 +33,8 @@ import SubStoreIcon from '@renderer/components/base/substore-icon'
 import useSWR from 'swr'
 import { useNavigate } from 'react-router-dom'
 
+const emptyItems: ProfileItem[] = []
+
 const Profiles: React.FC = () => {
   const {
     profileConfig,
@@ -45,9 +47,10 @@ const Profiles: React.FC = () => {
   } = useProfileConfig()
   const { appConfig } = useAppConfig()
   const { useSubStore = true, useCustomSubStore = false, customSubStoreUrl = '' } = appConfig || {}
-  const { current, items = [] } = profileConfig || {}
+  const { current, items } = profileConfig || {}
+  const itemsArray = items ?? emptyItems
   const navigate = useNavigate()
-  const [sortedItems, setSortedItems] = useState(items)
+  const [sortedItems, setSortedItems] = useState(itemsArray)
   const [useProxy, setUseProxy] = useState(false)
   const [subStoreImporting, setSubStoreImporting] = useState(false)
   const [importing, setImporting] = useState(false)
@@ -147,7 +150,7 @@ const Profiles: React.FC = () => {
         const activeIndex = newOrder.findIndex((item) => item.id === active.id)
         const overIndex = newOrder.findIndex((item) => item.id === over.id)
         newOrder.splice(activeIndex, 1)
-        newOrder.splice(overIndex, 0, items[activeIndex])
+        newOrder.splice(overIndex, 0, itemsArray[activeIndex])
         setSortedItems(newOrder)
         await setProfileConfig({ current, items: newOrder })
       }
@@ -207,8 +210,8 @@ const Profiles: React.FC = () => {
   }, [])
 
   useEffect(() => {
-    setSortedItems(items)
-  }, [items])
+    setSortedItems(itemsArray)
+  }, [itemsArray])
 
   return (
     <BasePage
@@ -223,12 +226,12 @@ const Profiles: React.FC = () => {
           isIconOnly
           onPress={async () => {
             setUpdating(true)
-            for (const item of items) {
+            for (const item of itemsArray) {
               if (item.id === current) continue
               if (item.type !== 'remote') continue
               await addProfileItem(item)
             }
-            const currentItem = items.find((item) => item.id === current)
+            const currentItem = itemsArray.find((item) => item.id === current)
             if (currentItem && currentItem.type === 'remote') {
               await addProfileItem(currentItem)
             }

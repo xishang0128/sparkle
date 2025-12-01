@@ -40,29 +40,30 @@ init().then(() => {
       }
     }
   })
-  ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
-    <React.StrictMode>
-      <HeroUIProvider>
-        <NextThemesProvider attribute="class" enableSystem defaultTheme="dark">
-          <BaseErrorBoundary>
-            <HashRouter>
-              <AppConfigProvider>
-                <ControledMihomoConfigProvider>
-                  <ProfileConfigProvider>
-                    <OverrideConfigProvider>
-                      <GroupsProvider>
-                        <RulesProvider>
-                          <App />
-                        </RulesProvider>
-                      </GroupsProvider>
-                    </OverrideConfigProvider>
-                  </ProfileConfigProvider>
-                </ControledMihomoConfigProvider>
-              </AppConfigProvider>
-            </HashRouter>
-          </BaseErrorBoundary>
-        </NextThemesProvider>
-      </HeroUIProvider>
-    </React.StrictMode>
-  )
 })
+
+ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
+  <React.StrictMode>
+    <HeroUIProvider>
+      <NextThemesProvider attribute="class" enableSystem defaultTheme="dark">
+        <BaseErrorBoundary>
+          <HashRouter>
+            <AppConfigProvider>
+              <ControledMihomoConfigProvider>
+                <ProfileConfigProvider>
+                  <OverrideConfigProvider>
+                    <GroupsProvider>
+                      <RulesProvider>
+                        <App />
+                      </RulesProvider>
+                    </GroupsProvider>
+                  </OverrideConfigProvider>
+                </ProfileConfigProvider>
+              </ControledMihomoConfigProvider>
+            </AppConfigProvider>
+          </HashRouter>
+        </BaseErrorBoundary>
+      </NextThemesProvider>
+    </HeroUIProvider>
+  </React.StrictMode>
+)
