@@ -23,7 +23,7 @@ export async function initProfileUpdater(): Promise<void> {
   const { items, current } = await getProfileConfig()
   const currentItem = await getCurrentProfileItem()
   for (const item of items.filter((i) => i.id !== current)) {
-    if (item.type === 'remote' && item.interval && item.autoUpdate) {
+    if (item.type === 'remote' && item.interval && item.autoUpdate !== false) {
       const delay = calculateUpdateDelay(item)
 
       if (delay === -1) {
@@ -51,7 +51,7 @@ export async function initProfileUpdater(): Promise<void> {
     }
   }
 
-  if (currentItem?.type === 'remote' && currentItem.interval && currentItem.autoUpdate) {
+  if (currentItem?.type === 'remote' && currentItem.interval && currentItem.autoUpdate !== false) {
     const delay = calculateUpdateDelay(currentItem)
 
     if (delay === 0) {
@@ -76,7 +76,7 @@ export async function initProfileUpdater(): Promise<void> {
 }
 
 export async function addProfileUpdater(item: ProfileItem): Promise<void> {
-  if (item.type === 'remote' && item.interval && item.autoUpdate) {
+  if (item.type === 'remote' && item.interval && item.autoUpdate !== false) {
     if (intervalPool[item.id]) {
       clearTimeout(intervalPool[item.id])
     }
