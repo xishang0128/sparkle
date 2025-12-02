@@ -118,7 +118,7 @@ export async function startCore(detached = false): Promise<Promise<void>[]> {
     ...Object.keys(ruleProviders || {}),
     ...Object.keys(proxyProviders || {})
   ])
-  const matchedProviders = new Set<string>()
+  const unmatchedProviders = new Set(providerNames)
   const stdout = createWriteStream(logPath(), { flags: 'a' })
   const stderr = createWriteStream(logPath(), { flags: 'a' })
   const env = {
@@ -195,7 +195,10 @@ export async function startCore(detached = false): Promise<Promise<void>[]> {
           new Promise((resolve, reject) => {
             const handleProviderInitialization = async (logLine: string): Promise<void> => {
               for (const match of logLine.matchAll(/Start initial provider ([^"]+)"/g)) {
-                matchedProviders.add(match[1])
+                const providerName = match[1]
+                if (providerNames.has(providerName)) {
+                  unmatchedProviders.delete(providerName)
+                }
               }
 
               if (
@@ -212,12 +215,9 @@ export async function startCore(detached = false): Promise<Promise<void>[]> {
               const isDefaultProvider = logLine.includes(
                 'Start initial compatible provider default'
               )
-              const isAllProvidersMatched =
-                providerNames.size > 0 && matchedProviders.size === providerNames.size
+              const isAllProvidersMatched = providerNames.size > 0 && unmatchedProviders.size === 0
 
               if ((providerNames.size === 0 && isDefaultProvider) || isAllProvidersMatched) {
-                matchedProviders.clear()
-
                 const waitForMihomoReady = async (): Promise<void> => {
                   const maxRetries = 30
                   const retryInterval = 100
