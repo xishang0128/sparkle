@@ -7,6 +7,7 @@ import ConnectionItem from '@renderer/components/connections/connection-item'
 import { Virtuoso } from 'react-virtuoso'
 import dayjs from 'dayjs'
 import ConnectionDetailModal from '@renderer/components/connections/connection-detail-modal'
+import ConnectionSettingModal from '@renderer/components/connections/connection-setting-modal'
 import { CgClose, CgTrash } from 'react-icons/cg'
 import { useAppConfig } from '@renderer/hooks/use-app-config'
 import { includesIgnoreCase } from '@renderer/utils/includes'
@@ -15,6 +16,7 @@ import { HiSortAscending, HiSortDescending } from 'react-icons/hi'
 import { cropAndPadTransparent } from '@renderer/utils/image'
 import { platform } from '@renderer/utils/init'
 import { useControledMihomoConfig } from '@renderer/hooks/use-controled-mihomo-config'
+import { MdTune } from 'react-icons/md'
 
 let cachedConnections: ControllerConnectionDetail[] = []
 
@@ -35,6 +37,7 @@ const Connections: React.FC = () => {
   const [activeConnections, setActiveConnections] = useState<ControllerConnectionDetail[]>([])
   const [closedConnections, setClosedConnections] = useState<ControllerConnectionDetail[]>([])
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false)
+  const [isSettingModalOpen, setIsSettingModalOpen] = useState(false)
   const [selected, setSelected] = useState<ControllerConnectionDetail>()
 
   const [iconMap, setIconMap] = useState<Record<string, string>>({})
@@ -445,46 +448,65 @@ const Connections: React.FC = () => {
     <BasePage
       title="连接"
       header={
-        <div className="flex">
-          <div className="flex items-center">
-            <span className="mx-1 text-gray-400">
-              ↑ {calcTraffic(connectionsInfo?.uploadTotal ?? 0)}{' '}
-            </span>
-            <span className="mx-1 text-gray-400">
-              ↓ {calcTraffic(connectionsInfo?.downloadTotal ?? 0)}{' '}
-            </span>
-          </div>
-          <Badge
-            className="mt-2"
-            color="primary"
-            variant="flat"
-            showOutline={false}
-            content={filteredConnections.length}
-          >
-            <Button
-              className="app-nodrag ml-1"
-              title={tab === 'active' ? '关闭全部连接' : '清空已关闭连接'}
-              isIconOnly
-              size="sm"
-              variant="light"
-              onPress={() => {
-                if (filter === '') {
-                  closeAllConnections()
-                } else {
-                  filteredConnections.forEach((conn) => {
-                    closeConnection(conn.id)
-                  })
-                }
-              }}
+        <>
+          <div className="flex">
+            <div className="flex items-center">
+              <span className="mx-1 text-gray-400">
+                ↑ {calcTraffic(connectionsInfo?.uploadTotal ?? 0)}{' '}
+              </span>
+              <span className="mx-1 text-gray-400">
+                ↓ {calcTraffic(connectionsInfo?.downloadTotal ?? 0)}{' '}
+              </span>
+            </div>
+            <Badge
+              className="mt-2"
+              color="primary"
+              variant="flat"
+              showOutline={false}
+              content={filteredConnections.length}
             >
-              {tab === 'active' ? <CgClose className="text-lg" /> : <CgTrash className="text-lg" />}
-            </Button>
-          </Badge>
-        </div>
+              <Button
+                className="app-nodrag ml-1"
+                title={tab === 'active' ? '关闭全部连接' : '清空已关闭连接'}
+                isIconOnly
+                size="sm"
+                variant="light"
+                onPress={() => {
+                  if (filter === '') {
+                    closeAllConnections()
+                  } else {
+                    filteredConnections.forEach((conn) => {
+                      closeConnection(conn.id)
+                    })
+                  }
+                }}
+              >
+                {tab === 'active' ? (
+                  <CgClose className="text-lg" />
+                ) : (
+                  <CgTrash className="text-lg" />
+                )}
+              </Button>
+            </Badge>
+          </div>
+          <Button
+            size="sm"
+            isIconOnly
+            className="app-nodrag"
+            variant="light"
+            title="连接设置"
+            onPress={() => setIsSettingModalOpen(true)}
+          >
+            <MdTune className="text-lg" />
+          </Button>
+        </>
       }
     >
       {isDetailModalOpen && selected && (
         <ConnectionDetailModal onClose={() => setIsDetailModalOpen(false)} connection={selected} />
+      )}
+      {isSettingModalOpen && (
+        <ConnectionSettingModal onClose={() => setIsSettingModalOpen(false)} />
       )}
       <div className="overflow-x-auto sticky top-0 z-40">
         <div className="flex p-2 gap-2">

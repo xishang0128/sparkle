@@ -361,8 +361,16 @@ export const stopMihomoConnections = (): void => {
   }
 }
 
+export const restartMihomoConnections = async (): Promise<void> => {
+  stopMihomoConnections()
+  await startMihomoConnections()
+}
+
 const mihomoConnections = async (): Promise<void> => {
-  mihomoConnectionsWs = new WebSocket(`ws+unix:${mihomoIpcPath()}:/connections`)
+  const { connectionInterval = 500 } = await getAppConfig()
+  mihomoConnectionsWs = new WebSocket(
+    `ws+unix:${mihomoIpcPath()}:/connections?interval=${connectionInterval}`
+  )
 
   mihomoConnectionsWs.onmessage = (e): void => {
     const data = e.data as string

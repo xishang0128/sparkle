@@ -7,15 +7,13 @@ import {
   mihomoCloseAllConnections,
   mihomoProxyDelay
 } from '@renderer/utils/ipc'
-import { CgDetailsLess, CgDetailsMore } from 'react-icons/cg'
-import { TbCircleLetterD } from 'react-icons/tb'
 import { FaLocationCrosshairs } from 'react-icons/fa6'
-import { RxLetterCaseCapitalize } from 'react-icons/rx'
 import { useEffect, useMemo, useRef, useState, useCallback } from 'react'
 import { GroupedVirtuoso, GroupedVirtuosoHandle } from 'react-virtuoso'
 import ProxyItem from '@renderer/components/proxies/proxy-item'
+import ProxySettingModal from '@renderer/components/proxies/proxy-setting-modal'
 import { IoIosArrowBack } from 'react-icons/io'
-import { MdDoubleArrow, MdOutlineSpeed } from 'react-icons/md'
+import { MdDoubleArrow, MdOutlineSpeed, MdTune } from 'react-icons/md'
 import { useGroups } from '@renderer/hooks/use-groups'
 import CollapseInput from '@renderer/components/base/collapse-input'
 import { includesIgnoreCase } from '@renderer/utils/includes'
@@ -25,9 +23,8 @@ const Proxies: React.FC = () => {
   const { controledMihomoConfig } = useControledMihomoConfig()
   const { mode = 'rule' } = controledMihomoConfig || {}
   const { groups = [], mutate } = useGroups()
-  const { appConfig, patchAppConfig } = useAppConfig()
+  const { appConfig } = useAppConfig()
   const {
-    proxyDisplayMode = 'simple',
     proxyDisplayLayout = 'double',
     groupDisplayLayout = 'double',
     proxyDisplayOrder = 'default',
@@ -39,6 +36,7 @@ const Proxies: React.FC = () => {
   const [isOpen, setIsOpen] = useState(Array(groups.length).fill(false))
   const [delaying, setDelaying] = useState(Array(groups.length).fill(false))
   const [searchValue, setSearchValue] = useState(Array(groups.length).fill(''))
+  const [isSettingModalOpen, setIsSettingModalOpen] = useState(false)
   const virtuosoRef = useRef<GroupedVirtuosoHandle>(null)
   const { groupCounts, allProxies } = useMemo(() => {
     const groupCounts: number[] = []
@@ -187,23 +185,6 @@ const Proxies: React.FC = () => {
     [isOpen, groupCounts, allProxies, groups, cols]
   )
 
-  const handleProxyDisplayOrderChange = useCallback(() => {
-    patchAppConfig({
-      proxyDisplayOrder:
-        proxyDisplayOrder === 'default'
-          ? 'delay'
-          : proxyDisplayOrder === 'delay'
-            ? 'name'
-            : 'default'
-    })
-  }, [proxyDisplayOrder, patchAppConfig])
-
-  const handleProxyDisplayModeChange = useCallback(() => {
-    patchAppConfig({
-      proxyDisplayMode: proxyDisplayMode === 'simple' ? 'full' : 'simple'
-    })
-  }, [proxyDisplayMode, patchAppConfig])
-
   useEffect(() => {
     if (proxyCols !== 'auto') {
       setCols(parseInt(proxyCols))
@@ -253,13 +234,13 @@ const Proxies: React.FC = () => {
                     />
                   ) : null}
                   <div
-                    className={`flex flex-col h-full ${proxyDisplayMode === 'full' && groupDisplayLayout === 'double' ? '' : 'justify-center'}`}
+                    className={`flex flex-col h-full ${groupDisplayLayout === 'double' ? '' : 'justify-center'}`}
                   >
                     <div
-                      className={`text-ellipsis overflow-hidden whitespace-nowrap leading-tight ${proxyDisplayMode === 'full' && groupDisplayLayout === 'double' ? 'text-md flex-5 flex items-center' : 'text-lg'}`}
+                      className={`text-ellipsis overflow-hidden whitespace-nowrap leading-tight ${groupDisplayLayout === 'double' ? 'text-md flex-5 flex items-center' : 'text-lg'}`}
                     >
                       <span className="flag-emoji inline-block">{groups[index].name}</span>
-                      {proxyDisplayMode === 'full' && groupDisplayLayout === 'single' && (
+                      {groupDisplayLayout === 'single' && (
                         <>
                           <div
                             title={groups[index].type}
@@ -273,7 +254,7 @@ const Proxies: React.FC = () => {
                         </>
                       )}
                     </div>
-                    {proxyDisplayMode === 'full' && groupDisplayLayout === 'double' && (
+                    {groupDisplayLayout === 'double' && (
                       <div className="text-ellipsis whitespace-nowrap text-[10px] text-foreground-500 leading-tight flex-3 flex items-center">
                         <span>{groups[index].type}</span>
                         <span className="flag-emoji ml-1 inline-block">{groups[index].now}</span>
@@ -283,11 +264,9 @@ const Proxies: React.FC = () => {
                 </div>
                 <div className="flex items-center">
                   <div className="flex items-center" onClick={(e) => e.stopPropagation()}>
-                    {proxyDisplayMode === 'full' && (
-                      <Chip size="sm" className="my-1 mr-2">
-                        {groups[index].all.length}
-                      </Chip>
-                    )}
+                    <Chip size="sm" className="my-1 mr-2">
+                      {groups[index].all.length}
+                    </Chip>
                     <CollapseInput
                       title="搜索节点"
                       value={searchValue[index]}
@@ -329,7 +308,7 @@ const Proxies: React.FC = () => {
       groups,
       groupCounts,
       isOpen,
-      proxyDisplayMode,
+      groupDisplayLayout,
       searchValue,
       delaying,
       toggleOpen,
@@ -365,7 +344,6 @@ const Proxies: React.FC = () => {
                 onSelect={onChangeProxy}
                 proxy={allProxies[groupIndex][innerIndex * cols + i]}
                 group={groups[groupIndex]}
-                proxyDisplayMode={proxyDisplayMode}
                 proxyDisplayLayout={proxyDisplayLayout}
                 selected={
                   allProxies[groupIndex][innerIndex * cols + i]?.name === groups[groupIndex].now
@@ -387,7 +365,7 @@ const Proxies: React.FC = () => {
       onProxyDelay,
       onChangeProxy,
       groups,
-      proxyDisplayMode
+      proxyDisplayLayout
     ]
   )
 
@@ -395,38 +373,19 @@ const Proxies: React.FC = () => {
     <BasePage
       title="代理组"
       header={
-        <>
-          <Button
-            size="sm"
-            isIconOnly
-            variant="light"
-            className="app-nodrag"
-            onPress={handleProxyDisplayOrderChange}
-          >
-            {proxyDisplayOrder === 'default' ? (
-              <TbCircleLetterD className="text-lg" title="默认" />
-            ) : proxyDisplayOrder === 'delay' ? (
-              <MdOutlineSpeed className="text-lg" title="延迟" />
-            ) : (
-              <RxLetterCaseCapitalize className="text-lg" title="名称" />
-            )}
-          </Button>
-          <Button
-            size="sm"
-            isIconOnly
-            variant="light"
-            className="app-nodrag"
-            onPress={handleProxyDisplayModeChange}
-          >
-            {proxyDisplayMode === 'full' ? (
-              <CgDetailsMore className="text-lg" title="详细信息" />
-            ) : (
-              <CgDetailsLess className="text-lg" title="简洁信息" />
-            )}
-          </Button>
-        </>
+        <Button
+          size="sm"
+          isIconOnly
+          variant="light"
+          className="app-nodrag"
+          title="代理组设置"
+          onPress={() => setIsSettingModalOpen(true)}
+        >
+          <MdTune className="text-lg" />
+        </Button>
       }
     >
+      {isSettingModalOpen && <ProxySettingModal onClose={() => setIsSettingModalOpen(false)} />}
       {mode === 'direct' ? (
         <div className="h-full w-full flex justify-center items-center">
           <div className="flex flex-col items-center">

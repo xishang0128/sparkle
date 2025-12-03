@@ -28,7 +28,6 @@ interface AppConfig {
   disableSystemCA: boolean
   disableNftables: boolean
   safePaths: string[]
-  proxyDisplayMode: 'simple' | 'full'
   proxyDisplayOrder: 'default' | 'delay' | 'name'
   proxyDisplayLayout: 'hidden' | 'single' | 'double'
   groupDisplayLayout: 'hidden' | 'single' | 'double'
@@ -37,6 +36,7 @@ interface AppConfig {
   proxyCols: 'auto' | '1' | '2' | '3' | '4'
   connectionDirection: 'asc' | 'desc'
   connectionOrderBy: 'time' | 'upload' | 'download' | 'uploadSpeed' | 'downloadSpeed' | 'process'
+  connectionInterval?: number
   spinFloatingIcon?: boolean
   disableTray?: boolean
   showFloatingWindow?: boolean

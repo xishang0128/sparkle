@@ -39,9 +39,7 @@ const AppearanceConfig: React.FC = () => {
     spinFloatingIcon = true,
     useWindowFrame = false,
     customTheme = 'default.css',
-    appTheme = 'system',
-    displayIcon = true,
-    displayAppName = true
+    appTheme = 'system'
   } = appConfig || {}
   const [localShowFloating, setLocalShowFloating] = useState(showFloating)
   const timeoutRef = useRef<NodeJS.Timeout | null>(null)
@@ -74,29 +72,6 @@ const AppearanceConfig: React.FC = () => {
         />
       )}
       <SettingCard title="外观设置">
-        <SettingItem title="连接显示应用图标" divider>
-          <Switch
-            size="sm"
-            isSelected={displayIcon}
-            onValueChange={(v) => {
-              patchAppConfig({ displayIcon: v })
-              if (!v) {
-                patchAppConfig({ displayAppName: false })
-              }
-            }}
-          />
-        </SettingItem>
-        {displayIcon && (
-          <SettingItem title="连接显示应用名称" divider>
-            <Switch
-              size="sm"
-              isSelected={displayAppName}
-              onValueChange={(v) => {
-                patchAppConfig({ displayAppName: v })
-              }}
-            />
-          </SettingItem>
-        )}
         <SettingItem
           title="显示悬浮窗"
           actions={

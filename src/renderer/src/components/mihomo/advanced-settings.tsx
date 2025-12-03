@@ -3,7 +3,7 @@ import SettingCard from '../base/base-setting-card'
 import SettingItem from '../base/base-setting-item'
 import InterfaceSelect from '../base/interface-select'
 import { restartCore } from '@renderer/utils/ipc'
-import { Button, Input, Select, SelectItem, Switch, Tooltip } from '@heroui/react'
+import { Button, Input, Select, SelectItem, Switch, Tab, Tabs, Tooltip } from '@heroui/react'
 import { useState } from 'react'
 import { IoIosHelpCircle } from 'react-icons/io'
 
@@ -34,6 +34,20 @@ const AdvancedSetting: React.FC = () => {
 
   return (
     <SettingCard title="高级设置">
+      <SettingItem title="查找进程" divider>
+        <Tabs
+          size="sm"
+          color="primary"
+          selectedKey={findProcessMode}
+          onSelectionChange={(key) => {
+            onChangeNeedRestart({ 'find-process-mode': key as FindProcessMode })
+          }}
+        >
+          <Tab key="strict" title="自动"></Tab>
+          <Tab key="off" title="关闭"></Tab>
+          <Tab key="always" title="开启"></Tab>
+        </Tabs>
+      </SettingItem>
       <SettingItem title="存储选择节点" divider>
         <Switch
           size="sm"
@@ -171,22 +185,6 @@ const AdvancedSetting: React.FC = () => {
           <SelectItem key="edge">Edge</SelectItem>
           <SelectItem key="360">360</SelectItem>
           <SelectItem key="qq">QQ</SelectItem>
-        </Select>
-      </SettingItem>
-      <SettingItem title="查找进程" divider>
-        <Select
-          classNames={{ trigger: 'data-[hover=true]:bg-default-200' }}
-          className="w-[150px]"
-          size="sm"
-          selectedKeys={new Set([findProcessMode])}
-          disallowEmptySelection={true}
-          onSelectionChange={(v) => {
-            onChangeNeedRestart({ 'find-process-mode': v.currentKey as FindProcessMode })
-          }}
-        >
-          <SelectItem key="strict">自动</SelectItem>
-          <SelectItem key="off">关闭</SelectItem>
-          <SelectItem key="always">开启</SelectItem>
         </Select>
       </SettingItem>
       <SettingItem title="指定出站接口">

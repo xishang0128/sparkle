@@ -4,7 +4,7 @@ import BasePage from '@renderer/components/base/base-page'
 import { IoLogoGithub } from 'react-icons/io5'
 import WebdavConfig from '@renderer/components/settings/webdav-config'
 import GeneralConfig from '@renderer/components/settings/general-config'
-import MihomoConfig from '@renderer/components/settings/mihomo-config'
+import AdvancedSettings from '@renderer/components/settings/advanced-settings'
 import Actions from '@renderer/components/settings/actions'
 import ShortcutConfig from '@renderer/components/settings/shortcut-config'
 import { FaTelegramPlane } from 'react-icons/fa'
@@ -62,7 +62,7 @@ const Settings: React.FC = () => {
       <SubStoreConfig />
       <SiderConfig />
       <WebdavConfig />
-      <MihomoConfig />
+      <AdvancedSettings />
       <ShortcutConfig />
       <Actions />
     </BasePage>

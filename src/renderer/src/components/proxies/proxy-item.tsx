@@ -6,7 +6,6 @@ import { FaMapPin } from 'react-icons/fa6'
 interface Props {
   mutateProxies: () => void
   onProxyDelay: (proxy: string, url?: string) => Promise<ControllerProxiesDelay>
-  proxyDisplayMode: 'hidden' | 'simple' | 'full'
   proxyDisplayLayout: 'hidden' | 'single' | 'double'
   proxy: ControllerProxiesDetail | ControllerGroupDetail
   group: ControllerMixedGroup
@@ -15,16 +14,8 @@ interface Props {
 }
 
 const ProxyItem: React.FC<Props> = (props) => {
-  const {
-    mutateProxies,
-    proxyDisplayMode,
-    proxyDisplayLayout,
-    group,
-    proxy,
-    selected,
-    onSelect,
-    onProxyDelay
-  } = props
+  const { mutateProxies, proxyDisplayLayout, group, proxy, selected, onSelect, onProxyDelay } =
+    props
 
   const delay = useMemo(() => {
     if (proxy.history.length > 0) {
@@ -69,9 +60,9 @@ const ProxyItem: React.FC<Props> = (props) => {
     >
       <CardBody className="py-1.5 px-2">
         <div
-          className={`flex ${proxyDisplayMode === 'full' && proxyDisplayLayout === 'double' ? 'gap-1' : 'justify-between items-center'}`}
+          className={`flex ${proxyDisplayLayout === 'double' ? 'gap-1' : 'justify-between items-center'}`}
         >
-          {proxyDisplayMode === 'full' && proxyDisplayLayout === 'double' ? (
+          {proxyDisplayLayout === 'double' ? (
             <>
               <div className="flex flex-col gap-0 flex-1 min-w-0">
                 <div className="text-ellipsis overflow-hidden whitespace-nowrap">
@@ -118,7 +109,7 @@ const ProxyItem: React.FC<Props> = (props) => {
                 <div className="flag-emoji inline" title={proxy.name}>
                   {proxy.name}
                 </div>
-                {proxyDisplayMode === 'full' && proxyDisplayLayout === 'single' && (
+                {proxyDisplayLayout === 'single' && (
                   <div className="inline ml-2 text-foreground-500" title={proxy.type}>
                     {proxy.type}
                   </div>

@@ -29,7 +29,9 @@ import {
 import { SortableContext } from '@dnd-kit/sortable'
 import { FaPlus } from 'react-icons/fa6'
 import { IoMdRefresh } from 'react-icons/io'
+import { MdTune } from 'react-icons/md'
 import SubStoreIcon from '@renderer/components/base/substore-icon'
+import ProfileSettingModal from '@renderer/components/profiles/profile-setting-modal'
 import useSWR from 'swr'
 import { useNavigate } from 'react-router-dom'
 
@@ -58,6 +60,7 @@ const Profiles: React.FC = () => {
   const [switching, setSwitching] = useState(false)
   const [fileOver, setFileOver] = useState(false)
   const [showEditModal, setShowEditModal] = useState(false)
+  const [isSettingModalOpen, setIsSettingModalOpen] = useState(false)
   const [editingItem, setEditingItem] = useState<ProfileItem | null>(null)
   const [url, setUrl] = useState('')
   const isUrlEmpty = url.trim() === ''
@@ -218,30 +221,43 @@ const Profiles: React.FC = () => {
       ref={pageRef}
       title="订阅管理"
       header={
-        <Button
-          size="sm"
-          title="更新全部订阅"
-          className="app-nodrag"
-          variant="light"
-          isIconOnly
-          onPress={async () => {
-            setUpdating(true)
-            for (const item of itemsArray) {
-              if (item.id === current) continue
-              if (item.type !== 'remote') continue
-              await addProfileItem(item)
-            }
-            const currentItem = itemsArray.find((item) => item.id === current)
-            if (currentItem && currentItem.type === 'remote') {
-              await addProfileItem(currentItem)
-            }
-            setUpdating(false)
-          }}
-        >
-          <IoMdRefresh className={`text-lg ${updating ? 'animate-spin' : ''}`} />
-        </Button>
+        <>
+          <Button
+            size="sm"
+            title="更新全部订阅"
+            className="app-nodrag"
+            variant="light"
+            isIconOnly
+            onPress={async () => {
+              setUpdating(true)
+              for (const item of itemsArray) {
+                if (item.id === current) continue
+                if (item.type !== 'remote') continue
+                await addProfileItem(item)
+              }
+              const currentItem = itemsArray.find((item) => item.id === current)
+              if (currentItem && currentItem.type === 'remote') {
+                await addProfileItem(currentItem)
+              }
+              setUpdating(false)
+            }}
+          >
+            <IoMdRefresh className={`text-lg ${updating ? 'animate-spin' : ''}`} />
+          </Button>
+          <Button
+            size="sm"
+            title="订阅设置"
+            className="app-nodrag"
+            variant="light"
+            isIconOnly
+            onPress={() => setIsSettingModalOpen(true)}
+          >
+            <MdTune className="text-lg" />
+          </Button>
+        </>
       }
     >
+      {isSettingModalOpen && <ProfileSettingModal onClose={() => setIsSettingModalOpen(false)} />}
       {showEditModal && editingItem && (
         <EditInfoModal
           item={editingItem}
