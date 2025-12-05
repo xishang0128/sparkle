@@ -91,6 +91,7 @@ export const defaultControledMihomoConfig: Partial<MihomoConfig> = {
   dns: {
     enable: true,
     ipv6: true,
+    'respect-rules': false,
     'enhanced-mode': 'fake-ip',
     'fake-ip-range': '198.18.0.1/16',
     'fake-ip-filter': ['*', '+.lan', '+.local', 'time.*.com', 'ntp.*.com', '+.market.xiaomi.com'],
