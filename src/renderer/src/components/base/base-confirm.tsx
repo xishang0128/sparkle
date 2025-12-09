@@ -18,6 +18,7 @@ interface Props {
   cancelText?: string
   onConfirm?: () => void | Promise<void>
   buttons?: ConfirmButton[]
+  className?: string
 }
 
 const ConfirmModal: React.FC<Props> = (props) => {
@@ -28,7 +29,8 @@ const ConfirmModal: React.FC<Props> = (props) => {
     confirmText = '确认',
     cancelText = '取消',
     onConfirm,
-    buttons
+    buttons,
+    className
   } = props
   const { appConfig: { disableAnimation = false } = {} } = useAppConfig()
 
@@ -85,7 +87,7 @@ const ConfirmModal: React.FC<Props> = (props) => {
         backdrop: 'top-[48px]'
       }}
     >
-      <ModalContent className="w-[400px]">
+      <ModalContent className={['w-[400px]', className].filter(Boolean).join(' ')}>
         <ModalHeader>{title}</ModalHeader>
         <ModalBody>
           <div className="leading-relaxed">{description}</div>

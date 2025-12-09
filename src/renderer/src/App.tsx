@@ -308,6 +308,7 @@ const App: React.FC = () => {
             }
           }}
           onConfirm={() => handleProfileInstallConfirm(true)}
+          className="w-[500px]"
         />
       )}
       {showOverrideInstallConfirm && overrideInstallData && (
