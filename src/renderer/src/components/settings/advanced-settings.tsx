@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import SettingCard from '../base/base-setting-card'
 import SettingItem from '../base/base-setting-item'
-import { Button, Input, Select, SelectItem, Switch, Tooltip } from '@heroui/react'
+import { Button, Input, Select, SelectItem, Switch, Tab, Tabs, Tooltip } from '@heroui/react'
 import { useAppConfig } from '@renderer/hooks/use-app-config'
 import {
   copyEnv,
@@ -26,6 +26,7 @@ const AdvancedSettings: React.FC = () => {
     mihomoCpuPriority = 'PRIORITY_NORMAL',
     autoQuitWithoutCore = false,
     autoQuitWithoutCoreDelay = 60,
+    autoQuitWithoutCoreMode = 'core',
     envType = [platform === 'win32' ? 'powershell' : 'bash'],
     networkDetection = false,
     networkDetectionBypass = ['VMware', 'vEthernet'],
@@ -56,13 +57,27 @@ const AdvancedSettings: React.FC = () => {
         }
         divider
       >
-        <Switch
-          size="sm"
-          isSelected={autoQuitWithoutCore}
-          onValueChange={(v) => {
-            patchAppConfig({ autoQuitWithoutCore: v })
-          }}
-        />
+        <div className="flex items-center gap-2">
+          {autoQuitWithoutCore && (
+            <Tabs
+              size="sm"
+              selectedKey={autoQuitWithoutCoreMode}
+              onSelectionChange={(v) => {
+                patchAppConfig({ autoQuitWithoutCoreMode: v as 'core' | 'core&main_process' })
+              }}
+            >
+              <Tab key="core" title="仅保留内核" />
+              <Tab key="core&main_process" title="仅关闭渲染进程" />
+            </Tabs>
+          )}
+          <Switch
+            size="sm"
+            isSelected={autoQuitWithoutCore}
+            onValueChange={(v) => {
+              patchAppConfig({ autoQuitWithoutCore: v })
+            }}
+          />
+        </div>
       </SettingItem>
       {autoQuitWithoutCore && (
         <SettingItem title="自动开启轻量模式延时" divider>

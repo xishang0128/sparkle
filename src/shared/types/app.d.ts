@@ -62,6 +62,7 @@ interface AppConfig {
   subStoreBackendUploadCron?: string
   autoQuitWithoutCore?: boolean
   autoQuitWithoutCoreDelay?: number
+  autoQuitWithoutCoreMode?: 'core' | 'core&main_process'
   useCustomSubStore?: boolean
   useProxyInSubStore?: boolean
   mihomoCpuPriority?: Priority

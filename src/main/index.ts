@@ -34,6 +34,7 @@ import { getUserAgent } from './utils/userAgent'
 
 let quitTimeout: NodeJS.Timeout | null = null
 export let mainWindow: BrowserWindow | null = null
+let isCreatingWindow = false
 
 const syncConfig = getAppConfigSync()
 
@@ -173,6 +174,10 @@ function showQuitConfirmDialog(): Promise<boolean> {
     }, delay)
   })
 }
+
+app.on('window-all-closed', () => {
+  // Don't quit app when all windows are closed
+})
 
 app.on('before-quit', async (e) => {
   if (!isQuitting && !notQuitDialog) {
@@ -347,7 +352,7 @@ async function handleDeepLink(url: string): Promise<void> {
 
 async function showProfileInstallConfirm(url: string, name?: string | null): Promise<boolean> {
   if (!mainWindow) {
-    return false
+    await createWindow()
   }
   let extractedName = name
 
@@ -395,13 +400,11 @@ function parseFilename(str: string): string {
   }
 }
 
-function showOverrideInstallConfirm(url: string, name?: string | null): Promise<boolean> {
+async function showOverrideInstallConfirm(url: string, name?: string | null): Promise<boolean> {
+  if (!mainWindow) {
+    await createWindow()
+  }
   return new Promise((resolve) => {
-    if (!mainWindow) {
-      resolve(false)
-      return
-    }
-
     let finalName = name
     if (!finalName) {
       const urlObj = new URL(url)
@@ -425,118 +428,150 @@ function showOverrideInstallConfirm(url: string, name?: string | null): Promise<
 }
 
 export async function createWindow(appConfig?: AppConfig): Promise<void> {
-  const config = appConfig ?? (await getAppConfig())
-  const { useWindowFrame = false } = config
+  if (isCreatingWindow) return
+  isCreatingWindow = true
+  try {
+    const config = appConfig ?? (await getAppConfig())
+    const { useWindowFrame = false } = config
 
-  const [mainWindowState] = await Promise.all([
-    Promise.resolve(
-      windowStateKeeper({
-        defaultWidth: 800,
-        defaultHeight: 700,
-        file: 'window-state.json'
-      })
-    ),
-    process.platform === 'darwin'
-      ? createApplicationMenu()
-      : Promise.resolve(Menu.setApplicationMenu(null))
-  ])
-  mainWindow = new BrowserWindow({
-    minWidth: 800,
-    minHeight: 600,
-    width: mainWindowState.width,
-    height: mainWindowState.height,
-    x: mainWindowState.x,
-    y: mainWindowState.y,
-    show: false,
-    frame: useWindowFrame,
-    fullscreenable: false,
-    titleBarStyle: useWindowFrame ? 'default' : 'hidden',
-    titleBarOverlay: useWindowFrame
-      ? false
-      : {
-          height: 49
-        },
-    autoHideMenuBar: true,
-    ...(process.platform === 'linux' ? { icon: icon } : {}),
-    webPreferences: {
-      preload: join(__dirname, '../preload/index.js'),
-      spellcheck: false,
-      sandbox: false
-    }
-  })
-  mainWindowState.manage(mainWindow)
-  mainWindow.on('ready-to-show', async () => {
-    const {
-      silentStart = false,
-      autoQuitWithoutCore = false,
-      autoQuitWithoutCoreDelay = 60
-    } = await getAppConfig()
-    if (autoQuitWithoutCore && !mainWindow?.isVisible()) {
-      if (quitTimeout) {
-        clearTimeout(quitTimeout)
+    const [mainWindowState] = await Promise.all([
+      Promise.resolve(
+        windowStateKeeper({
+          defaultWidth: 800,
+          defaultHeight: 700,
+          file: 'window-state.json'
+        })
+      ),
+      process.platform === 'darwin'
+        ? createApplicationMenu()
+        : Promise.resolve(Menu.setApplicationMenu(null))
+    ])
+    mainWindow = new BrowserWindow({
+      minWidth: 800,
+      minHeight: 600,
+      width: mainWindowState.width,
+      height: mainWindowState.height,
+      x: mainWindowState.x,
+      y: mainWindowState.y,
+      show: false,
+      frame: useWindowFrame,
+      fullscreenable: false,
+      titleBarStyle: useWindowFrame ? 'default' : 'hidden',
+      titleBarOverlay: useWindowFrame
+        ? false
+        : {
+            height: 49
+          },
+      autoHideMenuBar: true,
+      ...(process.platform === 'linux' ? { icon: icon } : {}),
+      webPreferences: {
+        preload: join(__dirname, '../preload/index.js'),
+        spellcheck: false,
+        sandbox: false
       }
-      quitTimeout = setTimeout(async () => {
-        await quitWithoutCore()
-      }, autoQuitWithoutCoreDelay * 1000)
-    }
-    if (!silentStart) {
-      if (quitTimeout) {
-        clearTimeout(quitTimeout)
+    })
+    mainWindowState.manage(mainWindow)
+    mainWindow.on('ready-to-show', async () => {
+      const {
+        silentStart = false,
+        autoQuitWithoutCore = false,
+        autoQuitWithoutCoreDelay = 60
+      } = await getAppConfig()
+      if (autoQuitWithoutCore && !mainWindow?.isVisible()) {
+        if (quitTimeout) {
+          clearTimeout(quitTimeout)
+        }
+        quitTimeout = setTimeout(async () => {
+          await quitWithoutCore()
+        }, autoQuitWithoutCoreDelay * 1000)
       }
-      mainWindow?.show()
-      mainWindow?.focusOnWebView()
-    }
-  })
-  mainWindow.webContents.on('did-fail-load', () => {
-    mainWindow?.webContents.reload()
-  })
-
-  mainWindow.on('close', async (event) => {
-    event.preventDefault()
-    mainWindow?.hide()
-    const { autoQuitWithoutCore = false, autoQuitWithoutCoreDelay = 60 } = await getAppConfig()
-    if (autoQuitWithoutCore) {
-      if (quitTimeout) {
-        clearTimeout(quitTimeout)
+      if (!silentStart) {
+        if (quitTimeout) {
+          clearTimeout(quitTimeout)
+        }
+        mainWindow?.show()
+        mainWindow?.focusOnWebView()
       }
-      quitTimeout = setTimeout(async () => {
-        await quitWithoutCore()
-      }, autoQuitWithoutCoreDelay * 1000)
+    })
+    mainWindow.webContents.on('did-fail-load', () => {
+      mainWindow?.webContents.reload()
+    })
+
+    mainWindow.on('close', async (event) => {
+      const {
+        autoQuitWithoutCore = false,
+        autoQuitWithoutCoreDelay = 60,
+        autoQuitWithoutCoreMode = 'core'
+      } = await getAppConfig()
+
+      if (!autoQuitWithoutCore || autoQuitWithoutCoreMode === 'core') {
+        event.preventDefault()
+        mainWindow?.hide()
+      } else if (autoQuitWithoutCoreMode === 'core&main_process' && autoQuitWithoutCoreDelay > 0) {
+        event.preventDefault()
+        mainWindow?.hide()
+        setTimeout(() => {
+          if (mainWindow && !mainWindow.isVisible()) {
+            mainWindow.close()
+          }
+        }, autoQuitWithoutCoreDelay * 1000)
+      }
+
+      if (autoQuitWithoutCore) {
+        if (quitTimeout) {
+          clearTimeout(quitTimeout)
+        }
+        quitTimeout = setTimeout(async () => {
+          if (autoQuitWithoutCoreMode === 'core') {
+            await quitWithoutCore()
+          } else if (autoQuitWithoutCoreMode === 'core&main_process') {
+            if (mainWindow && !mainWindow.isVisible()) {
+              mainWindow.close()
+            }
+          }
+        }, autoQuitWithoutCoreDelay * 1000)
+      }
+    })
+
+    mainWindow.on('closed', () => {
+      mainWindow = null
+    })
+
+    mainWindow.on('resized', () => {
+      if (mainWindow) mainWindowState.saveState(mainWindow)
+    })
+
+    mainWindow.on('unmaximize', () => {
+      if (mainWindow) mainWindowState.saveState(mainWindow)
+    })
+
+    mainWindow.on('move', () => {
+      if (mainWindow) mainWindowState.saveState(mainWindow)
+    })
+
+    mainWindow.on('session-end', async () => {
+      triggerSysProxy(false, false)
+      await stopCore()
+    })
+
+    mainWindow.webContents.setWindowOpenHandler((details) => {
+      shell.openExternal(details.url)
+      return { action: 'deny' }
+    })
+    // HMR for renderer base on electron-vite cli.
+    // Load the remote URL for development or the local html file for production.
+    if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
+      mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
+    } else {
+      mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
     }
-  })
-
-  mainWindow.on('resized', () => {
-    if (mainWindow) mainWindowState.saveState(mainWindow)
-  })
-
-  mainWindow.on('unmaximize', () => {
-    if (mainWindow) mainWindowState.saveState(mainWindow)
-  })
-
-  mainWindow.on('move', () => {
-    if (mainWindow) mainWindowState.saveState(mainWindow)
-  })
-
-  mainWindow.on('session-end', async () => {
-    triggerSysProxy(false, false)
-    await stopCore()
-  })
-
-  mainWindow.webContents.setWindowOpenHandler((details) => {
-    shell.openExternal(details.url)
-    return { action: 'deny' }
-  })
-  // HMR for renderer base on electron-vite cli.
-  // Load the remote URL for development or the local html file for production.
-  if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
-    mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
-  } else {
-    mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
+  } finally {
+    isCreatingWindow = false
   }
 }
 
 export function triggerMainWindow(): void {
-  if (mainWindow?.isVisible()) {
+  if (mainWindow && mainWindow.isVisible()) {
     closeMainWindow()
   } else {
     showMainWindow()
@@ -544,12 +579,14 @@ export function triggerMainWindow(): void {
 }
 
 export function showMainWindow(): void {
+  if (quitTimeout) {
+    clearTimeout(quitTimeout)
+  }
   if (mainWindow) {
-    if (quitTimeout) {
-      clearTimeout(quitTimeout)
-    }
     mainWindow.show()
     mainWindow.focusOnWebView()
+  } else {
+    createWindow()
   }
 }
 
