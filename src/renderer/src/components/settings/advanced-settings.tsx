@@ -70,6 +70,7 @@ const AdvancedSettings: React.FC = () => {
           <SettingItem title="轻量模式行为" divider>
             <Tabs
               size="sm"
+              color="primary"
               selectedKey={autoLightweightMode}
               onSelectionChange={(v) => {
                 patchAppConfig({ autoLightweightMode: v as 'core' | 'tray' })
