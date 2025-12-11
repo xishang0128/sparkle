@@ -17,13 +17,117 @@ import {
   patchMihomoConfig
 } from '../core/mihomoApi'
 import { mainWindow, setNotQuitDialog, showMainWindow, triggerMainWindow } from '..'
-import { app, clipboard, ipcMain, Menu, nativeImage, shell, Tray } from 'electron'
+import {
+  app,
+  BrowserWindow,
+  clipboard,
+  ipcMain,
+  Menu,
+  nativeImage,
+  screen,
+  shell,
+  Tray
+} from 'electron'
 import { dataDir, logDir, mihomoCoreDir, mihomoWorkDir } from '../utils/dirs'
 import { triggerSysProxy } from '../sys/sysproxy'
 import { quitWithoutCore, restartCore } from '../core/manager'
 import { floatingWindow, triggerFloatingWindow } from './floatingWindow'
+import { is } from '@electron-toolkit/utils'
+import { join } from 'path'
+import { applyTheme } from './theme'
 
 export let tray: Tray | null = null
+let customTrayWindow: BrowserWindow | null = null
+
+function formatDelayText(delay: number): string {
+  if (delay === 0) {
+    return 'Timeout'
+  } else if (delay > 0) {
+    return `${delay} ms`
+  }
+  return ''
+}
+
+function positionCustomTrayWindow(win: BrowserWindow): void {
+  if (!tray) return
+  const trayBounds = tray.getBounds()
+  const { width: winW, height: winH } = win.getBounds()
+  const display = screen.getDisplayNearestPoint({ x: trayBounds.x, y: trayBounds.y })
+  const { x: dx, y: dy, width: dw, height: dh } = display.workArea
+  let x = Math.round(trayBounds.x + trayBounds.width / 2 - winW / 2)
+  let y =
+    process.platform === 'darwin'
+      ? Math.round(trayBounds.y + trayBounds.height + 6)
+      : Math.round(trayBounds.y - winH - 6)
+  x = Math.min(Math.max(x, dx), dx + dw - winW)
+  y = Math.min(Math.max(y, dy), dy + dh - winH)
+  win.setPosition(x, y, false)
+}
+
+function hideCustomTray(): void {
+  if (customTrayWindow && !customTrayWindow.isDestroyed()) {
+    customTrayWindow.hide()
+  }
+}
+
+async function showCustomTray(): Promise<void> {
+  const { useCustomTrayMenu = false, customTheme = 'default.css' } = await getAppConfig()
+  if (!useCustomTrayMenu) {
+    await updateTrayMenu()
+    return
+  }
+
+  if (!customTrayWindow || customTrayWindow.isDestroyed()) {
+    customTrayWindow = new BrowserWindow({
+      width: 380,
+      height: 520,
+      show: false,
+      frame: false,
+      transparent: true,
+      resizable: false,
+      movable: false,
+      alwaysOnTop: true,
+      skipTaskbar: true,
+      fullscreenable: false,
+      focusable: true,
+      hasShadow: true,
+      webPreferences: {
+        preload: join(__dirname, '../preload/index.js'),
+        spellcheck: false,
+        sandbox: false
+      }
+    })
+
+    customTrayWindow.on('blur', () => {
+      hideCustomTray()
+    })
+    customTrayWindow.on('close', () => {
+      customTrayWindow = null
+    })
+    customTrayWindow.on('ready-to-show', () => {
+      applyTheme(customTheme)
+    })
+
+    if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
+      await customTrayWindow.loadURL(`${process.env['ELECTRON_RENDERER_URL']}/traymenu.html`)
+    } else {
+      await customTrayWindow.loadFile(join(__dirname, '../renderer/traymenu.html'))
+    }
+  }
+
+  positionCustomTrayWindow(customTrayWindow)
+  customTrayWindow.show()
+  customTrayWindow.focus()
+}
+
+async function handleTrayClick(): Promise<void> {
+  const { useCustomTrayMenu = false } = await getAppConfig()
+  if (useCustomTrayMenu) {
+    await showCustomTray()
+  } else {
+    await updateTrayMenu()
+  }
+}
 
 export const buildContextMenu = async (): Promise<Menu> => {
   const { mode, tun } = await getControledMihomoConfig()
@@ -33,6 +137,7 @@ export const buildContextMenu = async (): Promise<Menu> => {
     envType = process.platform === 'win32' ? ['powershell'] : ['bash'],
     autoCloseConnection,
     proxyInTray = true,
+    // useCustomTrayMenu = false,
     triggerSysProxyShortcut = '',
     showFloatingWindowShortcut = '',
     showWindowShortcut = '',
@@ -52,16 +157,12 @@ export const buildContextMenu = async (): Promise<Menu> => {
         const delay = currentProxy?.history.length
           ? currentProxy.history[currentProxy.history.length - 1].delay
           : -1
-        let displayDelay = ''
-        if (delay === 0) {
-          displayDelay = '(Timeout)'
-        } else if (delay > 0) {
-          displayDelay = `(${delay}ms)`
-        }
+        const displayDelay = formatDelayText(delay)
 
         return {
           id: group.name,
-          label: `${group.name}   ${displayDelay}`,
+          label: group.name,
+          sublabel: displayDelay,
           type: 'submenu',
           submenu: [
             {
@@ -82,16 +183,11 @@ export const buildContextMenu = async (): Promise<Menu> => {
               const proxyDelay = proxy.history.length
                 ? proxy.history[proxy.history.length - 1].delay
                 : -1
-              let proxyDisplayDelay = `(${proxyDelay}ms)`
-              if (proxyDelay === -1) {
-                proxyDisplayDelay = ''
-              }
-              if (proxyDelay === 0) {
-                proxyDisplayDelay = '(Timeout)'
-              }
+              const proxyDisplayDelay = formatDelayText(proxyDelay)
               return {
                 id: proxy.name,
-                label: `${proxy.name}   ${proxyDisplayDelay}`,
+                label: proxy.name,
+                sublabel: proxyDisplayDelay,
                 type: 'radio' as const,
                 checked: proxy.name === group.now,
                 click: async (): Promise<void> => {
@@ -132,6 +228,16 @@ export const buildContextMenu = async (): Promise<Menu> => {
         await triggerFloatingWindow()
       }
     },
+    // { type: 'separator' },
+    // {
+    //   type: 'checkbox',
+    //   label: '自定义托盘菜单',
+    //   checked: useCustomTrayMenu,
+    //   click: async (item): Promise<void> => {
+    //     await patchAppConfig({ useCustomTrayMenu: item.checked })
+    //     ipcMain.emit('updateTrayMenu')
+    //   }
+    // },
     { type: 'separator' },
     {
       type: 'checkbox',
@@ -359,15 +465,15 @@ export async function createTray(): Promise<void> {
       triggerMainWindow()
     })
     tray?.addListener('click', async () => {
-      await updateTrayMenu()
+      await handleTrayClick()
     })
   }
   if (process.platform === 'win32') {
     tray?.addListener('click', () => {
-      triggerMainWindow()
+      void handleTrayClick()
     })
     tray?.addListener('right-click', async () => {
-      await updateTrayMenu()
+      await handleTrayClick()
     })
   }
   if (process.platform === 'linux') {
@@ -387,6 +493,10 @@ async function updateTrayMenu(): Promise<void> {
     tray?.setContextMenu(menu)
   }
 }
+
+ipcMain.on('customTray:close', () => {
+  hideCustomTray()
+})
 
 export async function copyEnv(type: 'bash' | 'cmd' | 'powershell' | 'nushell'): Promise<void> {
   const { 'mixed-port': mixedPort = 7890 } = await getControledMihomoConfig()
@@ -431,6 +541,10 @@ export async function closeTrayIcon(): Promise<void> {
     tray.destroy()
   }
   tray = null
+  if (customTrayWindow) {
+    customTrayWindow.destroy()
+  }
+  customTrayWindow = null
 }
 
 export function setDockVisible(visible: boolean): void {
