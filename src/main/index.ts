@@ -56,6 +56,9 @@ async function scheduleLightweightMode(): Promise<void> {
     } else if (autoLightweightMode === 'tray') {
       if (mainWindow && !mainWindow.isVisible()) {
         mainWindow.destroy()
+        if (process.platform === 'darwin' && app.dock) {
+          app.dock.hide()
+        }
       }
     }
   }
@@ -571,6 +574,9 @@ export function triggerMainWindow(): void {
 export function showMainWindow(): void {
   if (quitTimeout) {
     clearTimeout(quitTimeout)
+  }
+  if (process.platform === 'darwin' && app.dock) {
+    app.dock.show()
   }
   if (mainWindow) {
     windowShown = true

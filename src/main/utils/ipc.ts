@@ -99,7 +99,7 @@ import {
 } from '../core/factory'
 import { listWebdavBackups, webdavBackup, webdavDelete, webdavRestore } from '../resolve/backup'
 import { getInterfaces } from '../sys/interface'
-import { closeTrayIcon, copyEnv, showTrayIcon } from '../resolve/tray'
+import { closeTrayIcon, copyEnv, setDockVisible, showTrayIcon } from '../resolve/tray'
 import { registerShortcut } from '../resolve/shortcut'
 import {
   closeMainWindow,
@@ -291,6 +291,7 @@ export function registerIpcMainHandlers(): void {
   })
   ipcMain.handle('showTrayIcon', () => ipcErrorWrapper(showTrayIcon)())
   ipcMain.handle('closeTrayIcon', () => ipcErrorWrapper(closeTrayIcon)())
+  ipcMain.handle('setDockVisible', (_e, visible: boolean) => setDockVisible(visible))
   ipcMain.handle('showMainWindow', showMainWindow)
   ipcMain.handle('closeMainWindow', closeMainWindow)
   ipcMain.handle('triggerMainWindow', triggerMainWindow)

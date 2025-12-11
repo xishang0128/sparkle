@@ -12,6 +12,7 @@ import {
   importThemes,
   relaunchApp,
   resolveThemes,
+  setDockVisible,
   showFloatingWindow,
   showTrayIcon,
   startMonitor,
@@ -170,6 +171,7 @@ const AppearanceConfig: React.FC = () => {
                 isSelected={useDockIcon}
                 onValueChange={async (v) => {
                   await patchAppConfig({ useDockIcon: v })
+                  setDockVisible(v)
                 }}
               />
             </SettingItem>

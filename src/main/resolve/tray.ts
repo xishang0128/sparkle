@@ -432,3 +432,13 @@ export async function closeTrayIcon(): Promise<void> {
   }
   tray = null
 }
+
+export function setDockVisible(visible: boolean): void {
+  if (process.platform === 'darwin' && app.dock) {
+    if (visible) {
+      app.dock.show()
+    } else {
+      app.dock.hide()
+    }
+  }
+}

@@ -448,6 +448,10 @@ export async function closeTrayIcon(): Promise<void> {
   return ipcErrorWrapper(await window.electron.ipcRenderer.invoke('closeTrayIcon'))
 }
 
+export async function setDockVisible(visible: boolean): Promise<void> {
+  return ipcErrorWrapper(await window.electron.ipcRenderer.invoke('setDockVisible', visible))
+}
+
 export async function showMainWindow(): Promise<void> {
   return ipcErrorWrapper(await window.electron.ipcRenderer.invoke('showMainWindow'))
 }
