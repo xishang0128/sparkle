@@ -7,6 +7,7 @@ import { readFileSync, existsSync } from 'fs'
 import { encryptString, decryptString, isEncrypted } from '../utils/encrypt'
 
 let appConfig: AppConfig
+let writePromise: Promise<void> = Promise.resolve()
 
 const ENCRYPTED_FIELDS = ['systemCorePath', 'serviceAuthKey'] as const
 
@@ -21,14 +22,27 @@ async function safeWriteConfig(content: string): Promise<void> {
   const tmpPath = `${configPath}.tmp`
   const backupPath = `${configPath}.backup`
 
-  await writeFile(tmpPath, content, 'utf-8')
-  if (existsSync(configPath)) {
-    await copyFile(configPath, backupPath)
-    if (process.platform === 'win32') {
-      await unlink(configPath)
+  try {
+    await writeFile(tmpPath, content, 'utf-8')
+    if (existsSync(configPath)) {
+      await copyFile(configPath, backupPath)
+      if (process.platform === 'win32') {
+        await unlink(configPath)
+      }
     }
+    if (existsSync(tmpPath)) {
+      await rename(tmpPath, configPath)
+    }
+  } catch (e) {
+    if (existsSync(tmpPath)) {
+      try {
+        await unlink(tmpPath)
+      } catch {
+        // ignore
+      }
+    }
+    throw e
   }
-  await rename(tmpPath, configPath)
 }
 
 function decryptConfig(config: AppConfig): AppConfig {
@@ -81,8 +95,13 @@ export async function getAppConfig(force = false): Promise<AppConfig> {
 }
 
 export async function patchAppConfig(patch: Partial<AppConfig>): Promise<void> {
-  appConfig = deepMerge(appConfig, patch)
-  await safeWriteConfig(stringifyYaml(encryptConfig(appConfig)))
+  const previousPromise = writePromise
+  writePromise = (async () => {
+    await previousPromise
+    appConfig = deepMerge(appConfig, patch)
+    await safeWriteConfig(stringifyYaml(encryptConfig(appConfig)))
+  })()
+  await writePromise
 }
 
 export function getAppConfigSync(): AppConfig {
