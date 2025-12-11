@@ -36,6 +36,39 @@ let quitTimeout: NodeJS.Timeout | null = null
 export let mainWindow: BrowserWindow | null = null
 let isCreatingWindow = false
 
+async function scheduleLightweightMode(): Promise<void> {
+  const {
+    autoLightweight = false,
+    autoLightweightDelay = 60,
+    autoLightweightMode = 'core'
+  } = await getAppConfig()
+
+  if (!autoLightweight) return
+
+  if (quitTimeout) {
+    clearTimeout(quitTimeout)
+  }
+
+  const enterLightweightMode = async (): Promise<void> => {
+    if (autoLightweightMode === 'core') {
+      await quitWithoutCore()
+    } else if (autoLightweightMode === 'tray') {
+      if (mainWindow && !mainWindow.isVisible()) {
+        mainWindow.destroy()
+      }
+    }
+  }
+
+  const minDelay = autoLightweightMode === 'core' ? 5 : 0
+  const delay = Math.max(autoLightweightDelay, minDelay)
+
+  if (delay <= 0) {
+    await enterLightweightMode()
+  } else {
+    quitTimeout = setTimeout(enterLightweightMode, delay * 1000)
+  }
+}
+
 const syncConfig = getAppConfigSync()
 
 if (
@@ -472,18 +505,9 @@ export async function createWindow(appConfig?: AppConfig): Promise<void> {
     })
     mainWindowState.manage(mainWindow)
     mainWindow.on('ready-to-show', async () => {
-      const {
-        silentStart = false,
-        autoQuitWithoutCore = false,
-        autoQuitWithoutCoreDelay = 60
-      } = await getAppConfig()
-      if (autoQuitWithoutCore && !mainWindow?.isVisible()) {
-        if (quitTimeout) {
-          clearTimeout(quitTimeout)
-        }
-        quitTimeout = setTimeout(async () => {
-          await quitWithoutCore()
-        }, autoQuitWithoutCoreDelay * 1000)
+      const { silentStart = false } = await getAppConfig()
+      if (!mainWindow?.isVisible()) {
+        await scheduleLightweightMode()
       }
       if (!silentStart) {
         if (quitTimeout) {
@@ -498,39 +522,9 @@ export async function createWindow(appConfig?: AppConfig): Promise<void> {
     })
 
     mainWindow.on('close', async (event) => {
-      const {
-        autoQuitWithoutCore = false,
-        autoQuitWithoutCoreDelay = 60,
-        autoQuitWithoutCoreMode = 'core'
-      } = await getAppConfig()
-
-      if (!autoQuitWithoutCore || autoQuitWithoutCoreMode === 'core') {
-        event.preventDefault()
-        mainWindow?.hide()
-      } else if (autoQuitWithoutCoreMode === 'core&main_process' && autoQuitWithoutCoreDelay > 0) {
-        event.preventDefault()
-        mainWindow?.hide()
-        setTimeout(() => {
-          if (mainWindow && !mainWindow.isVisible()) {
-            mainWindow.close()
-          }
-        }, autoQuitWithoutCoreDelay * 1000)
-      }
-
-      if (autoQuitWithoutCore) {
-        if (quitTimeout) {
-          clearTimeout(quitTimeout)
-        }
-        quitTimeout = setTimeout(async () => {
-          if (autoQuitWithoutCoreMode === 'core') {
-            await quitWithoutCore()
-          } else if (autoQuitWithoutCoreMode === 'core&main_process') {
-            if (mainWindow && !mainWindow.isVisible()) {
-              mainWindow.close()
-            }
-          }
-        }, autoQuitWithoutCoreDelay * 1000)
-      }
+      event.preventDefault()
+      mainWindow?.hide()
+      await scheduleLightweightMode()
     })
 
     mainWindow.on('closed', () => {

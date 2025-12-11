@@ -24,9 +24,9 @@ const AdvancedSettings: React.FC = () => {
     controlSniff = true,
     pauseSSID,
     mihomoCpuPriority = 'PRIORITY_NORMAL',
-    autoQuitWithoutCore = false,
-    autoQuitWithoutCoreDelay = 60,
-    autoQuitWithoutCoreMode = 'core',
+    autoLightweight = false,
+    autoLightweightDelay = 60,
+    autoLightweightMode = 'core',
     envType = [platform === 'win32' ? 'powershell' : 'bash'],
     networkDetection = false,
     networkDetectionBypass = ['VMware', 'vEthernet'],
@@ -59,38 +59,27 @@ const AdvancedSettings: React.FC = () => {
       >
         <Switch
           size="sm"
-          isSelected={autoQuitWithoutCore}
+          isSelected={autoLightweight}
           onValueChange={(v) => {
-            patchAppConfig({ autoQuitWithoutCore: v })
+            patchAppConfig({ autoLightweight: v })
           }}
         />
       </SettingItem>
-      {autoQuitWithoutCore && (
+      {autoLightweight && (
         <>
           <SettingItem title="轻量模式行为" divider>
             <Tabs
               size="sm"
-              selectedKey={autoQuitWithoutCoreMode}
+              selectedKey={autoLightweightMode}
               onSelectionChange={(v) => {
-                patchAppConfig({ autoQuitWithoutCoreMode: v as 'core' | 'core&main_process' })
+                patchAppConfig({ autoLightweightMode: v as 'core' | 'tray' })
+                if (v === 'core') {
+                  patchAppConfig({ autoLightweightDelay: Math.max(autoLightweightDelay, 5) })
+                }
               }}
             >
-              <Tab
-                key="core"
-                title={
-                  <Tooltip content="只运行内核，无托盘图标，极致省内存">
-                    <span>仅保留内核</span>
-                  </Tooltip>
-                }
-              />
-              <Tab
-                key="core&main_process"
-                title={
-                  <Tooltip content="关闭窗口时销毁渲染进程，有托盘图标，较省内存">
-                    <span>仅关闭渲染进程</span>
-                  </Tooltip>
-                }
-              />
+              <Tab key="core" title="仅保留内核" />
+              <Tab key="tray" title="仅关闭渲染进程" />
             </Tabs>
           </SettingItem>
           <SettingItem title="自动开启轻量模式延时" divider>
@@ -99,12 +88,13 @@ const AdvancedSettings: React.FC = () => {
               className="w-[100px]"
               type="number"
               endContent="秒"
-              value={autoQuitWithoutCoreDelay.toString()}
+              value={autoLightweightDelay.toString()}
               onValueChange={async (v: string) => {
                 let num = parseInt(v)
-                if (isNaN(num)) num = 5
-                if (num < 5) num = 5
-                await patchAppConfig({ autoQuitWithoutCoreDelay: num })
+                if (isNaN(num)) num = 0
+                const minDelay = autoLightweightMode === 'core' ? 5 : 0
+                if (num < minDelay) num = minDelay
+                await patchAppConfig({ autoLightweightDelay: num })
               }}
             />
           </SettingItem>
@@ -233,17 +223,7 @@ const AdvancedSettings: React.FC = () => {
       </SettingItem>
       {networkDetection && (
         <>
-          <SettingItem
-            title="断网检测间隔"
-            actions={
-              <Tooltip content="设置断网检测的间隔时间，单位为秒">
-                <Button isIconOnly size="sm" variant="light">
-                  <IoIosHelpCircle className="text-lg" />
-                </Button>
-              </Tooltip>
-            }
-            divider
-          >
+          <SettingItem title="断网检测间隔" divider>
             <div className="flex">
               {interval !== networkDetectionInterval && (
                 <Button
@@ -262,6 +242,7 @@ const AdvancedSettings: React.FC = () => {
                 size="sm"
                 type="number"
                 className="w-[100px]"
+                endContent="秒"
                 value={interval.toString()}
                 min={1}
                 onValueChange={(v) => {

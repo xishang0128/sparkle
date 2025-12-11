@@ -60,9 +60,9 @@ interface AppConfig {
   subStoreBackendSyncCron?: string
   subStoreBackendDownloadCron?: string
   subStoreBackendUploadCron?: string
-  autoQuitWithoutCore?: boolean
-  autoQuitWithoutCoreDelay?: number
-  autoQuitWithoutCoreMode?: 'core' | 'core&main_process'
+  autoLightweight?: boolean
+  autoLightweightDelay?: number
+  autoLightweightMode?: 'core' | 'tray'
   useCustomSubStore?: boolean
   useProxyInSubStore?: boolean
   mihomoCpuPriority?: Priority
