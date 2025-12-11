@@ -274,6 +274,9 @@ const App: React.FC = () => {
             <div>
               <p></p>
               <p className="text-sm text-gray-500 mt-2">退出后代理功能将停止工作</p>
+              <p className="text-sm text-gray-400 mt-1">
+                快按两次或长按 {platform === 'darwin' ? '⌘Q' : 'Ctrl+Q'} 可直接退出
+              </p>
             </div>
           }
           confirmText="退出"

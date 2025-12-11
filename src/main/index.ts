@@ -163,6 +163,8 @@ app.on('open-url', async (_event, url) => {
 let isQuitting = false,
   notQuitDialog = false
 
+let lastQuitAttempt = 0
+
 export function setNotQuitDialog(): void {
   notQuitDialog = true
 }
@@ -212,6 +214,20 @@ app.on('window-all-closed', () => {
 app.on('before-quit', async (e) => {
   if (!isQuitting && !notQuitDialog) {
     e.preventDefault()
+
+    const now = Date.now()
+    if (now - lastQuitAttempt < 500) {
+      isQuitting = true
+      if (quitTimeout) {
+        clearTimeout(quitTimeout)
+        quitTimeout = null
+      }
+      triggerSysProxy(false, false)
+      await stopCore()
+      app.exit()
+      return
+    }
+    lastQuitAttempt = now
 
     const confirmed = await showQuitConfirmDialog()
 
