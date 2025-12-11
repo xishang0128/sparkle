@@ -43,7 +43,8 @@ export const defaultConfig: AppConfig = {
   safePaths: [],
   disableGPU: process.platform === 'win32' && parseInt(os.release().split('.')[2], 10) <= 20000,
   proxyDisplayLayout: 'double',
-  groupDisplayLayout: 'double'
+  groupDisplayLayout: 'double',
+  autoQuitWithoutCoreMode: 'core'
 }
 
 export const defaultControledMihomoConfig: Partial<MihomoConfig> = {

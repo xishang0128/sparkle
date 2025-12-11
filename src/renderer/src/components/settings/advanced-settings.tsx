@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import SettingCard from '../base/base-setting-card'
 import SettingItem from '../base/base-setting-item'
-import { Button, Input, Select, SelectItem, Switch, Tooltip } from '@heroui/react'
+import { Button, Input, Select, SelectItem, Switch, Tab, Tabs, Tooltip } from '@heroui/react'
 import { useAppConfig } from '@renderer/hooks/use-app-config'
 import {
   copyEnv,
@@ -26,6 +26,7 @@ const AdvancedSettings: React.FC = () => {
     mihomoCpuPriority = 'PRIORITY_NORMAL',
     autoQuitWithoutCore = false,
     autoQuitWithoutCoreDelay = 60,
+    autoQuitWithoutCoreMode = 'core',
     envType = [platform === 'win32' ? 'powershell' : 'bash'],
     networkDetection = false,
     networkDetectionBypass = ['VMware', 'vEthernet'],
@@ -65,21 +66,49 @@ const AdvancedSettings: React.FC = () => {
         />
       </SettingItem>
       {autoQuitWithoutCore && (
-        <SettingItem title="自动开启轻量模式延时" divider>
-          <Input
-            size="sm"
-            className="w-[100px]"
-            type="number"
-            endContent="秒"
-            value={autoQuitWithoutCoreDelay.toString()}
-            onValueChange={async (v: string) => {
-              let num = parseInt(v)
-              if (isNaN(num)) num = 5
-              if (num < 5) num = 5
-              await patchAppConfig({ autoQuitWithoutCoreDelay: num })
-            }}
-          />
-        </SettingItem>
+        <>
+          <SettingItem title="轻量模式行为" divider>
+            <Tabs
+              size="sm"
+              selectedKey={autoQuitWithoutCoreMode}
+              onSelectionChange={(v) => {
+                patchAppConfig({ autoQuitWithoutCoreMode: v as 'core' | 'core&main_process' })
+              }}
+            >
+              <Tab
+                key="core"
+                title={
+                  <Tooltip content="只运行内核，无托盘图标，极致省内存">
+                    <span>仅保留内核</span>
+                  </Tooltip>
+                }
+              />
+              <Tab
+                key="core&main_process"
+                title={
+                  <Tooltip content="关闭窗口时销毁渲染进程，有托盘图标，较省内存">
+                    <span>仅关闭渲染进程</span>
+                  </Tooltip>
+                }
+              />
+            </Tabs>
+          </SettingItem>
+          <SettingItem title="自动开启轻量模式延时" divider>
+            <Input
+              size="sm"
+              className="w-[100px]"
+              type="number"
+              endContent="秒"
+              value={autoQuitWithoutCoreDelay.toString()}
+              onValueChange={async (v: string) => {
+                let num = parseInt(v)
+                if (isNaN(num)) num = 5
+                if (num < 5) num = 5
+                await patchAppConfig({ autoQuitWithoutCoreDelay: num })
+              }}
+            />
+          </SettingItem>
+        </>
       )}
       <SettingItem
         title="复制环境变量类型"
@@ -187,7 +216,7 @@ const AdvancedSettings: React.FC = () => {
             </Button>
           </Tooltip>
         }
-        divider={networkDetection}
+        divider
       >
         <Switch
           size="sm"
