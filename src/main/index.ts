@@ -35,6 +35,7 @@ import { getUserAgent } from './utils/userAgent'
 let quitTimeout: NodeJS.Timeout | null = null
 export let mainWindow: BrowserWindow | null = null
 let isCreatingWindow = false
+let windowShown = false
 
 async function scheduleLightweightMode(): Promise<void> {
   const {
@@ -59,14 +60,7 @@ async function scheduleLightweightMode(): Promise<void> {
     }
   }
 
-  const minDelay = autoLightweightMode === 'core' ? 5 : 0
-  const delay = Math.max(autoLightweightDelay, minDelay)
-
-  if (delay <= 0) {
-    await enterLightweightMode()
-  } else {
-    quitTimeout = setTimeout(enterLightweightMode, delay * 1000)
-  }
+  quitTimeout = setTimeout(enterLightweightMode, autoLightweightDelay * 1000)
 }
 
 const syncConfig = getAppConfigSync()
@@ -506,15 +500,15 @@ export async function createWindow(appConfig?: AppConfig): Promise<void> {
     mainWindowState.manage(mainWindow)
     mainWindow.on('ready-to-show', async () => {
       const { silentStart = false } = await getAppConfig()
-      if (!mainWindow?.isVisible()) {
-        await scheduleLightweightMode()
-      }
       if (!silentStart) {
         if (quitTimeout) {
           clearTimeout(quitTimeout)
         }
+        windowShown = true
         mainWindow?.show()
         mainWindow?.focusOnWebView()
+      } else {
+        await scheduleLightweightMode()
       }
     })
     mainWindow.webContents.on('did-fail-load', () => {
@@ -524,7 +518,9 @@ export async function createWindow(appConfig?: AppConfig): Promise<void> {
     mainWindow.on('close', async (event) => {
       event.preventDefault()
       mainWindow?.hide()
-      await scheduleLightweightMode()
+      if (windowShown) {
+        await scheduleLightweightMode()
+      }
     })
 
     mainWindow.on('closed', () => {
@@ -577,6 +573,7 @@ export function showMainWindow(): void {
     clearTimeout(quitTimeout)
   }
   if (mainWindow) {
+    windowShown = true
     mainWindow.show()
     mainWindow.focusOnWebView()
   } else {
