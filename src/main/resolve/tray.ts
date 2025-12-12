@@ -462,23 +462,23 @@ export async function createTray(): Promise<void> {
       tray?.setImage(image)
     })
     tray?.addListener('right-click', async () => {
-      triggerMainWindow()
+      await triggerMainWindow()
     })
     tray?.addListener('click', async () => {
       await handleTrayClick()
     })
   }
   if (process.platform === 'win32') {
-    tray?.addListener('click', () => {
-      void handleTrayClick()
+    tray?.addListener('click', async () => {
+      await triggerMainWindow()
     })
     tray?.addListener('right-click', async () => {
       await handleTrayClick()
     })
   }
   if (process.platform === 'linux') {
-    tray?.addListener('click', () => {
-      triggerMainWindow()
+    tray?.addListener('click', async () => {
+      await triggerMainWindow()
     })
     ipcMain.on('updateTrayMenu', async () => {
       await updateTrayMenu()

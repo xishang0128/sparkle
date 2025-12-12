@@ -24,8 +24,8 @@ export async function registerShortcut(
   }
   switch (action) {
     case 'showWindowShortcut': {
-      return globalShortcut.register(newShortcut, () => {
-        triggerMainWindow()
+      return globalShortcut.register(newShortcut, async () => {
+        await triggerMainWindow()
       })
     }
     case 'showFloatingWindowShortcut': {

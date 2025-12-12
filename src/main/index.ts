@@ -36,6 +36,8 @@ let quitTimeout: NodeJS.Timeout | null = null
 export let mainWindow: BrowserWindow | null = null
 let isCreatingWindow = false
 let windowShown = false
+let createWindowPromiseResolve: (() => void) | null = null
+let createWindowPromise: Promise<void> | null = null
 
 async function scheduleLightweightMode(): Promise<void> {
   const {
@@ -474,8 +476,16 @@ async function showOverrideInstallConfirm(url: string, name?: string | null): Pr
 }
 
 export async function createWindow(appConfig?: AppConfig): Promise<void> {
-  if (isCreatingWindow) return
+  if (isCreatingWindow) {
+    if (createWindowPromise) {
+      await createWindowPromise
+    }
+    return
+  }
   isCreatingWindow = true
+  createWindowPromise = new Promise<void>((resolve) => {
+    createWindowPromiseResolve = resolve
+  })
   try {
     const config = appConfig ?? (await getAppConfig())
     const { useWindowFrame = false } = config
@@ -576,14 +586,19 @@ export async function createWindow(appConfig?: AppConfig): Promise<void> {
     }
   } finally {
     isCreatingWindow = false
+    if (createWindowPromiseResolve) {
+      createWindowPromiseResolve()
+      createWindowPromiseResolve = null
+    }
+    createWindowPromise = null
   }
 }
 
-export function triggerMainWindow(): void {
+export async function triggerMainWindow(): Promise<void> {
   if (mainWindow && mainWindow.isVisible()) {
     closeMainWindow()
   } else {
-    showMainWindow()
+    await showMainWindow()
   }
 }
 
@@ -603,6 +618,11 @@ export async function showMainWindow(): Promise<void> {
     mainWindow.focusOnWebView()
   } else {
     await createWindow()
+    if (mainWindow !== null) {
+      windowShown = true
+      ;(mainWindow as BrowserWindow).show()
+      ;(mainWindow as BrowserWindow).focusOnWebView()
+    }
   }
 }
 
