@@ -591,20 +591,18 @@ export async function showMainWindow(): Promise<void> {
   if (quitTimeout) {
     clearTimeout(quitTimeout)
   }
+  if (process.platform === 'darwin' && app.dock) {
+    const { useDockIcon = true } = await getAppConfig()
+    if (!useDockIcon) {
+      app.dock.hide()
+    }
+  }
   if (mainWindow) {
     windowShown = true
     mainWindow.show()
     mainWindow.focusOnWebView()
   } else {
     await createWindow()
-  }
-  if (process.platform === 'darwin' && app.dock) {
-    const { useDockIcon = true } = await getAppConfig()
-    if (useDockIcon) {
-      app.dock.show()
-    } else {
-      app.dock.hide()
-    }
   }
 }
 
