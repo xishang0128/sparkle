@@ -118,7 +118,7 @@ const ShortcutConfig: React.FC = () => {
           />
         </div>
       </SettingItem>
-      <SettingItem title="轻量模式" divider>
+      <SettingItem title="保留内核退出" divider>
         <div className="flex justify-end w-[60%]">
           <ShortcutInput
             value={quitWithoutCoreShortcut}

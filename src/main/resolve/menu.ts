@@ -37,7 +37,7 @@ export async function createApplicationMenu(): Promise<void> {
         },
         { type: 'separator' },
         {
-          label: '轻量模式',
+          label: '保留内核退出',
           accelerator: quitWithoutCoreShortcut,
           click: () => {
             quitWithoutCore()

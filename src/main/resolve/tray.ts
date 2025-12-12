@@ -402,7 +402,7 @@ export const buildContextMenu = async (): Promise<Menu> => {
     { type: 'separator' },
     {
       id: 'quitWithoutCore',
-      label: '轻量模式',
+      label: '保留内核退出',
       type: 'normal',
       accelerator: quitWithoutCoreShortcut,
       click: (): void => {

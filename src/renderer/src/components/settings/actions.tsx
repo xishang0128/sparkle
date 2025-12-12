@@ -160,7 +160,7 @@ const Actions: React.FC = () => {
           </Button>
         </SettingItem>
         <SettingItem
-          title="轻量模式"
+          title="保留内核退出"
           actions={
             <Tooltip content="完全退出软件，只保留内核进程">
               <Button isIconOnly size="sm" variant="light">
@@ -171,7 +171,7 @@ const Actions: React.FC = () => {
           divider
         >
           <Button size="sm" onPress={quitWithoutCore}>
-            轻量模式
+            退出
           </Button>
         </SettingItem>
         <SettingItem title="退出应用" divider>
