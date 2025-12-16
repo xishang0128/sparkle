@@ -42,10 +42,17 @@ export async function generateProfile(): Promise<void> {
   if (!controlDns) {
     delete configToMerge.dns
     delete configToMerge.hosts
+  } else {
+    delete (currentProfile as Partial<MihomoConfig>).dns
+    delete (currentProfile as Partial<MihomoConfig>).hosts
   }
   if (!controlSniff) {
     delete configToMerge.sniffer
+  } else {
+    delete (currentProfile as Partial<MihomoConfig>).sniffer
   }
+
+  delete (currentProfile as Partial<MihomoConfig>).tun
 
   const profile = deepMerge(JSON.parse(JSON.stringify(currentProfile)), configToMerge)
 
