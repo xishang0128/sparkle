@@ -114,10 +114,15 @@ export async function startCore(detached = false): Promise<Promise<void>[]> {
   }
   const { 'rule-providers': ruleProviders, 'proxy-providers': proxyProviders } =
     await getRuntimeConfig()
-  const providerNames = new Set([
-    ...Object.keys(ruleProviders || {}),
-    ...Object.keys(proxyProviders || {})
-  ])
+
+  const normalize = (s: string): string =>
+    s
+      .replace(/\\u([0-9a-fA-F]{4})/g, (_, h) => String.fromCharCode(parseInt(h, 16)))
+      .normalize('NFC')
+
+  const providerNames = new Set(
+    [...Object.keys(ruleProviders || {}), ...Object.keys(proxyProviders || {})].map(normalize)
+  )
   const unmatchedProviders = new Set(providerNames)
   const stdout = createWriteStream(logPath(), { flags: 'a' })
   const stderr = createWriteStream(logPath(), { flags: 'a' })
@@ -195,9 +200,9 @@ export async function startCore(detached = false): Promise<Promise<void>[]> {
           new Promise((resolve, reject) => {
             const handleProviderInitialization = async (logLine: string): Promise<void> => {
               for (const match of logLine.matchAll(/Start initial provider ([^"]+)"/g)) {
-                const providerName = match[1]
-                if (providerNames.has(providerName)) {
-                  unmatchedProviders.delete(providerName)
+                const name = normalize(match[1])
+                if (providerNames.has(name)) {
+                  unmatchedProviders.delete(name)
                 }
               }
 
