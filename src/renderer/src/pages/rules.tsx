@@ -39,15 +39,7 @@ const Rules: React.FC = () => {
       <div className="h-[calc(100vh-100px)] mt-px">
         <Virtuoso
           data={filteredRules}
-          itemContent={(i, rule) => (
-            <RuleItem
-              index={i}
-              type={rule.type}
-              payload={rule.payload}
-              proxy={rule.proxy}
-              size={rule.size}
-            />
-          )}
+          itemContent={(i, rule) => <RuleItem index={i} rule={rule} />}
         />
       </div>
     </BasePage>

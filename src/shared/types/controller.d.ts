@@ -196,10 +196,18 @@ interface ControllerRules {
 }
 
 interface ControllerRulesDetail {
+  index: number
   type: string
   payload: string
   proxy: string
   size: number
+  extra: {
+    disabled: boolean
+    hitCount: number
+    hitAt: string
+    missCount: number
+    missAt: string
+  }
 }
 
 // ${api}/version

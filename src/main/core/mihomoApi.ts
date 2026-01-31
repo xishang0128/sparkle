@@ -193,6 +193,11 @@ export const mihomoGroupDelay = async (
   })
 }
 
+export const mihomoRulesDisable = async (rules: Record<string, boolean>): Promise<void> => {
+  const instance = await getAxios()
+  return await instance.patch(`/rules/disable`, rules)
+}
+
 export const mihomoUpgrade = async (): Promise<void> => {
   if (process.platform === 'win32') await patchMihomoConfig({ 'log-level': 'info' })
   const instance = await getAxios()
