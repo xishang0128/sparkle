@@ -55,6 +55,8 @@ const Connections: React.FC = () => {
   const processingAppNames = useRef(new Set<string>())
   const processAppNameTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
+  const lastActiveTime = useRef<Map<string, number>>(new Map())
+
   const filteredConnections = useMemo(() => {
     const connections = tab === 'active' ? activeConnections : closedConnections
 
@@ -159,6 +161,13 @@ const Connections: React.FC = () => {
       const prevActiveMap = new Map(activeConnections.map((conn) => [conn.id, conn]))
       const existingConnectionIds = new Set(allConnections.map((conn) => conn.id))
 
+      const now = Date.now()
+      const activeConnIds = new Set(info.connections.map((conn) => conn.id))
+
+      activeConnIds.forEach((id) => {
+        lastActiveTime.current.set(id, now)
+      })
+
       const activeConns = info.connections.map((conn) => {
         const preConn = prevActiveMap.get(conn.id)
         const downloadSpeed = preConn ? conn.download - preConn.download : 0
@@ -184,13 +193,15 @@ const Connections: React.FC = () => {
       if (newConnections.length > 0) {
         const updatedAllConnections = [...allConnections, ...newConnections]
 
-        const activeConnIds = new Set(activeConns.map((conn) => conn.id))
         const allConns = updatedAllConnections.map((conn) => {
           const activeConn = activeConns.find((ac) => ac.id === conn.id)
-          return activeConn || { ...conn, isActive: false, downloadSpeed: 0, uploadSpeed: 0 }
+          if (activeConn) return activeConn
+          const lastActive = lastActiveTime.current.get(conn.id) || 0
+          const isStillActive = now - lastActive < 1000
+          return { ...conn, isActive: isStillActive, downloadSpeed: 0, uploadSpeed: 0 }
         })
 
-        const closedConns = allConns.filter((conn) => !activeConnIds.has(conn.id))
+        const closedConns = allConns.filter((conn) => !conn.isActive)
 
         setActiveConnections(activeConns)
         setClosedConnections(closedConns)
@@ -198,13 +209,15 @@ const Connections: React.FC = () => {
         setAllConnections(finalAllConnections)
         cachedConnections = finalAllConnections
       } else {
-        const activeConnIds = new Set(activeConns.map((conn) => conn.id))
         const allConns = allConnections.map((conn) => {
           const activeConn = activeConns.find((ac) => ac.id === conn.id)
-          return activeConn || { ...conn, isActive: false, downloadSpeed: 0, uploadSpeed: 0 }
+          if (activeConn) return activeConn
+          const lastActive = lastActiveTime.current.get(conn.id) || 0
+          const isStillActive = now - lastActive < 1000
+          return { ...conn, isActive: isStillActive, downloadSpeed: 0, uploadSpeed: 0 }
         })
 
-        const closedConns = allConns.filter((conn) => !activeConnIds.has(conn.id))
+        const closedConns = allConns.filter((conn) => !conn.isActive)
 
         setActiveConnections(activeConns)
         setClosedConnections(closedConns)
@@ -492,7 +505,7 @@ const Connections: React.FC = () => {
           <Button
             size="sm"
             isIconOnly
-            className="app-nodrag"
+            className="app-nodrag ml-2"
             variant="light"
             title="连接设置"
             onPress={() => setIsSettingModalOpen(true)}

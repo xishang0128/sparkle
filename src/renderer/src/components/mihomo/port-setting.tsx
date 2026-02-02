@@ -111,7 +111,6 @@ const PortSetting: React.FC = () => {
                 确认
               </Button>
             )}
-
             <Input
               size="sm"
               type="number"
@@ -140,7 +139,6 @@ const PortSetting: React.FC = () => {
                 确认
               </Button>
             )}
-
             <Input
               size="sm"
               type="number"
@@ -170,7 +168,6 @@ const PortSetting: React.FC = () => {
                   确认
                 </Button>
               )}
-
               <Input
                 size="sm"
                 type="number"
@@ -201,7 +198,6 @@ const PortSetting: React.FC = () => {
                   确认
                 </Button>
               )}
-
               <Input
                 size="sm"
                 type="number"
