@@ -157,7 +157,6 @@ async function migration(): Promise<void> {
     }
   }
 
-  // 清理已弃用的配置
   if (mihomoConfig['external-controller-pipe' as keyof MihomoConfig]) {
     mihomoConfigPatch['external-controller-pipe' as keyof MihomoConfig] = undefined as never
   }
@@ -167,6 +166,9 @@ async function migration(): Promise<void> {
 
   if (mihomoConfig['external-controller'] === undefined) {
     mihomoConfigPatch['external-controller'] = ''
+  }
+  if (mihomoConfig['global-client-fingerprint'] !== undefined) {
+    mihomoConfigPatch['global-client-fingerprint'] = undefined as never
   }
 
   if (Object.keys(mihomoConfigPatch).length > 0) {
