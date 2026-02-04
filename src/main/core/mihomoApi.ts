@@ -72,7 +72,7 @@ export const mihomoGetConnections = async (): Promise<ControllerConnections> => 
   return await instance.get('/connections')
 }
 
-export const mihomoCloseAllConnections = async (name?: string): Promise<void> => {
+export const mihomoCloseConnections = async (name?: string): Promise<void> => {
   const instance = await getAxios()
   if (name) {
     const connectionsInfo = await mihomoGetConnections()

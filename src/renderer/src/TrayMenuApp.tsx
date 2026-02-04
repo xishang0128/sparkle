@@ -2,7 +2,7 @@ import { useEffect, useState, useMemo } from 'react'
 import { Button, ScrollShadow, Chip, Accordion, AccordionItem } from '@heroui/react'
 import { IoRefresh, IoClose, IoCheckmarkCircle } from 'react-icons/io5'
 import { useGroups } from './hooks/use-groups'
-import { mihomoChangeProxy, mihomoGroupDelay, mihomoCloseAllConnections } from './utils/ipc'
+import { mihomoChangeProxy, mihomoGroupDelay, mihomoCloseConnections } from './utils/ipc'
 import { useAppConfig } from './hooks/use-app-config'
 import { calcTraffic } from './utils/calc'
 
@@ -52,7 +52,7 @@ const TrayMenuApp: React.FC = () => {
     try {
       await mihomoChangeProxy(groupName, proxyName)
       if (autoCloseConnection) {
-        await mihomoCloseAllConnections()
+        await mihomoCloseConnections()
       }
       mutate()
     } catch (e) {
