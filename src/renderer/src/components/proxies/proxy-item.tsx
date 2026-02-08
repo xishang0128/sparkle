@@ -5,7 +5,7 @@ import { FaMapPin } from 'react-icons/fa6'
 
 interface Props {
   mutateProxies: () => void
-  onProxyDelay: (proxy: string, url?: string) => Promise<ControllerProxiesDelay>
+  onProxyDelay: (proxy: string, group?: ControllerMixedGroup) => Promise<ControllerProxiesDelay>
   proxyDisplayLayout: 'hidden' | 'single' | 'double'
   proxy: ControllerProxiesDetail | ControllerGroupDetail
   group: ControllerMixedGroup
@@ -40,7 +40,7 @@ const ProxyItem: React.FC<Props> = (props) => {
 
   const onDelay = (): void => {
     setLoading(true)
-    onProxyDelay(proxy.name, group.testUrl).finally(() => {
+    onProxyDelay(proxy.name, group).finally(() => {
       mutateProxies()
       setLoading(false)
     })

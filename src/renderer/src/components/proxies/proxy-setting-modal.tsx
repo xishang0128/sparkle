@@ -33,6 +33,7 @@ const ProxySettingModal: React.FC<Props> = (props) => {
     autoCloseConnection = true,
     closeMode = 'all',
     delayTestUrl,
+    delayTestUrlScope = 'group',
     delayTestConcurrency,
     delayTestTimeout
   } = appConfig || {}
@@ -163,6 +164,21 @@ const ProxySettingModal: React.FC<Props> = (props) => {
                 setUrlDebounce(v)
               }}
             />
+          </SettingItem>
+          <SettingItem title="测试地址来源" divider>
+            <Tabs
+              size="sm"
+              color="primary"
+              selectedKey={delayTestUrlScope}
+              onSelectionChange={async (v) => {
+                await patchAppConfig({
+                  delayTestUrlScope: v as 'group' | 'global'
+                })
+              }}
+            >
+              <Tab key="group" title="使用组配置" />
+              <Tab key="global" title="使用统一地址" />
+            </Tabs>
           </SettingItem>
           <SettingItem title="延迟测试并发数量" divider>
             <Input
