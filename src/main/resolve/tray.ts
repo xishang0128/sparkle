@@ -38,6 +38,7 @@ import { applyTheme } from './theme'
 
 export let tray: Tray | null = null
 let customTrayWindow: BrowserWindow | null = null
+const MAX_TRAY_LABEL_LENGTH = 40
 
 function formatDelayText(delay: number): string {
   if (delay === 0) {
@@ -159,10 +160,11 @@ export const buildContextMenu = async (): Promise<Menu> => {
           : -1
         const displayDelay = formatDelayText(delay)
 
+        const isLabelTooLong = group.name.length + displayDelay.length > MAX_TRAY_LABEL_LENGTH
         return {
           id: group.name,
-          label: group.name,
-          sublabel: displayDelay,
+          label: isLabelTooLong ? group.name : `${group.name}   ${displayDelay}`,
+          sublabel: isLabelTooLong ? displayDelay : '',
           type: 'submenu',
           submenu: [
             {
@@ -184,10 +186,13 @@ export const buildContextMenu = async (): Promise<Menu> => {
                 ? proxy.history[proxy.history.length - 1].delay
                 : -1
               const proxyDisplayDelay = formatDelayText(proxyDelay)
+
+              const isProxyLabelTooLong =
+                proxy.name.length + proxyDisplayDelay.length > MAX_TRAY_LABEL_LENGTH
               return {
                 id: proxy.name,
-                label: proxy.name,
-                sublabel: proxyDisplayDelay,
+                label: isProxyLabelTooLong ? proxy.name : `${proxy.name}   ${proxyDisplayDelay}`,
+                sublabel: isProxyLabelTooLong ? proxyDisplayDelay : '',
                 type: 'radio' as const,
                 checked: proxy.name === group.now,
                 click: async (): Promise<void> => {
