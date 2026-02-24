@@ -40,6 +40,7 @@ type MihomoProxyType =
   | 'Mieru'
   | 'AnyTLS'
   | 'Sudoku'
+  | 'Masque'
 type TunStack = 'gvisor' | 'mixed' | 'system'
 type FindProcessMode = 'off' | 'strict' | 'always'
 type DnsMode = 'normal' | 'fake-ip' | 'redir-host'
