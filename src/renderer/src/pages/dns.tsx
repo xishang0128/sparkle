@@ -40,7 +40,8 @@ const DNS: React.FC = () => {
     nameserver = ['https://doh.pub/dns-query', 'https://dns.alidns.com/dns-query'],
     'proxy-server-nameserver': proxyServerNameserver = [],
     'direct-nameserver': directNameserver = [],
-    'nameserver-policy': nameserverPolicy = {}
+    'nameserver-policy': nameserverPolicy = {},
+    'proxy-server-nameserver-policy': proxyServerNameserverPolicy = {}
   } = dns || {}
   const [changed, setChanged] = useState(false)
   const [values, originSetValues] = useState({
@@ -57,6 +58,7 @@ const DNS: React.FC = () => {
     proxyServerNameserver,
     directNameserver,
     nameserverPolicy,
+    proxyServerNameserverPolicy,
     hosts: useHosts ? hosts : undefined
   })
   const [fakeIPRangeError, setFakeIPRangeError] = useState<string | null>(() => {
@@ -138,7 +140,8 @@ const DNS: React.FC = () => {
                 nameserver: values.nameserver,
                 'proxy-server-nameserver': values.proxyServerNameserver,
                 'direct-nameserver': values.directNameserver,
-                'nameserver-policy': values.nameserverPolicy
+                'nameserver-policy': values.nameserverPolicy,
+                'proxy-server-nameserver-policy': values.proxyServerNameserverPolicy
               }
               onSave({
                 dns: dnsConfig,
@@ -278,6 +281,7 @@ const DNS: React.FC = () => {
         directNameserver={values.directNameserver}
         proxyServerNameserver={values.proxyServerNameserver}
         nameserverPolicy={values.nameserverPolicy}
+        proxyServerNameserverPolicy={values.proxyServerNameserverPolicy}
         hosts={values.hosts}
         useHosts={values.useHosts}
         useSystemHosts={values.useSystemHosts}
@@ -294,11 +298,15 @@ const DNS: React.FC = () => {
           setValues({
             ...values,
             proxyServerNameserver: arr,
-            respectRules: arr.length === 0 ? false : values.respectRules
+            respectRules: arr.length === 0 ? false : values.respectRules,
+            proxyServerNameserverPolicy: arr.length === 0 ? {} : values.proxyServerNameserverPolicy
           })
         }}
         onNameserverPolicyChange={(newValue) => {
           setValues({ ...values, nameserverPolicy: newValue })
+        }}
+        onProxyServerNameserverPolicyChange={(newValue) => {
+          setValues({ ...values, proxyServerNameserverPolicy: newValue })
         }}
         onUseSystemHostsChange={(v) => setValues({ ...values, useSystemHosts: v })}
         onUseHostsChange={(v) => setValues({ ...values, useHosts: v })}

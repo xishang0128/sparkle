@@ -42,6 +42,11 @@ export async function patchControledMihomoConfig(patch: Partial<MihomoConfig>): 
     controledMihomoConfig.dns = controledMihomoConfig.dns || {}
     controledMihomoConfig.dns['nameserver-policy'] = patch.dns['nameserver-policy']
   }
+  if (patch.dns?.['proxy-server-nameserver-policy']) {
+    controledMihomoConfig.dns = controledMihomoConfig.dns || {}
+    controledMihomoConfig.dns['proxy-server-nameserver-policy'] =
+      patch.dns['proxy-server-nameserver-policy']
+  }
   if (patch.dns?.['use-hosts']) {
     controledMihomoConfig.hosts = patch.hosts
   }

@@ -10,6 +10,7 @@ interface AdvancedDnsSettingProps {
   directNameserver: string[]
   proxyServerNameserver: string[]
   nameserverPolicy: Record<string, string | string[]>
+  proxyServerNameserverPolicy: Record<string, string | string[]>
   hosts?: IHost[]
   useHosts: boolean
   useSystemHosts: boolean
@@ -17,6 +18,7 @@ interface AdvancedDnsSettingProps {
   onDirectNameserverChange: (list: string[]) => void
   onProxyNameserverChange: (list: string[]) => void
   onNameserverPolicyChange: (policy: Record<string, string | string[]>) => void
+  onProxyServerNameserverPolicyChange: (policy: Record<string, string | string[]>) => void
   onUseSystemHostsChange: (v: boolean) => void
   onUseHostsChange: (v: boolean) => void
   onHostsChange: (hosts: IHost[]) => void
@@ -28,6 +30,7 @@ const AdvancedDnsSetting: React.FC<AdvancedDnsSettingProps> = ({
   directNameserver,
   proxyServerNameserver,
   nameserverPolicy,
+  proxyServerNameserverPolicy,
   hosts,
   useHosts,
   useSystemHosts,
@@ -35,6 +38,7 @@ const AdvancedDnsSetting: React.FC<AdvancedDnsSettingProps> = ({
   onDirectNameserverChange,
   onProxyNameserverChange,
   onNameserverPolicyChange,
+  onProxyServerNameserverPolicyChange,
   onUseSystemHostsChange,
   onUseHostsChange,
   onHostsChange,
@@ -43,17 +47,23 @@ const AdvancedDnsSetting: React.FC<AdvancedDnsSettingProps> = ({
   const [directNameserverError, setDirectNameserverError] = useState<string | null>(null)
   const [proxyNameserverError, setProxyNameserverError] = useState<string | null>(null)
   const [nameserverPolicyError, setNameserverPolicyError] = useState<string | null>(null)
+  const [proxyNameserverPolicyError, setProxyNameserverPolicyError] = useState<string | null>(null)
   const [hostsError, setHostsError] = useState<string | null>(null)
 
   React.useEffect(() => {
     const hasError = Boolean(
-      directNameserverError || proxyNameserverError || nameserverPolicyError || hostsError
+      directNameserverError ||
+      proxyNameserverError ||
+      nameserverPolicyError ||
+      proxyNameserverPolicyError ||
+      hostsError
     )
     onErrorChange?.(hasError)
   }, [
     directNameserverError,
     proxyNameserverError,
     nameserverPolicyError,
+    proxyNameserverPolicyError,
     hostsError,
     onErrorChange
   ])
@@ -96,7 +106,67 @@ const AdvancedDnsSetting: React.FC<AdvancedDnsSettingProps> = ({
         }}
         placeholder="例：tls://dns.alidns.com"
       />
-
+      {proxyServerNameserver.length > 0 && (
+        <EditableList
+          title="代理节点解析策略"
+          items={proxyServerNameserverPolicy}
+          validate={(part1) => isValidDomainWildcard(part1)}
+          validatePart2={(part2) => {
+            const parts = part2
+              .split(',')
+              .map((p) => p.trim())
+              .filter(Boolean)
+            for (const p of parts) {
+              const result = isValidDnsServer(p)
+              if (!result.ok) {
+                return result
+              }
+            }
+            return { ok: true }
+          }}
+          onChange={(newValue) => {
+            onProxyServerNameserverPolicyChange(newValue as Record<string, string | string[]>)
+            try {
+              const rec = newValue as Record<string, string | string[]>
+              for (const domain of Object.keys(rec)) {
+                if (!isValidDomainWildcard(domain).ok) {
+                  setProxyNameserverPolicyError(
+                    isValidDomainWildcard(domain).error ?? '域名格式错误'
+                  )
+                  return
+                }
+              }
+              for (const v of Object.values(rec)) {
+                if (Array.isArray(v)) {
+                  for (const vv of v) {
+                    if (!isValidDnsServer(vv).ok) {
+                      setProxyNameserverPolicyError(isValidDnsServer(vv).error ?? '格式错误')
+                      return
+                    }
+                  }
+                } else {
+                  const parts = (v as string)
+                    .split(',')
+                    .map((p) => p.trim())
+                    .filter(Boolean)
+                  for (const p of parts) {
+                    if (!isValidDnsServer(p).ok) {
+                      setProxyNameserverPolicyError(isValidDnsServer(p).error ?? '格式错误')
+                      return
+                    }
+                  }
+                }
+              }
+              setProxyNameserverPolicyError(null)
+            } catch (e) {
+              setProxyNameserverPolicyError('策略格式错误')
+            }
+          }}
+          placeholder="域名"
+          part2Placeholder="DNS 服务器，用逗号分隔"
+          objectMode="record"
+        />
+      )}
       <EditableList
         title="域名解析策略"
         items={nameserverPolicy}

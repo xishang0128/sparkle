@@ -106,6 +106,7 @@ interface MihomoDNSConfig {
   'direct-nameserver'?: string[]
   'direct-nameserver-follow-policy'?: boolean
   'nameserver-policy'?: { [key: string]: string | string[] }
+  'proxy-server-nameserver-policy'?: { [key: string]: string | string[] }
   'cache-algorithm'?: string
 }
 
