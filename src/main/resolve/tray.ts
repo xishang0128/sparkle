@@ -137,6 +137,7 @@ export const buildContextMenu = async (): Promise<Menu> => {
     envType = process.platform === 'win32' ? ['powershell'] : ['bash'],
     autoCloseConnection,
     proxyInTray = true,
+    trayProxyDelayLayout = 'new-line',
     // useCustomTrayMenu = false,
     triggerSysProxyShortcut = '',
     showFloatingWindowShortcut = '',
@@ -159,10 +160,11 @@ export const buildContextMenu = async (): Promise<Menu> => {
           : -1
         const displayDelay = formatDelayText(delay)
 
+        const isNewLine = trayProxyDelayLayout === 'new-line'
         return {
           id: group.name,
-          label: group.name,
-          sublabel: displayDelay,
+          label: isNewLine ? group.name : `${group.name}   ${displayDelay}`,
+          sublabel: isNewLine ? displayDelay : '',
           type: 'submenu',
           submenu: [
             {
@@ -184,10 +186,12 @@ export const buildContextMenu = async (): Promise<Menu> => {
                 ? proxy.history[proxy.history.length - 1].delay
                 : -1
               const proxyDisplayDelay = formatDelayText(proxyDelay)
+
+              const isNewLine = trayProxyDelayLayout === 'new-line'
               return {
                 id: proxy.name,
-                label: proxy.name,
-                sublabel: proxyDisplayDelay,
+                label: isNewLine ? proxy.name : `${proxy.name}   ${proxyDisplayDelay}`,
+                sublabel: isNewLine ? proxyDisplayDelay : '',
                 type: 'radio' as const,
                 checked: proxy.name === group.now,
                 click: async (): Promise<void> => {
