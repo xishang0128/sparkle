@@ -17,6 +17,7 @@ import { cropAndPadTransparent } from '@renderer/utils/image'
 import { platform } from '@renderer/utils/init'
 import { useControledMihomoConfig } from '@renderer/hooks/use-controled-mihomo-config'
 import { MdTune } from 'react-icons/md'
+import { IoPause, IoPlay } from 'react-icons/io5'
 
 let cachedConnections: ControllerConnectionDetail[] = []
 
@@ -45,6 +46,8 @@ const Connections: React.FC = () => {
   const [firstItemRefreshTrigger, setFirstItemRefreshTrigger] = useState(0)
 
   const [tab, setTab] = useState('active')
+  const [paused, setPaused] = useState(false)
+  const pausedRef = useRef(paused)
   const [deletedIds, setDeletedIds] = useState<Set<string>>(new Set())
 
   const iconRequestQueue = useRef(new Set<string>())
@@ -154,6 +157,7 @@ const Connections: React.FC = () => {
 
   useEffect(() => {
     const handleConnections = (_e: unknown, info: ControllerConnections): void => {
+      if (pausedRef.current) return
       setConnectionsInfo(info)
 
       if (!info.connections) return
@@ -232,6 +236,10 @@ const Connections: React.FC = () => {
       window.electron.ipcRenderer.removeAllListeners('mihomoConnections')
     }
   }, [allConnections, activeConnections, closedConnections, deletedIds])
+
+  useEffect(() => {
+    pausedRef.current = paused
+  }, [paused])
 
   const processAppNameQueue = useCallback(async () => {
     if (processingAppNames.current.size >= 3 || appNameRequestQueue.current.size === 0) return
@@ -506,6 +514,21 @@ const Connections: React.FC = () => {
             size="sm"
             isIconOnly
             className="app-nodrag ml-2"
+            variant="light"
+            title={paused ? '继续' : '暂停'}
+            onPress={() =>
+              setPaused((p) => {
+                pausedRef.current = !p
+                return !p
+              })
+            }
+          >
+            {paused ? <IoPlay className="text-lg" /> : <IoPause className="text-lg" />}
+          </Button>
+          <Button
+            size="sm"
+            isIconOnly
+            className="app-nodrag"
             variant="light"
             title="连接设置"
             onPress={() => setIsSettingModalOpen(true)}
