@@ -160,18 +160,6 @@ jobs:
             7z a $_.FullName PORTABLE
           }
 
-      - name: Magic build for AOSC OS(loongarch64)
-        if: matrix.os == 'ubuntu-latest' && matrix.format == 'deb' && matrix.arch == 'loong64'
-        shell: bash
-        run: |
-          set -e
-          VERSION=$(jq -r '.version' package.json)
-          mkdir workdir
-          fakeroot dpkg-deb -R dist/sparkle-linux-${VERSION}-loong64.deb workdir
-          fakeroot sed -i 's/^Architecture: .*/Architecture: loongarch64/' workdir/DEBIAN/control
-          fakeroot dpkg-deb -b workdir dist/sparkle-linux-${VERSION}-loongarch64.deb
-          rm -rf workdir
-
       - name: Create Changelog
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
