@@ -502,7 +502,9 @@ ipcMain.on('customTray:close', () => {
   hideCustomTray()
 })
 
-export async function copyEnv(type: 'bash' | 'cmd' | 'powershell' | 'nushell'): Promise<void> {
+export async function copyEnv(
+  type: 'bash' | 'fish' | 'cmd' | 'powershell' | 'nushell'
+): Promise<void> {
   const { 'mixed-port': mixedPort = 7890 } = await getControledMihomoConfig()
   const { sysProxy } = await getAppConfig()
   const { host, bypass = [] } = sysProxy
@@ -510,6 +512,12 @@ export async function copyEnv(type: 'bash' | 'cmd' | 'powershell' | 'nushell'): 
     case 'bash': {
       clipboard.writeText(
         `export https_proxy=http://${host || '127.0.0.1'}:${mixedPort} http_proxy=http://${host || '127.0.0.1'}:${mixedPort} all_proxy=http://${host || '127.0.0.1'}:${mixedPort} no_proxy=${bypass.join(',')}`
+      )
+      break
+    }
+    case 'fish': {
+      clipboard.writeText(
+        `set -xg http_proxy "http://${host || '127.0.0.1'}:${mixedPort}" && set -xg https_proxy "http://${host || '127.0.0.1'}:${mixedPort}" && set -xg no_proxy "${bypass.join(',')}"`
       )
       break
     }

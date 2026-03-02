@@ -127,7 +127,7 @@ const AdvancedSettings: React.FC = () => {
           onSelectionChange={async (v) => {
             try {
               await patchAppConfig({
-                envType: Array.from(v) as ('bash' | 'cmd' | 'powershell')[]
+                envType: Array.from(v) as ('bash' | 'fish' | 'cmd' | 'powershell' | 'nushell')[]
               })
             } catch (e) {
               alert(e)
@@ -135,6 +135,7 @@ const AdvancedSettings: React.FC = () => {
           }}
         >
           <SelectItem key="bash">Bash</SelectItem>
+          <SelectItem key="fish">Fish</SelectItem>
           <SelectItem key="cmd">CMD</SelectItem>
           <SelectItem key="powershell">PowerShell</SelectItem>
           <SelectItem key="nushell">NuShell</SelectItem>
