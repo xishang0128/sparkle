@@ -12,7 +12,7 @@ import {
   Tab,
   Tabs
 } from '@heroui/react'
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import SettingItem from '../base/base-setting-item'
 import { useAppConfig } from '@renderer/hooks/use-app-config'
 import debounce from '@renderer/utils/debounce'
@@ -40,9 +40,11 @@ const ProxySettingModal: React.FC<Props> = (props) => {
 
   const [url, setUrl] = useState(delayTestUrl ?? '')
 
-  const setUrlDebounce = debounce((v: string) => {
-    patchAppConfig({ delayTestUrl: v })
-  }, 500)
+  const setUrlDebounce = useRef(
+    debounce((v: string) => {
+      patchAppConfig({ delayTestUrl: v })
+    }, 500)
+  ).current
 
   useEffect(() => {
     setUrl(delayTestUrl ?? '')
