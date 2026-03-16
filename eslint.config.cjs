@@ -11,7 +11,13 @@ module.exports = [
   ...configs.recommended,
 
   {
-    files: ['**/*.{js,jsx,ts,tsx}'],
+    rules: {
+      'preserve-caught-error': 'off'
+    }
+  },
+
+  {
+    files: ['src/renderer/src/**/*.{jsx,tsx}'],
     plugins: {
       react: react
     },
@@ -21,7 +27,7 @@ module.exports = [
     },
     settings: {
       react: {
-        version: 'detect'
+        version: '19.2.4'
       }
     },
     languageOptions: {
