@@ -38,6 +38,8 @@ import ConfirmModal from '@renderer/components/base/base-confirm'
 
 let navigate: NavigateFunction
 
+const interactiveSelector = 'button:not(.pointer-events-none), [role="switch"]'
+
 const defaultSiderOrder = [
   'sysproxy',
   'tun',
@@ -73,7 +75,13 @@ const App: React.FC = () => {
   const siderWidthValueRef = useRef(siderWidthValue)
   const [resizing, setResizing] = useState(false)
   const resizingRef = useRef(resizing)
-  const sensors = useSensors(useSensor(PointerSensor))
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8
+      }
+    })
+  )
   const { setTheme, systemTheme } = useTheme()
   navigate = useNavigate()
   const location = useLocation()
@@ -144,35 +152,28 @@ const App: React.FC = () => {
 
   const onDragEnd = async (event: DragEndEvent): Promise<void> => {
     const { active, over } = event
-    if (over) {
-      if (active.id !== over.id) {
-        const newOrder = order.slice()
-        const activeIndex = newOrder.indexOf(active.id as string)
-        const overIndex = newOrder.indexOf(over.id as string)
-        newOrder.splice(activeIndex, 1)
-        newOrder.splice(overIndex, 0, active.id as string)
-        setOrder(newOrder)
-        await patchAppConfig({ siderOrder: newOrder })
-        return
-      }
+    if (over && active.id !== over.id) {
+      const newOrder = order.slice()
+      const activeIndex = newOrder.indexOf(active.id as string)
+      const overIndex = newOrder.indexOf(over.id as string)
+      newOrder.splice(activeIndex, 1)
+      newOrder.splice(overIndex, 0, active.id as string)
+      setOrder(newOrder)
+      await patchAppConfig({ siderOrder: newOrder })
     }
-    navigate(navigateMap[active.id as string])
   }
 
-  const navigateMap = {
-    sysproxy: 'sysproxy',
-    tun: 'tun',
-    profile: 'profiles',
-    proxy: 'proxies',
-    mihomo: 'mihomo',
-    connection: 'connections',
-    dns: 'dns',
-    sniff: 'sniffer',
-    log: 'logs',
-    rule: 'rules',
-    resource: 'resources',
-    override: 'override',
-    substore: 'substore'
+  const onSiderClickCapture = (event: React.MouseEvent<HTMLDivElement>): void => {
+    const target = event.target as HTMLElement
+    if (target.closest(interactiveSelector)) return
+
+    const items = Array.from(event.currentTarget.children)
+    const itemIndex = items.findIndex((item) => item.contains(target))
+    if (itemIndex < 0) return
+
+    const key = order[itemIndex] as keyof typeof navigateMap
+    const route = navigateMap[key]
+    if (route) navigate(route)
   }
 
   const componentMap = {
@@ -190,6 +191,21 @@ const App: React.FC = () => {
     override: OverrideCard,
     substore: SubStoreCard
   }
+  const navigateMap = {
+    sysproxy: '/sysproxy',
+    tun: '/tun',
+    profile: '/profiles',
+    proxy: '/proxies',
+    mihomo: '/mihomo',
+    connection: '/connections',
+    dns: '/dns',
+    sniff: '/sniffer',
+    log: '/logs',
+    rule: '/rules',
+    resource: '/resources',
+    override: '/override',
+    substore: '/substore'
+  } as const
 
   const [showQuitConfirm, setShowQuitConfirm] = useState(false)
   const [showProfileInstallConfirm, setShowProfileInstallConfirm] = useState(false)
@@ -405,7 +421,7 @@ const App: React.FC = () => {
           </div>
           <div style={{ overflowX: 'clip' }}>
             <DndContext sensors={sensors} collisionDetection={closestCorners} onDragEnd={onDragEnd}>
-              <div className="grid grid-cols-2 gap-2 m-2">
+              <div className="grid grid-cols-2 gap-2 m-2" onClickCapture={onSiderClickCapture}>
                 <SortableContext items={order}>
                   {order.map((key: string) => {
                     const Component = componentMap[key]
