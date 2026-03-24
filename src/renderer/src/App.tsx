@@ -56,6 +56,26 @@ const defaultSiderOrder = [
   'substore'
 ]
 
+const siderCardRouteMap = {
+  'sysproxy-card': '/sysproxy',
+  'tun-card': '/tun',
+  'profile-card': '/profiles',
+  'proxy-card': '/proxies',
+  'mihomo-core-card': '/mihomo',
+  'conn-card': '/connections',
+  'dns-card': '/dns',
+  'sniff-card': '/sniffer',
+  'log-card': '/logs',
+  'rule-card': '/rules',
+  'resource-card': '/resources',
+  'override-card': '/override',
+  'substore-card': '/substore'
+} as const
+const siderCardSelector = Object.keys(siderCardRouteMap)
+  .map((className) => `.${className}`)
+  .join(', ')
+
+
 const App: React.FC = () => {
   const { appConfig, patchAppConfig } = useAppConfig()
   const {
@@ -167,12 +187,12 @@ const App: React.FC = () => {
     const target = event.target as HTMLElement
     if (target.closest(interactiveSelector)) return
 
-    const items = Array.from(event.currentTarget.children)
-    const itemIndex = items.findIndex((item) => item.contains(target))
-    if (itemIndex < 0) return
+    const clickedCard = target.closest(siderCardSelector)
+    if (!clickedCard) return
 
-    const key = order[itemIndex] as keyof typeof navigateMap
-    const route = navigateMap[key]
+    const route = Object.entries(siderCardRouteMap).find(([className]) =>
+      clickedCard.classList.contains(className)
+    )?.[1]
     if (route) navigate(route)
   }
 
