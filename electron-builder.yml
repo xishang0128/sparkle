@@ -67,10 +67,48 @@ linux:
   artifactName: ${name}-linux-${version}-${arch}.${ext}
 deb:
   afterInstall: 'build/linux/postinst'
+  depends:
+    - libasound2
+    - libgtk-3-0
+    - libnotify4
+    - libnss3
+    - libxss1
+    - libxtst6
+    - xdg-utils
+    - libatspi2.0-0
+    - libuuid1
+    - libsecret-1-0
+  recommends:
+    - libappindicator3-1
 rpm:
   afterInstall: 'build/linux/postinst'
+  depends:
+    - alsa-lib
+    - gtk3
+    - libnotify
+    - nss
+    - libXScrnSaver
+    - libXtst
+    - xdg-utils
+    - at-spi2-core
+    - libuuid
+    - libsecret
 pacman:
   afterInstall: 'build/linux/postinst'
-  artifactName: ${name}-linux-${version}-${arch}.pkg.tar.xz
+  fpm:
+    - --pacman-compression
+    - zstd
+  depends:
+    - alsa-lib
+    - gtk3
+    - libnotify
+    - nss
+    - libxss
+    - libxtst
+    - xdg-utils
+    - at-spi2-core
+    - util-linux-libs
+    - libsecret
+  artifactName: ${name}-linux-${version}-${arch}.pkg.tar.zst
 npmRebuild: true
 publish: []

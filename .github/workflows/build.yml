@@ -59,9 +59,9 @@ jobs:
           - os: ubuntu-latest
             arch: loong64
             format: rpm
-          - os: ubuntu-latest
-            arch: loong64
-            format: pacman
+          # - os: ubuntu-latest
+          #   arch: loong64
+          #   format: pacman
 
           - os: macos-latest
             arch: x64

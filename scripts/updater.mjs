@@ -18,7 +18,7 @@ if (process.env.SKIP_CHANGELOG !== '1') {
   changelog += '\n#### Linux：\n\n'
   changelog += `- DEB：[64位](${downloadUrl}/sparkle-linux-${version}-amd64.deb) | [ARM64](${downloadUrl}/sparkle-linux-${version}-arm64.deb) | [loong64](${downloadUrl}/sparkle-linux-${version}-loong64.deb)\n\n`
   changelog += `- RPM：[64位](${downloadUrl}/sparkle-linux-${version}-x86_64.rpm) | [ARM64](${downloadUrl}/sparkle-linux-${version}-aarch64.rpm) | [loong64](${downloadUrl}/sparkle-linux-${version}-loongarch64.rpm)\n\n`
-  changelog += `- PACMAN：[64位](${downloadUrl}/sparkle-linux-${version}-x64.pkg.tar.xz) | [ARM64](${downloadUrl}/sparkle-linux-${version}-aarch64.pkg.tar.xz) | [loong64](${downloadUrl}/sparkle-linux-${version}-loong64.pkg.tar.xz)`
+  changelog += `- PACMAN：[64位](${downloadUrl}/sparkle-linux-${version}-x64.pkg.tar.zst) | [ARM64](${downloadUrl}/sparkle-linux-${version}-aarch64.pkg.tar.zst) | [loong64](${downloadUrl}/sparkle-linux-${version}-loong64.pkg.tar.zst)`
 }
 writeFileSync('latest.yml', yaml.stringify(latest))
 writeFileSync('changelog.md', changelog)
