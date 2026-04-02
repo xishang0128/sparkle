@@ -44,6 +44,7 @@ async function createFloatingWindow(): Promise<void> {
     y: floatingWindowState.y,
     show: false,
     frame: false,
+    hasShadow: false,
     alwaysOnTop: true,
     resizable: false,
     transparent: true,
