@@ -176,8 +176,12 @@ const Connections: React.FC = () => {
 
       const activeConns = info.connections.map((conn) => {
         const preConn = prevActiveMap.get(conn.id)
-        const downloadSpeed = preConn ? Math.max(0, Math.round((conn.download - preConn.download) * speedRatio)) : 0
-        const uploadSpeed = preConn ? Math.max(0, Math.round((conn.upload - preConn.upload) * speedRatio)) : 0
+        const downloadSpeed = preConn
+          ? Math.max(0, Math.round((conn.download - preConn.download) * speedRatio))
+          : 0
+        const uploadSpeed = preConn
+          ? Math.max(0, Math.round((conn.upload - preConn.upload) * speedRatio))
+          : 0
         const metadata =
           conn.metadata.type === 'Inner'
             ? { ...conn.metadata, process: 'mihomo', processPath: 'mihomo' }

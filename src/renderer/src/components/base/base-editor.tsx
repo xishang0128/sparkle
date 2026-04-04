@@ -100,8 +100,16 @@ export const BaseEditor: React.FC<Props> = (props) => {
   } = props
   const { appConfig: { disableAnimation = false } = {} } = useAppConfig()
 
+  const hasLongLine = value.split('\n').some((line) => line.length > 5000) || value === ''
   const editorRef = useRef<monaco.editor.IStandaloneCodeEditor>(undefined)
   const diffEditorRef = useRef<monaco.editor.IStandaloneDiffEditor>(undefined)
+  console.log('BaseEditor render', {
+    language,
+    readOnly,
+    diffRenderSideBySide,
+    hasLongLine,
+    disableAnimation
+  })
 
   const editorWillMount = (): void => {
     monacoInitialization()
@@ -153,7 +161,11 @@ export const BaseEditor: React.FC<Props> = (props) => {
     folding: true, // 启用代码折叠
     scrollBeyondLastLine: false, // 禁止滚动超过最后一行
     automaticLayout: true, // 自动布局
-    wordWrap: 'on' as 'on' | 'off', // 自动换行 x
+    wordWrap: (hasLongLine ? 'off' : 'on') as 'on' | 'off', // 超长行时关闭自动换行
+    wordWrapOverride1: (hasLongLine ? 'off' : 'inherit') as 'off' | 'on' | 'inherit',
+    wordWrapOverride2: (hasLongLine ? 'off' : 'inherit') as 'off' | 'on' | 'inherit',
+    wrappingStrategy: (hasLongLine ? 'simple' : 'advanced') as 'simple' | 'advanced',
+    stopRenderingLineAfter: hasLongLine ? 5000 : 10000,
     // 禁用动画时的性能优化选项
     cursorBlinking: (disableAnimation ? 'solid' : 'blink') as 'solid' | 'blink', // 禁用光标闪烁动画
     cursorSmoothCaretAnimation: (disableAnimation ? 'off' : 'on') as 'off' | 'on', // 禁用光标移动动画
