@@ -183,10 +183,10 @@ const OverrideItem: React.FC<Props> = (props) => {
       >
         <div ref={setNodeRef} {...attributes} {...listeners} className="h-full w-full">
           <CardBody>
-            <div className="flex justify-between h-[32px]">
+            <div className="flex justify-between h-8">
               <h3
                 title={info?.name}
-                className={`text-ellipsis whitespace-nowrap overflow-hidden text-md font-bold leading-[32px] text-foreground`}
+                className={`text-ellipsis whitespace-nowrap overflow-hidden text-md font-bold leading-8 text-foreground`}
               >
                 {info?.name}
               </h3>

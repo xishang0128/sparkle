@@ -11,7 +11,7 @@ const BorderSwitch: React.FC<SiderSwitchProps> = (props) => {
 
   return (
     <Switch
-      className="border-switch px-[8px]"
+      className="border-switch px-2"
       classNames={{
         wrapper: cn('border-2', {
           'border-transparent': !isShowBorder,

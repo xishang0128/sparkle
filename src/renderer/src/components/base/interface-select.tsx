@@ -19,7 +19,7 @@ const InterfaceSelect: React.FC<{
   return (
     <Select
       size="sm"
-      className="w-[300px]"
+      className="w-75"
       selectedKeys={new Set([value])}
       disallowEmptySelection={true}
       onSelectionChange={(v) => onChange(v.currentKey as string)}

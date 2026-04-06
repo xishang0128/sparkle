@@ -331,7 +331,7 @@ const App: React.FC = () => {
             }
           }}
           onConfirm={() => handleProfileInstallConfirm(true)}
-          className="w-[500px]"
+          className="w-125"
         />
       )}
       {showOverrideInstallConfirm && overrideInstallData && (
@@ -360,10 +360,8 @@ const App: React.FC = () => {
       )}
       {siderWidthValue === narrowWidth ? (
         <div style={{ width: `${narrowWidth}px` }} className="side h-full">
-          <div className="app-drag flex justify-center items-center z-40 bg-transparent h-[45px]">
-            {platform !== 'darwin' && (
-              <MihomoIcon className="h-[32px] leading-[32px] text-lg mx-px" />
-            )}
+          <div className="app-drag flex justify-center items-center z-40 bg-transparent h-11.25">
+            {platform !== 'darwin' && <MihomoIcon className="h-8 leading-8 text-lg mx-px" />}
           </div>
           <div
             className={`${latest ? 'h-[calc(100%-275px)]' : 'h-[calc(100%-227px)]'} overflow-y-auto no-scrollbar`}
@@ -397,13 +395,13 @@ const App: React.FC = () => {
           className="side h-full overflow-y-auto no-scrollbar"
         >
           <div
-            className={`app-drag sticky top-0 z-40 ${disableAnimation ? 'bg-background/95 backdrop-blur-sm' : 'bg-transparent backdrop-blur'} h-[49px]`}
+            className={`app-drag sticky top-0 z-40 ${disableAnimation ? 'bg-background/95 backdrop-blur-sm' : 'bg-transparent backdrop-blur'} h-12.25`}
           >
             <div
-              className={`flex justify-between p-2 ${!useWindowFrame && platform === 'darwin' ? 'ml-[60px]' : ''}`}
+              className={`flex justify-between p-2 ${!useWindowFrame && platform === 'darwin' ? 'ml-15' : ''}`}
             >
               <div className="flex ml-1">
-                <h3 className="text-lg font-bold leading-[32px]">Sparkle</h3>
+                <h3 className="text-lg font-bold leading-8">Sparkle</h3>
               </div>
               {latest && latest.version && <UpdaterButton latest={latest} />}
               <Button

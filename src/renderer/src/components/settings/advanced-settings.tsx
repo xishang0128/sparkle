@@ -86,7 +86,7 @@ const AdvancedSettings: React.FC = () => {
           <SettingItem title="自动开启轻量模式延时" divider>
             <Input
               size="sm"
-              className="w-[100px]"
+              className="w-25"
               type="number"
               endContent="秒"
               value={autoLightweightDelay.toString()}
@@ -119,7 +119,7 @@ const AdvancedSettings: React.FC = () => {
       >
         <Select
           classNames={{ trigger: 'data-[hover=true]:bg-default-200' }}
-          className="w-[150px]"
+          className="w-37.5"
           size="sm"
           selectionMode="multiple"
           selectedKeys={new Set(envType)}
@@ -145,7 +145,7 @@ const AdvancedSettings: React.FC = () => {
         <SettingItem title="内核进程优先级" divider>
           <Select
             classNames={{ trigger: 'data-[hover=true]:bg-default-200' }}
-            className="w-[150px]"
+            className="w-37.5"
             size="sm"
             selectedKeys={new Set([mihomoCpuPriority])}
             disallowEmptySelection={true}
@@ -243,7 +243,7 @@ const AdvancedSettings: React.FC = () => {
               <Input
                 size="sm"
                 type="number"
-                className="w-[100px]"
+                className="w-25"
                 endContent="秒"
                 value={interval.toString()}
                 min={1}

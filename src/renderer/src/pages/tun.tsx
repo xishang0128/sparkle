@@ -140,7 +140,7 @@ const Tun: React.FC = () => {
               <SettingItem title="Tun 网卡名称" divider>
                 <Input
                   size="sm"
-                  className="w-[100px]"
+                  className="w-25"
                   value={values.device}
                   onValueChange={(v) => {
                     setValues({ ...values, device: v })
@@ -200,7 +200,7 @@ const Tun: React.FC = () => {
             <Input
               size="sm"
               type="number"
-              className="w-[100px]"
+              className="w-25"
               value={values.mtu.toString()}
               onValueChange={(v) => {
                 setValues({ ...values, mtu: parseInt(v) })

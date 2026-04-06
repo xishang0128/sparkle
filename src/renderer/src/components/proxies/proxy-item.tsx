@@ -85,7 +85,7 @@ const ProxyItem: React.FC<Props> = (props) => {
                       mutateProxies()
                     }}
                     variant="light"
-                    className="h-[24px] w-[24px] min-w-[24px] p-0 text-xs"
+                    className="h-6 w-6 min-w-6 p-0 text-xs"
                   >
                     <FaMapPin className="text-xs le" />
                   </Button>
@@ -97,7 +97,7 @@ const ProxyItem: React.FC<Props> = (props) => {
                   color={delayColor(delay)}
                   onPress={onDelay}
                   variant="light"
-                  className="h-[32px] w-[32px] min-w-[32px] p-0 text-xs"
+                  className="h-8 w-8 min-w-8 p-0 text-xs"
                 >
                   {delayText(delay)}
                 </Button>
@@ -127,7 +127,7 @@ const ProxyItem: React.FC<Props> = (props) => {
                         mutateProxies()
                       }}
                       variant="light"
-                      className="h-[24px] w-[24px] min-w-[24px] p-0 text-xs"
+                      className="h-6 w-6 min-w-6 p-0 text-xs"
                     >
                       <FaMapPin className="text-xs le" />
                     </Button>
@@ -141,7 +141,7 @@ const ProxyItem: React.FC<Props> = (props) => {
                     color={delayColor(delay)}
                     onPress={onDelay}
                     variant="light"
-                    className="h-full w-[32px] min-w-[32px] p-0 text-sm"
+                    className="h-full w-8 min-w-8 p-0 text-sm"
                   >
                     {delayText(delay)}
                   </Button>

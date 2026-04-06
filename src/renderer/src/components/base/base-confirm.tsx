@@ -87,7 +87,7 @@ const ConfirmModal: React.FC<Props> = (props) => {
         backdrop: 'top-[48px]'
       }}
     >
-      <ModalContent className={['w-[400px]', className].filter(Boolean).join(' ')}>
+      <ModalContent className={['w-100', className].filter(Boolean).join(' ')}>
         <ModalHeader>{title}</ModalHeader>
         <ModalBody>
           <div className="leading-relaxed">{description}</div>

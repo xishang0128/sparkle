@@ -100,10 +100,10 @@ const MihomoCoreCard: React.FC<Props> = (props) => {
               ref={setNodeRef}
               {...attributes}
               {...listeners}
-              className="flex justify-between h-[32px]"
+              className="flex justify-between h-8"
             >
               <h3
-                className={`text-md font-bold leading-[32px] ${match ? 'text-primary-foreground' : 'text-foreground'} `}
+                className={`text-md font-bold leading-8 ${match ? 'text-primary-foreground' : 'text-foreground'} `}
               >
                 {version?.version ?? '-'}
               </h3>

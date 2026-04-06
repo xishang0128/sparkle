@@ -66,7 +66,7 @@ const ProxySettingModal: React.FC<Props> = (props) => {
           <SettingItem title="代理节点展示列数" divider>
             <Select
               classNames={{ trigger: 'data-[hover=true]:bg-default-200' }}
-              className="w-[150px]"
+              className="w-37.5"
               size="sm"
               selectedKeys={new Set([proxyCols])}
               disallowEmptySelection={true}
@@ -186,7 +186,7 @@ const ProxySettingModal: React.FC<Props> = (props) => {
             <Input
               type="number"
               size="sm"
-              className="w-[100px]"
+              className="w-25"
               value={delayTestConcurrency?.toString()}
               placeholder="默认 50"
               onValueChange={(v) => {
@@ -198,7 +198,7 @@ const ProxySettingModal: React.FC<Props> = (props) => {
             <Input
               type="number"
               size="sm"
-              className="w-[100px]"
+              className="w-25"
               value={delayTestTimeout?.toString()}
               placeholder="默认 5000"
               onValueChange={(v) => {

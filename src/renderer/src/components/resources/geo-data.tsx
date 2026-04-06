@@ -157,7 +157,7 @@ const GeoData: React.FC = () => {
           <Input
             size="sm"
             type="number"
-            className="w-[100px]"
+            className="w-25"
             value={geoUpdateInterval.toString()}
             onValueChange={(v) => {
               patchControledMihomoConfig({ 'geo-update-interval': parseInt(v) })

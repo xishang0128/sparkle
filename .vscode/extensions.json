@@ -1,3 +1,8 @@
 {
-  "recommendations": ["dbaeumer.vscode-eslint"]
+  "recommendations": [
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    "huacnlee.autocorrect",
+    "bradlc.vscode-tailwindcss"
+  ]
 }

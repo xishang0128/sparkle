@@ -122,7 +122,7 @@ const PermissionModal: React.FC<Props> = (props) => {
         backdrop: 'top-[48px]'
       }}
     >
-      <ModalContent className="w-[450px]">
+      <ModalContent className="w-112.5">
         <ModalHeader className="flex flex-col gap-1">
           {isWindows ? '任务计划管理' : '内核授权管理'}
         </ModalHeader>
@@ -132,7 +132,7 @@ const PermissionModal: React.FC<Props> = (props) => {
               <>
                 <Card
                   shadow="sm"
-                  className="border-none bg-gradient-to-br from-default-50 to-default-100"
+                  className="border-none bg-linear-to-br from-default-50 to-default-100"
                 >
                   <CardBody className="py-4">
                     <div className="flex items-center justify-between">

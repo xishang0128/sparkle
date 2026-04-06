@@ -75,7 +75,7 @@ const ConnectionSettingModal: React.FC<Props> = (props) => {
               <Input
                 size="sm"
                 type="number"
-                className="w-[150px]"
+                className="w-37.5"
                 endContent="ms"
                 value={intervalInput.toString()}
                 max={65535}

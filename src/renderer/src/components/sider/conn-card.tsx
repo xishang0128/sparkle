@@ -159,11 +159,11 @@ const ConnCard: React.FC<Props> = (props) => {
                 >
                   <div className="flex justify-between">
                     <div className="w-full text-right mr-2">{calcTraffic(upload)}/s</div>
-                    <FaCircleArrowUp className="h-[24px] leading-[24px]" />
+                    <FaCircleArrowUp className="h-6 leading-6" />
                   </div>
                   <div className="flex justify-between">
                     <div className="w-full text-right mr-2">{calcTraffic(download)}/s</div>
-                    <FaCircleArrowDown className="h-[24px] leading-[24px]" />
+                    <FaCircleArrowDown className="h-6 leading-6" />
                   </div>
                 </div>
               </div>
