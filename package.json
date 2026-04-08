@@ -3,7 +3,10 @@
   "version": "1.26.3",
   "description": "Sparkle",
   "main": "./out/main/index.js",
-  "author": "xishang0128",
+  "author": {
+    "name": "xishang0128",
+    "email": "xishang02@gmail.com"
+  },
   "homepage": "https://github.com/xishang0128/sparkle",
   "scripts": {
     "format": "prettier --write .",
