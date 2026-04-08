@@ -1,9 +1,14 @@
 #!/bin/sh
 
-chown root:admin $2/Sparkle.app/Contents/Resources/sidecar/mihomo
-chown root:admin $2/Sparkle.app/Contents/Resources/sidecar/mihomo-alpha
-chmod +s $2/Sparkle.app/Contents/Resources/sidecar/mihomo
-chmod +s $2/Sparkle.app/Contents/Resources/sidecar/mihomo-alpha
+APP_PATH="$2/Sparkle.app"
 
+chown root:admin "$APP_PATH/Contents/Resources/sidecar/mihomo"
+chown root:admin "$APP_PATH/Contents/Resources/sidecar/mihomo-alpha"
+chmod +s "$APP_PATH/Contents/Resources/sidecar/mihomo"
+chmod +s "$APP_PATH/Contents/Resources/sidecar/mihomo-alpha"
+
+/usr/bin/codesign --force --deep --sign - \
+  --preserve-metadata=identifier,entitlements,requirements,flags,runtime \
+  "$APP_PATH"
 
 exit 0
