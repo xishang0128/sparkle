@@ -11,7 +11,8 @@ import SettingItem from '../base/base-setting-item'
 import { Button, Chip } from '@heroui/react'
 import { IoMdRefresh } from 'react-icons/io'
 import { CgLoadbarDoc } from 'react-icons/cg'
-import { MdEditDocument } from 'react-icons/md'
+import { MdEditDocument, MdQrCode2 } from 'react-icons/md'
+import QRCodeModal from '../base/base-qrcode-modal'
 import dayjs from 'dayjs'
 import { calcTraffic } from '@renderer/utils/calc'
 import { getHash } from '@renderer/utils/hash'
@@ -24,6 +25,7 @@ const ProxyProvider: React.FC = () => {
     title: '',
     privderType: ''
   })
+  const [qrCode, setQrCode] = useState<{ name: string; url: string } | null>(null)
   useEffect(() => {
     if (showDetails.title) {
       const fetchProviderPath = async (name: string): Promise<void> => {
@@ -92,8 +94,27 @@ const ProxyProvider: React.FC = () => {
     return null
   }
 
+  const onShowQrCode = async (name: string): Promise<void> => {
+    try {
+      const config = await getRuntimeConfig()
+      const provider = config?.['proxy-providers']?.[name] as ProxyProviderConfig
+      if (provider?.url) {
+        setQrCode({ name, url: provider.url })
+      }
+    } catch {
+      // ignore
+    }
+  }
+
   return (
     <SettingCard>
+      {qrCode && (
+        <QRCodeModal
+          title={qrCode.name}
+          url={qrCode.url}
+          onClose={() => setQrCode(null)}
+        />
+      )}
       {showDetails.show && (
         <Viewer
           path={showDetails.path}
@@ -134,6 +155,17 @@ const ProxyProvider: React.FC = () => {
               {/* <Button isIconOnly className="ml-2" size="sm">
                 <IoMdEye className="text-lg" />
               </Button> */}
+              {provider.vehicleType === 'HTTP' && (
+                <Button
+                  isIconOnly
+                  title="二维码"
+                  className="ml-2"
+                  size="sm"
+                  onPress={() => onShowQrCode(provider.name)}
+                >
+                  <MdQrCode2 className="text-lg" />
+                </Button>
+              )}
               <Button
                 isIconOnly
                 title={provider.vehicleType == 'File' ? '编辑' : '查看'}
