@@ -59,9 +59,9 @@ jobs:
           - os: ubuntu-latest
             arch: loong64
             format: rpm
-          # - os: ubuntu-latest
-          #   arch: loong64
-          #   format: pacman
+          - os: ubuntu-latest
+            arch: loong64
+            format: pacman
 
           - os: macos-latest
             arch: x64
@@ -118,9 +118,9 @@ jobs:
         run: |
           export ELECTRON_MIRROR="https://github.com/darkyzhou/electron-loong64/releases/download/"
           export electron_use_remote_checksums=1
-          SKIP_PREPARE=1 pnpm install electron@37.2.5 -D
+          SKIP_PREPARE=1 pnpm install electron@39.2.7 -D
           pnpm remove electron-builder
-          SKIP_PREPARE=1 pnpm install @loongdotjs/electron-builder@26.0.12-1 -D
+          SKIP_PREPARE=1 pnpm install @loongdotjs/electron-builder@26.8.2-loong1 -D
 
       - name: Install Dependencies and Prepare
         env:
