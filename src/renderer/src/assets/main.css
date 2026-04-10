@@ -1,5 +1,6 @@
 @import 'tailwindcss';
 @plugin './hero.mjs';
+@import '@heroui-v3/styles';
 @source '../../../../node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}';
 @custom-variant dark (&:is(.dark *));
 
@@ -68,6 +69,16 @@
 }
 .app-drag {
   -webkit-app-region: drag;
+}
+
+.app-drag > .header {
+  width: auto;
+  padding: 0;
+  text-align: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: inherit;
+  color: inherit;
 }
 
 * {

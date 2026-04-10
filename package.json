@@ -29,6 +29,8 @@
     "@electron-toolkit/preload": "^3.0.2",
     "@electron-toolkit/utils": "^4.0.0",
     "@heroui/react": "2.8.10",
+    "@heroui-v3/react": "npm:@heroui/react@latest",
+    "@heroui-v3/styles": "npm:@heroui/styles@latest",
     "@tailwindcss/postcss": "^4.2.2",
     "@tailwindcss/vite": "^4.2.2",
     "@types/crypto-js": "^4.2.2",
