@@ -98,7 +98,7 @@ const Mihomo: React.FC = () => {
   const handleCoreUpgrade = async (): Promise<void> => {
     try {
       setUpgrading(true)
-      await mihomoUpgrade()
+      await mihomoUpgrade(core === 'mihomo' ? 'release' : 'alpha')
       setTimeout(() => PubSub.publish('mihomo-core-changed'), 2000)
     } catch (e) {
       if (typeof e === 'string' && e.includes('already using latest version')) {

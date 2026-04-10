@@ -78,8 +78,8 @@ export async function mihomoUpgradeUI(): Promise<void> {
   return ipcErrorWrapper(await window.electron.ipcRenderer.invoke('mihomoUpgradeUI'))
 }
 
-export async function mihomoUpgrade(): Promise<void> {
-  return ipcErrorWrapper(await window.electron.ipcRenderer.invoke('mihomoUpgrade'))
+export async function mihomoUpgrade(channel: string): Promise<void> {
+  return ipcErrorWrapper(await window.electron.ipcRenderer.invoke('mihomoUpgrade', channel))
 }
 
 export async function mihomoProxyDelay(

@@ -198,10 +198,10 @@ export const mihomoRulesDisable = async (rules: Record<string, boolean>): Promis
   return await instance.patch(`/rules/disable`, rules)
 }
 
-export const mihomoUpgrade = async (): Promise<void> => {
+export const mihomoUpgrade = async (channel: string): Promise<void> => {
   if (process.platform === 'win32') await patchMihomoConfig({ 'log-level': 'info' })
   const instance = await getAxios()
-  return await instance.post('/upgrade')
+  return await instance.post(`/upgrade?channel=${encodeURIComponent(channel)}`)
 }
 
 export const mihomoUpgradeGeo = async (): Promise<void> => {
