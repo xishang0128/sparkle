@@ -109,11 +109,7 @@ const ProxyProvider: React.FC = () => {
   return (
     <SettingCard>
       {qrCode && (
-        <QRCodeModal
-          title={qrCode.name}
-          url={qrCode.url}
-          onClose={() => setQrCode(null)}
-        />
+        <QRCodeModal title={qrCode.name} url={qrCode.url} onClose={() => setQrCode(null)} />
       )}
       {showDetails.show && (
         <Viewer
@@ -150,7 +146,7 @@ const ProxyProvider: React.FC = () => {
             }
             divider={!provider.subscriptionInfo && index !== providers.length - 1}
           >
-            <div className="flex h-[32px] leading-[32px] text-foreground-500">
+            <div className="flex h-8 leading-8 text-foreground-500">
               <div>{dayjs(provider.updatedAt).fromNow()}</div>
               {/* <Button isIconOnly className="ml-2" size="sm">
                 <IoMdEye className="text-lg" />
@@ -211,7 +207,7 @@ const ProxyProvider: React.FC = () => {
                 </div>
               }
             >
-              <div className="h-[32px] leading-[32px] text-foreground-500">
+              <div className="h-8 leading-8 text-foreground-500">
                 {provider.subscriptionInfo.Expire
                   ? dayjs.unix(provider.subscriptionInfo.Expire).format('YYYY-MM-DD')
                   : '长期有效'}

@@ -20,12 +20,21 @@ async function isRunningAsAdmin(): Promise<boolean> {
   }
 }
 
+function shellQuote(arg: string): string {
+  return `'${arg.replace(/'/g, `'\\''`)}'`
+}
+
+function appleScriptQuote(value: string): string {
+  return value.replace(/\\/g, '\\\\').replace(/"/g, '\\"')
+}
+
 export async function execWithElevation(command: string, args: string[]): Promise<void> {
   if (process.platform === 'win32') {
     try {
       if (await isRunningAsAdmin()) {
         await execFilePromise(command, args, { timeout: 30000 })
       } else {
+        const escapedCommand = command.replace(/'/g, "''")
         const psArgs = args
           .map((arg) => {
             const escaped = arg.replace(/'/g, "''")
@@ -39,7 +48,7 @@ export async function execWithElevation(command: string, args: string[]): Promis
             '-ExecutionPolicy',
             'Bypass',
             '-Command',
-            `& { $p = Start-Process -FilePath '${command}' -ArgumentList @(${psArgs}) -Verb RunAs -WindowStyle Hidden -PassThru -Wait; exit $p.ExitCode }`
+            `& { $p = Start-Process -FilePath '${escapedCommand}' -ArgumentList @(${psArgs}) -Verb RunAs -WindowStyle Hidden -PassThru -Wait; exit $p.ExitCode }`
           ],
           { timeout: 30000 }
         )
@@ -58,11 +67,11 @@ export async function execWithElevation(command: string, args: string[]): Promis
       )
     }
   } else if (process.platform === 'darwin') {
-    const cmd = `${command} ${args.join(' ')}`
+    const cmd = [command, ...args].map(shellQuote).join(' ')
     try {
       await execFilePromise('osascript', [
         '-e',
-        `do shell script "${cmd}" with administrator privileges`
+        `do shell script "${appleScriptQuote(cmd)}" with administrator privileges`
       ])
     } catch (error) {
       throw new Error(

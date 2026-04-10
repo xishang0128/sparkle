@@ -134,7 +134,7 @@ const RuleProvider: React.FC = () => {
               </Chip>
             }
           >
-            <div className="flex h-[32px] leading-[32px] text-foreground-500">
+            <div className="flex h-8 leading-8 text-foreground-500">
               <div>{dayjs(provider.updatedAt).fromNow()}</div>
               {provider.format !== 'MrsRule' && provider.vehicleType !== 'Inline' && (
                 <Button
@@ -177,7 +177,7 @@ const RuleProvider: React.FC = () => {
             title={<div className="text-foreground-500">{provider.format || 'InlineRule'}</div>}
             divider={index !== providers.length - 1}
           >
-            <div className="h-[32px] leading-[32px] text-foreground-500">
+            <div className="h-8 leading-8 text-foreground-500">
               {provider.vehicleType}::{provider.behavior}
             </div>
           </SettingItem>

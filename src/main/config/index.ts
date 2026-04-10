@@ -7,6 +7,7 @@ export {
   getProfileConfig,
   getFileStr,
   setFileStr,
+  saveFileStrWithElevation,
   setProfileConfig,
   addProfileItem,
   removeProfileItem,

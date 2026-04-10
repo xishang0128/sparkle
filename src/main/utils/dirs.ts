@@ -200,7 +200,10 @@ export function findSystemMihomo(): string[] {
   for (const name of searchNames) {
     try {
       const command = isWin ? 'where' : 'which'
-      const result = execSync(`${command} ${name}`, { encoding: 'utf8' }).trim()
+      const result = execSync(`${command} ${name}`, {
+        encoding: 'utf8',
+        stdio: 'pipe'
+      }).trim()
       if (result) {
         const paths = result.split('\n').filter((p) => p && existsSync(p))
         for (const p of paths) {
