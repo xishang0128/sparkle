@@ -1,4 +1,4 @@
-import { Label, Modal, Separator, Switch } from '@heroui-v3/react'
+import { Button, Label, Modal, Separator, Switch } from '@heroui-v3/react'
 import React, { useEffect, useState, useCallback, useRef } from 'react'
 import { BaseEditor } from '../base/base-editor-lazy'
 import {
@@ -103,8 +103,8 @@ const ConfigViewer: React.FC<Props> = ({ onClose }) => {
         variant="blur"
         className="top-12 h-[calc(100%-48px)]"
       >
-        <Modal.Container size="cover">
-          <Modal.Dialog className="h-full w-full max-w-none">
+        <Modal.Container>
+          <Modal.Dialog className="mt-4 h-[calc(100%-32px)] max-w-none">
             <Modal.Header className="app-drag pb-0">
               <Modal.Heading>当前运行时配置</Modal.Heading>
             </Modal.Header>
@@ -124,7 +124,7 @@ const ConfigViewer: React.FC<Props> = ({ onClose }) => {
                 />
               )}
             </Modal.Body>
-            <Modal.Footer className="pt-0 flex flex-wrap items-center justify-between gap-3">
+            <Modal.Footer className="pt-0 pb-0 flex flex-wrap items-center justify-between gap-3">
               <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
                 <Switch size="md" isSelected={isDiff} onChange={setIsDiff}>
                   <Switch.Content>
@@ -181,6 +181,14 @@ const ConfigViewer: React.FC<Props> = ({ onClose }) => {
                   </Switch.Control>
                 </Switch>
               </div>
+              <Button
+                size="sm"
+                variant="secondary"
+                className="h-7 min-w-0 px-3 text-sm leading-none"
+                onPress={onClose}
+              >
+                关闭
+              </Button>
             </Modal.Footer>
             <Modal.CloseTrigger className="app-nodrag" />
           </Modal.Dialog>
