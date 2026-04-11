@@ -207,11 +207,19 @@ const ProfileCard: React.FC<Props> = (props) => {
               </div>
             )}
             {extra && (
-              <Meter maxValue={extra.total} value={extra.download + extra.upload}>
-                <Meter.Track>
+              <Meter maxValue={total} value={usage}>
+                <Meter.Track
+                  className={
+                    match
+                      ? 'h-2.5 bg-black/22 shadow-[inset_0_0_0_1px_rgb(255_255_255/0.35)]'
+                      : undefined
+                  }
+                >
                   <Meter.Fill
-                    style={
-                      match ? { backgroundColor: 'var(--color-accent-foreground)' } : undefined
+                    className={
+                      match
+                        ? 'bg-(--color-accent-foreground) shadow-[0_0_8px_rgb(255_255_255/0.45)]'
+                        : undefined
                     }
                   />
                 </Meter.Track>

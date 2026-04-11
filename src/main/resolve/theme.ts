@@ -11,6 +11,35 @@ import { floatingWindow } from './floatingWindow'
 let insertedCSSKeyMain: string | undefined = undefined
 let insertedCSSKeyFloating: string | undefined = undefined
 
+function normalizeThemeCss(css: string): string {
+  const hasLegacyHeroUIVars = /--heroui-(primary|secondary|warning|danger)\s*:/i.test(css)
+  const hasV3Tokens = /--(accent|secondary|warning|danger)\s*:/i.test(css)
+
+  if (!hasLegacyHeroUIVars || hasV3Tokens) return css
+
+  return `${css}
+
+/* Sparkle compatibility: HeroUI v2 -> v3 token bridge */
+.dark,
+.light,
+.default,
+[data-theme='dark'],
+[data-theme='light'],
+[data-theme='default'] {
+  --accent: hsl(var(--heroui-primary)) !important;
+  --accent-foreground: hsl(var(--heroui-primary-foreground, 0 0% 100%)) !important;
+  --secondary: hsl(var(--heroui-secondary, var(--heroui-primary))) !important;
+  --secondary-foreground: hsl(var(--heroui-secondary-foreground, 0 0% 100%)) !important;
+  --success: hsl(var(--heroui-success, 145 79% 44%)) !important;
+  --success-foreground: hsl(var(--heroui-success-foreground, 0 0% 100%)) !important;
+  --warning: hsl(var(--heroui-warning, 37 91% 55%)) !important;
+  --warning-foreground: hsl(var(--heroui-warning-foreground, 0 0% 0%)) !important;
+  --danger: hsl(var(--heroui-danger, 339 90% 51%)) !important;
+  --danger-foreground: hsl(var(--heroui-danger-foreground, 0 0% 100%)) !important;
+  --focus: hsl(var(--heroui-focus, var(--heroui-primary))) !important;
+}`
+}
+
 export async function resolveThemes(): Promise<{ key: string; label: string }[]> {
   const files = await readdir(themesDir())
   const themes = await Promise.all(
@@ -70,7 +99,7 @@ export async function writeTheme(theme: string, css: string): Promise<void> {
 }
 
 export async function applyTheme(theme: string): Promise<void> {
-  const css = await readTheme(theme)
+  const css = normalizeThemeCss(await readTheme(theme))
   await mainWindow?.webContents.removeInsertedCSS(insertedCSSKeyMain || '')
   insertedCSSKeyMain = await mainWindow?.webContents.insertCSS(css)
   try {
