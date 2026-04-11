@@ -1,7 +1,8 @@
-import { Button, Card, CardBody, CardFooter, Chip, Progress, Tooltip } from '@heroui/react'
+import { Button, Card, CardBody, CardFooter, Chip, Tooltip } from '@heroui/react'
+import { Meter } from '@heroui-v3/react'
 import { useProfileConfig } from '@renderer/hooks/use-profile-config'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { calcTraffic, calcPercent } from '@renderer/utils/calc'
+import { calcTraffic } from '@renderer/utils/calc'
 import { CgLoadbarDoc } from 'react-icons/cg'
 import { IoMdRefresh } from 'react-icons/io'
 import relativeTime from 'dayjs/plugin/relativeTime'
@@ -206,11 +207,15 @@ const ProfileCard: React.FC<Props> = (props) => {
               </div>
             )}
             {extra && (
-              <Progress
-                className="w-full"
-                classNames={{ indicator: match ? 'bg-primary-foreground' : 'bg-foreground' }}
-                value={calcPercent(extra?.upload, extra?.download, extra?.total)}
-              />
+              <Meter maxValue={extra.total} value={extra.download + extra.upload}>
+                <Meter.Track>
+                  <Meter.Fill
+                    style={
+                      match ? { backgroundColor: 'var(--color-accent-foreground)' } : undefined
+                    }
+                  />
+                </Meter.Track>
+              </Meter>
             )}
           </CardFooter>
         </Card>

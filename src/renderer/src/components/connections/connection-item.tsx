@@ -1,4 +1,5 @@
-import { Avatar, Button, Card, CardFooter, CardHeader, Chip } from '@heroui/react'
+import { Button, Card, CardFooter, CardHeader, Chip } from '@heroui/react'
+import { Avatar } from '@heroui-v3/react'
 import { calcTraffic } from '@renderer/utils/calc'
 import dayjs from 'dayjs'
 import React, { memo, useCallback, useEffect, useMemo, useState } from 'react'
@@ -90,12 +91,9 @@ const ConnectionItemComponent: React.FC<Props> = ({
         <div className="w-full flex justify-between items-center">
           {displayIcon && (
             <div>
-              <Avatar
-                size="lg"
-                radius="sm"
-                src={iconUrl}
-                className="bg-transparent ml-2 w-14 h-14"
-              />
+              <Avatar size="lg" className="bg-transparent ml-2 w-14 h-14">
+                <Avatar.Image src={iconUrl} />
+              </Avatar>
             </div>
           )}
           <div
