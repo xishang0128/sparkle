@@ -1,4 +1,4 @@
-import { Button, Label, Modal, Separator, Switch } from '@heroui-v3/react'
+import { Label, Modal, Separator, Switch } from '@heroui-v3/react'
 import React, { useEffect, useState, useCallback, useRef } from 'react'
 import { BaseEditor } from '../base/base-editor-lazy'
 import {
@@ -181,14 +181,6 @@ const ConfigViewer: React.FC<Props> = ({ onClose }) => {
                   </Switch.Control>
                 </Switch>
               </div>
-              <Button
-                size="sm"
-                variant="secondary"
-                className="h-7 min-w-0 px-3 text-sm leading-none"
-                onPress={onClose}
-              >
-                关闭
-              </Button>
             </Modal.Footer>
             <Modal.CloseTrigger className="app-nodrag" />
           </Modal.Dialog>

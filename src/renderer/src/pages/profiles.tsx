@@ -273,7 +273,7 @@ const Profiles: React.FC = () => {
           }}
         />
       )}
-      <div className="sticky profiles-sticky top-0 z-40 bg-background">
+      <div className="sticky profiles-sticky top-0 z-40">
         <div className="flex p-2">
           <Input
             size="sm"
