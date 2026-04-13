@@ -183,11 +183,7 @@ const OverrideItem: React.FC<Props> = (props) => {
         />
       )}
       {showQrCode && info.url && (
-        <QRCodeModal
-          title={info.name}
-          url={info.url}
-          onClose={() => setShowQrCode(false)}
-        />
+        <QRCodeModal title={info.name} url={info.url} onClose={() => setShowQrCode(false)} />
       )}
       {confirmOpen && (
         <ConfirmModal

@@ -21,11 +21,7 @@ function getDefaultLanguage(format?: string): Language {
   return !format || format === 'YamlRule' ? 'yaml' : 'text'
 }
 
-function getViewerContent(
-  fileContent: string,
-  privderType: string,
-  title: string
-): string {
+function getViewerContent(fileContent: string, privderType: string, title: string): string {
   try {
     const parsedYaml = yaml.load(fileContent)
     if (!parsedYaml || typeof parsedYaml !== 'object') {
@@ -35,7 +31,9 @@ function getViewerContent(
     const yamlObj = parsedYaml as Record<string, unknown>
     const payload = yamlObj[privderType]?.[title]?.payload
     if (payload) {
-      return yaml.dump(privderType === 'proxy-providers' ? { proxies: payload } : { rules: payload })
+      return yaml.dump(
+        privderType === 'proxy-providers' ? { proxies: payload } : { rules: payload }
+      )
     }
 
     const targetObj = yamlObj[privderType]?.[title]
@@ -129,12 +127,7 @@ const Viewer: React.FC<Props> = (props) => {
             关闭
           </Button>
           {type == 'File' && (
-            <Button
-              size="sm"
-              color="primary"
-              isLoading={isSaving}
-              onPress={() => save()}
-            >
+            <Button size="sm" color="primary" isLoading={isSaving} onPress={() => save()}>
               保存
             </Button>
           )}

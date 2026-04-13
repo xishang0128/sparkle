@@ -47,7 +47,10 @@ const BasePage = forwardRef<HTMLDivElement, Props>((props, ref) => {
       >
         <div className="app-drag p-2 flex justify-between h-12 items-center">
           <div className="title h-full text-lg leading-8">{props.title}</div>
-          <div style={{ marginRight: overlayWidth }} className="header flex gap-1 h-full items-center">
+          <div
+            style={{ marginRight: overlayWidth }}
+            className="header flex gap-1 h-full items-center"
+          >
             {props.header}
             <Button
               size="sm"

@@ -8,7 +8,6 @@ import { app } from 'electron'
 import os from 'os'
 import crypto from 'crypto'
 import { exec } from 'child_process'
-import { resolveWithDosDeviceMappings } from './devicePathResolver'
 
 export function isIOSApp(appPath: string): boolean {
   const appDir = appPath.endsWith('.app')
@@ -195,6 +194,7 @@ export async function getIconDataURL(appPath: string): Promise<string> {
 
   if (process.platform === 'win32') {
     if (appPath.startsWith('\\Device\\')) {
+      const { resolveWithDosDeviceMappings } = await import('./devicePathResolver')
       const resolvePath = resolveWithDosDeviceMappings(appPath)
       if (resolvePath) {
         appPath = resolvePath

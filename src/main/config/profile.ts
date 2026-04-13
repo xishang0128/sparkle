@@ -407,7 +407,10 @@ async function repairEditableFilePermissions(
     return
   }
 
-  await execWithElevation('sh', ['-c', buildPermissionRepairCommand(target, uid, gid, repairParent)])
+  await execWithElevation('sh', [
+    '-c',
+    buildPermissionRepairCommand(target, uid, gid, repairParent)
+  ])
 }
 
 async function attemptWriteFile(target: string, content: string): Promise<void> {

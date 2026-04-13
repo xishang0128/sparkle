@@ -8,12 +8,20 @@ type DosDeviceMapping = {
 
 const DOS_DEVICE_BUFFER_CHARS = 4096
 const DRIVE_LETTERS = Array.from({ length: 26 }, (_, i) => `${String.fromCharCode(65 + i)}:`)
-const kernel32 = koffi.load('kernel32.dll')
-const QueryDosDeviceW = kernel32.func(
-  'uint32 __stdcall QueryDosDeviceW(const char16_t *lpDeviceName, _Out_ void *lpTargetPath, uint32 ucchMax)'
-)
+const IS_WINDOWS = process.platform === 'win32'
+const QueryDosDeviceW = IS_WINDOWS
+  ? koffi
+      .load('kernel32.dll')
+      .func(
+        'uint32 __stdcall QueryDosDeviceW(const char16_t *lpDeviceName, _Out_ void *lpTargetPath, uint32 ucchMax)'
+      )
+  : null
 
 function queryDosDevice(deviceName: string): string | null {
+  if (!QueryDosDeviceW) {
+    return null
+  }
+
   const buffer = Buffer.alloc(DOS_DEVICE_BUFFER_CHARS * 2)
   const length = QueryDosDeviceW(deviceName, buffer, DOS_DEVICE_BUFFER_CHARS)
   if (!length) {
@@ -24,6 +32,10 @@ function queryDosDevice(deviceName: string): string | null {
 }
 
 export function resolveWithDosDeviceMappings(targetPath: string): string | null {
+  if (!IS_WINDOWS) {
+    return null
+  }
+
   const normalizedInput = path.win32.normalize(targetPath)
 
   for (const { drive, devicePath } of DRIVE_LETTERS.map((drive) => ({
