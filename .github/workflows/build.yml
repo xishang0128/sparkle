@@ -107,7 +107,7 @@ jobs:
       - name: Install Build Tools
         if: matrix.os == 'ubuntu-latest' && matrix.format == 'pacman'
         run: |
-          sudo apt-get update && sudo apt-get install -y libarchive-tools fakeroot
+          sudo apt-get update && sudo apt-get install -y libarchive-tools
 
       - name: Adaptation to the loongarch64 architecture
         env:
