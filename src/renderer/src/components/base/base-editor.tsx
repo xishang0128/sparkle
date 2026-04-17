@@ -100,7 +100,7 @@ export const BaseEditor: React.FC<Props> = (props) => {
   } = props
   const { appConfig: { disableAnimation = false } = {} } = useAppConfig()
 
-  const hasLongLine = value.split('\n').some((line) => line.length > 5000) || value === ''
+  const hasLongLine = value.split('\n').some((line) => line.length > 1000) || value === ''
   const editorRef = useRef<monaco.editor.IStandaloneCodeEditor>(undefined)
   const diffEditorRef = useRef<monaco.editor.IStandaloneDiffEditor>(undefined)
 

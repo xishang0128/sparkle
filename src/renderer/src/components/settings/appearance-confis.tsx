@@ -75,6 +75,7 @@ const AppearanceConfig: React.FC = () => {
       )}
       <SettingCard title="外观设置">
         <SettingItem
+          compatKey="legacy"
           title="显示悬浮窗"
           actions={
             <Tooltip content="未禁用GPU加速的情况下，悬浮窗可能会导致应用崩溃">
@@ -110,7 +111,7 @@ const AppearanceConfig: React.FC = () => {
         </SettingItem>
         {localShowFloating && (
           <>
-            <SettingItem title="根据网速旋转悬浮窗图标" divider>
+            <SettingItem compatKey="legacy" title="根据网速旋转悬浮窗图标" divider>
               <Switch
                 size="sm"
                 isSelected={spinFloatingIcon}
@@ -120,7 +121,7 @@ const AppearanceConfig: React.FC = () => {
                 }}
               />
             </SettingItem>
-            <SettingItem title="禁用托盘图标" divider>
+            <SettingItem compatKey="legacy" title="禁用托盘图标" divider>
               <Switch
                 size="sm"
                 isSelected={disableTray}
@@ -138,7 +139,7 @@ const AppearanceConfig: React.FC = () => {
         )}
         {platform !== 'linux' && (
           <>
-            <SettingItem title="托盘菜单显示节点信息" divider>
+            <SettingItem compatKey="legacy" title="托盘菜单显示节点信息" divider>
               <Switch
                 size="sm"
                 isSelected={proxyInTray}
@@ -148,7 +149,7 @@ const AppearanceConfig: React.FC = () => {
               />
             </SettingItem>
             {proxyInTray && (
-              <SettingItem title="托盘菜单节点延迟显示方式" divider>
+              <SettingItem compatKey="legacy" title="托盘菜单节点延迟显示方式" divider>
                 <Tabs
                   size="sm"
                   color="primary"
@@ -166,6 +167,7 @@ const AppearanceConfig: React.FC = () => {
               </SettingItem>
             )}
             <SettingItem
+              compatKey="legacy"
               title={`${platform === 'win32' ? '任务栏' : '状态栏'}显示网速信息`}
               divider
             >
@@ -182,7 +184,7 @@ const AppearanceConfig: React.FC = () => {
         )}
         {platform === 'darwin' && (
           <>
-            <SettingItem title="显示 Dock 图标" divider>
+            <SettingItem compatKey="legacy" title="显示 Dock 图标" divider>
               <Switch
                 size="sm"
                 isSelected={useDockIcon}
@@ -194,7 +196,7 @@ const AppearanceConfig: React.FC = () => {
             </SettingItem>
           </>
         )}
-        <SettingItem title="使用系统标题栏" divider>
+        <SettingItem compatKey="legacy" title="使用系统标题栏" divider>
           <Switch
             size="sm"
             isSelected={useWindowFrame}
@@ -204,7 +206,7 @@ const AppearanceConfig: React.FC = () => {
             }}
           />
         </SettingItem>
-        <SettingItem title="背景色" divider>
+        <SettingItem compatKey="legacy" title="背景色" divider>
           <Tabs
             size="sm"
             color="primary"
@@ -220,6 +222,7 @@ const AppearanceConfig: React.FC = () => {
           </Tabs>
         </SettingItem>
         <SettingItem
+          compatKey="legacy"
           title="主题"
           actions={
             <>

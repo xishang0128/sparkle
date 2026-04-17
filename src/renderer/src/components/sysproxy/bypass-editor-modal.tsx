@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 import { useEffect, useState } from 'react'
 import yaml from 'js-yaml'
-import { Button, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader } from '@heroui/react'
+import { Button, Modal } from '@heroui-v3/react'
 import { BaseEditor } from '../base/base-editor-lazy'
 import { useAppConfig } from '@renderer/hooks/use-app-config'
 
@@ -17,7 +17,7 @@ interface ParsedYaml {
 
 const ByPassEditorModal: React.FC<Props> = (props) => {
   const { bypass, onCancel, onConfirm } = props
-  const { appConfig: { disableAnimation = false } = {} } = useAppConfig()
+  useAppConfig()
   const [currData, setCurrData] = useState<string>('')
   useEffect(() => {
     setCurrData(yaml.dump({ bypass }))
@@ -36,37 +36,36 @@ const ByPassEditorModal: React.FC<Props> = (props) => {
   }
 
   return (
-    <Modal
-      backdrop={disableAnimation ? 'transparent' : 'blur'}
-      disableAnimation={disableAnimation}
-      classNames={{
-        base: 'max-w-none w-full',
-        backdrop: 'top-[48px]'
-      }}
-      size="5xl"
-      hideCloseButton
-      isOpen={true}
-      onOpenChange={onCancel}
-      scrollBehavior="inside"
-    >
-      <ModalContent className="h-full w-[calc(100%-100px)]">
-        <ModalHeader className="flex pb-0 app-drag">编辑绕过列表 (YAML)</ModalHeader>
-        <ModalBody className="h-full">
-          <BaseEditor
-            language="yaml"
-            value={currData}
-            onChange={(value) => setCurrData(value || '')}
-          />
-        </ModalBody>
-        <ModalFooter className="pt-0">
-          <Button size="sm" variant="light" onPress={onCancel}>
-            取消
-          </Button>
-          <Button size="sm" color="primary" onPress={handleConfirm}>
-            确认
-          </Button>
-        </ModalFooter>
-      </ModalContent>
+    <Modal>
+      <Modal.Backdrop
+        isOpen={true}
+        onOpenChange={onCancel}
+        variant="blur"
+        className="top-12 h-[calc(100%-48px)]"
+      >
+        <Modal.Container scroll="inside">
+          <Modal.Dialog className="mt-4 h-[calc(100%-32px)] max-w-none w-[calc(100%-100px)]">
+            <Modal.Header className="app-drag pb-0">
+              <Modal.Heading>编辑绕过列表 (YAML)</Modal.Heading>
+            </Modal.Header>
+            <Modal.Body className="h-full">
+              <BaseEditor
+                language="yaml"
+                value={currData}
+                onChange={(value) => setCurrData(value || '')}
+              />
+            </Modal.Body>
+            <Modal.Footer className="pt-0 pb-0">
+              <Button size="sm" variant="secondary" onPress={onCancel}>
+                取消
+              </Button>
+              <Button size="sm" onPress={handleConfirm}>
+                确认
+              </Button>
+            </Modal.Footer>
+          </Modal.Dialog>
+        </Modal.Container>
+      </Modal.Backdrop>
     </Modal>
   )
 }

@@ -155,7 +155,7 @@ const DNS: React.FC = () => {
       }
     >
       <SettingCard>
-        <SettingItem title="IPv6" divider>
+        <SettingItem compatKey="legacy" title="IPv6" divider>
           <Switch
             size="sm"
             isSelected={values.ipv6}
@@ -164,7 +164,7 @@ const DNS: React.FC = () => {
             }}
           />
         </SettingItem>
-        <SettingItem title="域名映射模式" divider>
+        <SettingItem compatKey="legacy" title="域名映射模式" divider>
           <Tabs
             size="sm"
             color="primary"
@@ -178,7 +178,7 @@ const DNS: React.FC = () => {
         </SettingItem>
         {values.enhancedMode === 'fake-ip' && (
           <>
-            <SettingItem title="虚假 IP 范围 (IPv4)" divider>
+            <SettingItem compatKey="legacy" title="虚假 IP 范围 (IPv4)" divider>
               <Tooltip
                 content={fakeIPRangeError}
                 placement="right"
@@ -204,7 +204,7 @@ const DNS: React.FC = () => {
               </Tooltip>
             </SettingItem>
             {values.ipv6 && (
-              <SettingItem title="虚假 IP 范围 (IPv6)" divider>
+              <SettingItem compatKey="legacy" title="虚假 IP 范围 (IPv6)" divider>
                 <Tooltip
                   content={fakeIPRange6Error}
                   placement="right"

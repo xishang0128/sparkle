@@ -70,7 +70,7 @@ const AdvancedDnsSetting: React.FC<AdvancedDnsSettingProps> = ({
 
   return (
     <SettingCard title="更多设置">
-      <SettingItem title="连接遵守规则" divider>
+      <SettingItem compatKey="legacy" title="连接遵守规则" divider>
         <Switch
           size="sm"
           isSelected={respectRules}
@@ -224,10 +224,10 @@ const AdvancedDnsSetting: React.FC<AdvancedDnsSettingProps> = ({
         part2Placeholder="DNS 服务器，用逗号分隔"
         objectMode="record"
       />
-      <SettingItem title="使用系统 Hosts" divider>
+      <SettingItem compatKey="legacy" title="使用系统 Hosts" divider>
         <Switch size="sm" isSelected={useSystemHosts} onValueChange={onUseSystemHostsChange} />
       </SettingItem>
-      <SettingItem title="自定义 Hosts">
+      <SettingItem compatKey="legacy" title="自定义 Hosts">
         <Switch size="sm" isSelected={useHosts} onValueChange={onUseHostsChange} />
       </SettingItem>
       {useHosts && (

@@ -33,7 +33,7 @@ const AdvancedSetting: React.FC = () => {
 
   return (
     <SettingCard title="高级设置">
-      <SettingItem title="查找进程" divider>
+      <SettingItem compatKey="legacy" title="查找进程" divider>
         <Tabs
           size="sm"
           color="primary"
@@ -47,7 +47,7 @@ const AdvancedSetting: React.FC = () => {
           <Tab key="always" title="开启"></Tab>
         </Tabs>
       </SettingItem>
-      <SettingItem title="存储选择节点" divider>
+      <SettingItem compatKey="legacy" title="存储选择节点" divider>
         <Switch
           size="sm"
           isSelected={storeSelected}
@@ -56,7 +56,7 @@ const AdvancedSetting: React.FC = () => {
           }}
         />
       </SettingItem>
-      <SettingItem title="存储 FakeIP" divider>
+      <SettingItem compatKey="legacy" title="存储 FakeIP" divider>
         <Switch
           size="sm"
           isSelected={storeFakeIp}
@@ -66,6 +66,7 @@ const AdvancedSetting: React.FC = () => {
         />
       </SettingItem>
       <SettingItem
+        compatKey="legacy"
         title="使用 RTT 延迟测试"
         actions={
           <Tooltip content="开启后会使用统一延迟测试来获取节点延迟，以消除不同节点握手时间的影响">
@@ -85,6 +86,7 @@ const AdvancedSetting: React.FC = () => {
         />
       </SettingItem>
       <SettingItem
+        compatKey="legacy"
         title="TCP 并发"
         actions={
           <Tooltip content="对 dns 解析出的多个 IP 地址进行 TCP 并发连接，使用握手时间最短的连接">
@@ -103,7 +105,7 @@ const AdvancedSetting: React.FC = () => {
           }}
         />
       </SettingItem>
-      <SettingItem title="禁用 TCP Keep Alive" divider>
+      <SettingItem compatKey="legacy" title="禁用 TCP Keep Alive" divider>
         <Switch
           size="sm"
           isSelected={disableKeepAlive}
@@ -112,7 +114,7 @@ const AdvancedSetting: React.FC = () => {
           }}
         />
       </SettingItem>
-      <SettingItem title="TCP Keep Alive 间隔" divider>
+      <SettingItem compatKey="legacy" title="TCP Keep Alive 间隔" divider>
         <div className="flex">
           {intervalInput !== interval && (
             <Button
@@ -138,7 +140,7 @@ const AdvancedSetting: React.FC = () => {
           />
         </div>
       </SettingItem>
-      <SettingItem title="TCP Keep Alive 空闲" divider>
+      <SettingItem compatKey="legacy" title="TCP Keep Alive 空闲" divider>
         <div className="flex">
           {idleInput !== idle && (
             <Button
@@ -164,7 +166,7 @@ const AdvancedSetting: React.FC = () => {
           />
         </div>
       </SettingItem>
-      <SettingItem title="指定出站接口">
+      <SettingItem compatKey="legacy" title="指定出站接口">
         <InterfaceSelect
           value={interfaceName}
           exclude={[device, 'lo']}

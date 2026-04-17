@@ -104,7 +104,7 @@ const Sniffer: React.FC = () => {
       }
     >
       <SettingCard>
-        <SettingItem title="覆盖连接地址" divider>
+        <SettingItem compatKey="legacy" title="覆盖连接地址" divider>
           <Switch
             size="sm"
             isSelected={values.overrideDestination}
@@ -124,7 +124,7 @@ const Sniffer: React.FC = () => {
             }}
           />
         </SettingItem>
-        <SettingItem title="对真实 IP 映射嗅探" divider>
+        <SettingItem compatKey="legacy" title="对真实 IP 映射嗅探" divider>
           <Switch
             size="sm"
             isSelected={values.forceDNSMapping}
@@ -133,7 +133,7 @@ const Sniffer: React.FC = () => {
             }}
           />
         </SettingItem>
-        <SettingItem title="对未映射 IP 地址嗅探" divider>
+        <SettingItem compatKey="legacy" title="对未映射 IP 地址嗅探" divider>
           <Switch
             size="sm"
             isSelected={values.parsePureIP}
@@ -142,7 +142,7 @@ const Sniffer: React.FC = () => {
             }}
           />
         </SettingItem>
-        <SettingItem title="HTTP 端口嗅探" divider>
+        <SettingItem compatKey="legacy" title="HTTP 端口嗅探" divider>
           <Input
             size="sm"
             className="w-[50%]"
@@ -151,7 +151,7 @@ const Sniffer: React.FC = () => {
             onValueChange={(v) => handleSniffPortChange('HTTP', v)}
           />
         </SettingItem>
-        <SettingItem title="TLS 端口嗅探" divider>
+        <SettingItem compatKey="legacy" title="TLS 端口嗅探" divider>
           <Input
             size="sm"
             className="w-[50%]"
@@ -160,7 +160,7 @@ const Sniffer: React.FC = () => {
             onValueChange={(v) => handleSniffPortChange('TLS', v)}
           />
         </SettingItem>
-        <SettingItem title="QUIC 端口嗅探" divider>
+        <SettingItem compatKey="legacy" title="QUIC 端口嗅探" divider>
           <Input
             size="sm"
             className="w-[50%]"

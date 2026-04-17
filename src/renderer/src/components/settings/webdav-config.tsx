@@ -49,7 +49,7 @@ const WebdavConfig: React.FC = () => {
         <WebdavRestoreModal filenames={filenames} onClose={() => setRestoreOpen(false)} />
       )}
       <SettingCard title="WebDAV 备份">
-        <SettingItem title="WebDAV 地址" divider>
+        <SettingItem compatKey="legacy" title="WebDAV 地址" divider>
           <Input
             size="sm"
             className="w-[60%]"
@@ -60,7 +60,7 @@ const WebdavConfig: React.FC = () => {
             }}
           />
         </SettingItem>
-        <SettingItem title="WebDAV 备份目录" divider>
+        <SettingItem compatKey="legacy" title="WebDAV 备份目录" divider>
           <Input
             size="sm"
             className="w-[60%]"
@@ -71,7 +71,7 @@ const WebdavConfig: React.FC = () => {
             }}
           />
         </SettingItem>
-        <SettingItem title="WebDAV 用户名" divider>
+        <SettingItem compatKey="legacy" title="WebDAV 用户名" divider>
           <Input
             size="sm"
             className="w-[60%]"
@@ -82,7 +82,7 @@ const WebdavConfig: React.FC = () => {
             }}
           />
         </SettingItem>
-        <SettingItem title="WebDAV 密码" divider>
+        <SettingItem compatKey="legacy" title="WebDAV 密码" divider>
           <Input
             size="sm"
             className="w-[60%]"

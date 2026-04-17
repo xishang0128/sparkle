@@ -276,6 +276,7 @@ const Mihomo: React.FC = () => {
       )}
       <SettingCard>
         <SettingItem
+          compatKey="legacy"
           title="内核版本"
           actions={
             core === 'mihomo' || core === 'mihomo-alpha' ? (
@@ -309,7 +310,7 @@ const Mihomo: React.FC = () => {
           </Select>
         </SettingItem>
         {core === 'system' && (
-          <SettingItem title="系统内核路径选择" divider>
+          <SettingItem compatKey="legacy" title="系统内核路径选择" divider>
             <Select
               classNames={{ trigger: 'data-[hover=true]:bg-default-200' }}
               className="w-87.5"
@@ -337,7 +338,7 @@ const Mihomo: React.FC = () => {
             )}
           </SettingItem>
         )}
-        <SettingItem title="运行模式" divider>
+        <SettingItem compatKey="legacy" title="运行模式" divider>
           <Tabs
             size="sm"
             color="primary"
@@ -349,24 +350,28 @@ const Mihomo: React.FC = () => {
             <Tab key="service" title="系统服务" />
           </Tabs>
         </SettingItem>
-        <SettingItem title={platform === 'win32' ? '任务状态' : '授权状态'} divider>
+        <SettingItem
+          compatKey="legacy"
+          title={platform === 'win32' ? '任务状态' : '授权状态'}
+          divider
+        >
           <Button size="sm" color="primary" onPress={() => setShowPermissionModal(true)}>
             管理
           </Button>
         </SettingItem>
-        <SettingItem title="服务状态" divider>
+        <SettingItem compatKey="legacy" title="服务状态" divider>
           <Button size="sm" color="primary" onPress={() => setShowServiceModal(true)}>
             管理
           </Button>
         </SettingItem>
-        <SettingItem title="IPv6" divider>
+        <SettingItem compatKey="legacy" title="IPv6" divider>
           <Switch
             size="sm"
             isSelected={ipv6}
             onValueChange={(v) => onChangeNeedRestart({ ipv6: v })}
           />
         </SettingItem>
-        <SettingItem title="日志保留天数" divider>
+        <SettingItem compatKey="legacy" title="日志保留天数" divider>
           <Input
             size="sm"
             type="number"
@@ -375,7 +380,7 @@ const Mihomo: React.FC = () => {
             onValueChange={(v) => patchAppConfig({ maxLogDays: parseInt(v) })}
           />
         </SettingItem>
-        <SettingItem title="日志等级">
+        <SettingItem compatKey="legacy" title="日志等级">
           <Select
             classNames={{ trigger: 'data-[hover=true]:bg-default-200' }}
             className="w-25"

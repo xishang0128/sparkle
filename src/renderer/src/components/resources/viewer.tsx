@@ -1,9 +1,8 @@
-import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button } from '@heroui/react'
+import { Button, Modal } from '@heroui-v3/react'
 import React, { useEffect, useState } from 'react'
 import { BaseEditor } from '../base/base-editor-lazy'
 import { getFileStr, saveFileStrWithElevation, setFileStr } from '@renderer/utils/ipc'
 import yaml from 'js-yaml'
-import { useAppConfig } from '@renderer/hooks/use-app-config'
 import ConfirmModal from '../base/base-confirm'
 type Language = 'yaml' | 'javascript' | 'css' | 'json' | 'text'
 const FILE_PERMISSION_ELEVATION_REQUIRED = 'FILE_PERMISSION_ELEVATION_REQUIRED'
@@ -45,7 +44,6 @@ function getViewerContent(fileContent: string, privderType: string, title: strin
 
 const Viewer: React.FC<Props> = (props) => {
   const { type, path, title, format, privderType, onClose } = props
-  const { appConfig: { disableAnimation = false } = {} } = useAppConfig()
   const [currData, setCurrData] = useState('')
   const [showPermissionConfirm, setShowPermissionConfirm] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
@@ -77,19 +75,7 @@ const Viewer: React.FC<Props> = (props) => {
   }, [format, path, privderType, title, type])
 
   return (
-    <Modal
-      backdrop={disableAnimation ? 'transparent' : 'blur'}
-      disableAnimation={disableAnimation}
-      classNames={{
-        base: 'max-w-none w-full',
-        backdrop: 'top-[48px]'
-      }}
-      size="5xl"
-      hideCloseButton
-      isOpen={true}
-      onOpenChange={onClose}
-      scrollBehavior="inside"
-    >
+    <Modal>
       {showPermissionConfirm && (
         <ConfirmModal
           onChange={setShowPermissionConfirm}
@@ -112,27 +98,36 @@ const Viewer: React.FC<Props> = (props) => {
           className="w-120"
         />
       )}
-      <ModalContent className="h-full w-[calc(100%-100px)]">
-        <ModalHeader className="flex pb-0 app-drag">{title}</ModalHeader>
-        <ModalBody className="h-full">
-          <BaseEditor
-            language={language}
-            value={currData}
-            readOnly={type != 'File'}
-            onChange={(value) => setCurrData(value)}
-          />
-        </ModalBody>
-        <ModalFooter className="pt-0">
-          <Button size="sm" variant="light" onPress={onClose}>
-            关闭
-          </Button>
-          {type == 'File' && (
-            <Button size="sm" color="primary" isLoading={isSaving} onPress={() => save()}>
-              保存
-            </Button>
-          )}
-        </ModalFooter>
-      </ModalContent>
+      <Modal.Backdrop
+        isOpen={true}
+        onOpenChange={onClose}
+        variant="blur"
+        className="top-12 h-[calc(100%-48px)]"
+      >
+        <Modal.Container scroll="inside">
+          <Modal.Dialog className="mt-4 h-[calc(100%-32px)] max-w-none w-[calc(100%-100px)]">
+            <Modal.Header className="app-drag pb-0">
+              <Modal.Heading>{title}</Modal.Heading>
+            </Modal.Header>
+            <Modal.Body className="h-full">
+              <BaseEditor
+                language={language}
+                value={currData}
+                readOnly={type != 'File'}
+                onChange={(value) => setCurrData(value)}
+              />
+            </Modal.Body>
+            {type == 'File' && (
+              <Modal.Footer className="pt-0 pb-0">
+                <Button size="sm" isPending={isSaving} onPress={() => save()}>
+                  保存
+                </Button>
+              </Modal.Footer>
+            )}
+            {type != 'File' && <Modal.CloseTrigger className="app-nodrag" />}
+          </Modal.Dialog>
+        </Modal.Container>
+      </Modal.Backdrop>
     </Modal>
   )
 }

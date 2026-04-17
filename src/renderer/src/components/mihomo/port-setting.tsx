@@ -64,7 +64,7 @@ const PortSetting: React.FC = () => {
     <>
       {lanOpen && <InterfaceModal onClose={() => setLanOpen(false)} />}
       <SettingCard title="端口设置">
-        <SettingItem title="混合端口" divider>
+        <SettingItem compatKey="legacy" title="混合端口" divider>
           <div className="flex">
             {mixedPortInput !== mixedPort && (
               <Button
@@ -96,7 +96,7 @@ const PortSetting: React.FC = () => {
             />
           </div>
         </SettingItem>
-        <SettingItem title="Socks 端口" divider>
+        <SettingItem compatKey="legacy" title="Socks 端口" divider>
           <div className="flex">
             {socksPortInput !== socksPort && (
               <Button
@@ -124,7 +124,7 @@ const PortSetting: React.FC = () => {
             />
           </div>
         </SettingItem>
-        <SettingItem title="Http 端口" divider>
+        <SettingItem compatKey="legacy" title="Http 端口" divider>
           <div className="flex">
             {httpPortInput !== httpPort && (
               <Button
@@ -153,7 +153,7 @@ const PortSetting: React.FC = () => {
           </div>
         </SettingItem>
         {platform !== 'win32' && (
-          <SettingItem title="Redir 端口" divider>
+          <SettingItem compatKey="legacy" title="Redir 端口" divider>
             <div className="flex">
               {redirPortInput !== redirPort && (
                 <Button
@@ -183,7 +183,7 @@ const PortSetting: React.FC = () => {
           </SettingItem>
         )}
         {platform === 'linux' && (
-          <SettingItem title="TProxy 端口" divider>
+          <SettingItem compatKey="legacy" title="TProxy 端口" divider>
             <div className="flex">
               {tproxyPortInput !== tproxyPort && (
                 <Button
@@ -213,6 +213,7 @@ const PortSetting: React.FC = () => {
           </SettingItem>
         )}
         <SettingItem
+          compatKey="legacy"
           title="允许局域网连接"
           actions={
             <Button
@@ -238,7 +239,7 @@ const PortSetting: React.FC = () => {
         </SettingItem>
         {allowLan && (
           <>
-            <SettingItem title="允许连接的 IP 段">
+            <SettingItem compatKey="legacy" title="允许连接的 IP 段">
               {lanAllowedIpsInput.join('') !== lanAllowedIps.join('') && (
                 <Button
                   size="sm"
@@ -256,7 +257,7 @@ const PortSetting: React.FC = () => {
               onChange={(items) => setLanAllowedIpsInput(items as string[])}
               placeholder="IP 段"
             />
-            <SettingItem title="禁止连接的 IP 段">
+            <SettingItem compatKey="legacy" title="禁止连接的 IP 段">
               {lanDisallowedIpsInput.join('') !== lanDisallowedIps.join('') && (
                 <Button
                   size="sm"
@@ -276,7 +277,7 @@ const PortSetting: React.FC = () => {
             />
           </>
         )}
-        <SettingItem title="用户验证">
+        <SettingItem compatKey="legacy" title="用户验证">
           {authenticationInput.join() !== authentication.join() && (
             <Button
               size="sm"
@@ -295,7 +296,7 @@ const PortSetting: React.FC = () => {
           parse={parseAuth}
           format={formatAuth}
         />
-        <SettingItem title="允许跳过验证的 IP 段">
+        <SettingItem compatKey="legacy" title="允许跳过验证的 IP 段">
           {skipAuthPrefixesInput.join('') !== skipAuthPrefixes.join('') && (
             <Button
               size="sm"

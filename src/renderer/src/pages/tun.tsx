@@ -85,7 +85,7 @@ const Tun: React.FC = () => {
       >
         <SettingCard className="tun-settings">
           {platform === 'win32' && (
-            <SettingItem title="重设防火墙" divider>
+            <SettingItem compatKey="legacy" title="重设防火墙" divider>
               <Button
                 size="sm"
                 color="primary"
@@ -108,7 +108,7 @@ const Tun: React.FC = () => {
             </SettingItem>
           )}
           {platform === 'darwin' && (
-            <SettingItem title="自动设置系统 DNS" divider>
+            <SettingItem compatKey="legacy" title="自动设置系统 DNS" divider>
               <Tabs
                 size="sm"
                 color="primary"
@@ -123,7 +123,7 @@ const Tun: React.FC = () => {
               </Tabs>
             </SettingItem>
           )}
-          <SettingItem title="Tun 模式堆栈" divider>
+          <SettingItem compatKey="legacy" title="Tun 模式堆栈" divider>
             <Tabs
               size="sm"
               color="primary"
@@ -137,7 +137,7 @@ const Tun: React.FC = () => {
           </SettingItem>
           {platform !== 'darwin' && (
             <>
-              <SettingItem title="Tun 网卡名称" divider>
+              <SettingItem compatKey="legacy" title="Tun 网卡名称" divider>
                 <Input
                   size="sm"
                   className="w-25"
@@ -147,7 +147,7 @@ const Tun: React.FC = () => {
                   }}
                 />
               </SettingItem>
-              <SettingItem title="严格路由" divider>
+              <SettingItem compatKey="legacy" title="严格路由" divider>
                 <Switch
                   size="sm"
                   isSelected={values.strictRoute}
@@ -158,7 +158,7 @@ const Tun: React.FC = () => {
               </SettingItem>
             </>
           )}
-          <SettingItem title="自动设置路由规则" divider>
+          <SettingItem compatKey="legacy" title="自动设置路由规则" divider>
             <Switch
               size="sm"
               isSelected={values.autoRoute}
@@ -168,7 +168,7 @@ const Tun: React.FC = () => {
             />
           </SettingItem>
           {platform === 'linux' && (
-            <SettingItem title="自动设置TCP重定向" divider>
+            <SettingItem compatKey="legacy" title="自动设置TCP重定向" divider>
               <Switch
                 size="sm"
                 isSelected={values.autoRedirect}
@@ -178,7 +178,7 @@ const Tun: React.FC = () => {
               />
             </SettingItem>
           )}
-          <SettingItem title="自动选择流量出口" divider>
+          <SettingItem compatKey="legacy" title="自动选择流量出口" divider>
             <Switch
               size="sm"
               isSelected={values.autoDetectInterface}
@@ -187,7 +187,7 @@ const Tun: React.FC = () => {
               }}
             />
           </SettingItem>
-          <SettingItem title="ICMP 转发" divider>
+          <SettingItem compatKey="legacy" title="ICMP 转发" divider>
             <Switch
               size="sm"
               isSelected={!values.disableIcmpForwarding}
@@ -196,7 +196,7 @@ const Tun: React.FC = () => {
               }}
             />
           </SettingItem>
-          <SettingItem title="MTU" divider>
+          <SettingItem compatKey="legacy" title="MTU" divider>
             <Input
               size="sm"
               type="number"
@@ -207,7 +207,7 @@ const Tun: React.FC = () => {
               }}
             />
           </SettingItem>
-          <SettingItem title="DNS 劫持，使用逗号分割多个值" divider>
+          <SettingItem compatKey="legacy" title="DNS 劫持，使用逗号分割多个值" divider>
             <Input
               size="sm"
               className="w-[50%]"

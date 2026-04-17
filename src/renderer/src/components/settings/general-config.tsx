@@ -51,7 +51,7 @@ const GeneralConfig: React.FC = () => {
         />
       )}
       <SettingCard>
-        <SettingItem title="开机自启" divider>
+        <SettingItem compatKey="legacy" title="开机自启" divider>
           <Switch
             size="sm"
             isSelected={enable}
@@ -70,7 +70,7 @@ const GeneralConfig: React.FC = () => {
             }}
           />
         </SettingItem>
-        <SettingItem title="静默启动" divider>
+        <SettingItem compatKey="legacy" title="静默启动" divider>
           <Switch
             size="sm"
             isSelected={silentStart}
@@ -79,7 +79,7 @@ const GeneralConfig: React.FC = () => {
             }}
           />
         </SettingItem>
-        <SettingItem title="自动检查更新" divider>
+        <SettingItem compatKey="legacy" title="自动检查更新" divider>
           <Switch
             size="sm"
             isSelected={autoCheckUpdate}
@@ -88,7 +88,7 @@ const GeneralConfig: React.FC = () => {
             }}
           />
         </SettingItem>
-        <SettingItem title="更新通道" divider>
+        <SettingItem compatKey="legacy" title="更新通道" divider>
           <Tabs
             size="sm"
             color="primary"
@@ -103,6 +103,7 @@ const GeneralConfig: React.FC = () => {
         </SettingItem>
 
         <SettingItem
+          compatKey="legacy"
           title="禁用 GPU 加速"
           actions={
             <Tooltip content="开启后，应用将禁用 GPU 加速，可能会提高稳定性，但会降低性能">
@@ -123,6 +124,7 @@ const GeneralConfig: React.FC = () => {
           />
         </SettingItem>
         <SettingItem
+          compatKey="legacy"
           title="禁用动画"
           actions={
             <Tooltip content="开启后，应用将减轻绝大部分动画效果，可能会提高性能">

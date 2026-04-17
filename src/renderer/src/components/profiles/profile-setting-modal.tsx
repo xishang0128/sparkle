@@ -1,16 +1,5 @@
-import {
-  Modal,
-  ModalContent,
-  ModalHeader,
-  ModalBody,
-  ModalFooter,
-  Button,
-  Switch,
-  Input,
-  Tab,
-  Tabs,
-  Tooltip
-} from '@heroui/react'
+import { Button, Switch, Input, Tab, Tabs, Tooltip } from '@heroui/react'
+import { Modal } from '@heroui-v3/react'
 import React, { useState, useEffect, useRef } from 'react'
 import SettingItem from '../base/base-setting-item'
 import { useAppConfig } from '@renderer/hooks/use-app-config'
@@ -56,105 +45,106 @@ const ProfileSettingModal: React.FC<Props> = (props) => {
   }, [userAgent])
 
   return (
-    <Modal
-      backdrop="blur"
-      classNames={{ backdrop: 'top-[48px]' }}
-      size="md"
-      hideCloseButton
-      isOpen={true}
-      onOpenChange={onClose}
-      scrollBehavior="inside"
-    >
-      <ModalContent className="flag-emoji">
-        <ModalHeader className="flex pb-0">订阅设置</ModalHeader>
-        <ModalBody className="py-2 gap-1">
-          <SettingItem title="显示日期" divider>
-            <Tabs
-              size="sm"
-              color="primary"
-              selectedKey={profileDisplayDate}
-              onSelectionChange={async (v) => {
-                await patchAppConfig({
-                  profileDisplayDate: v as 'expire' | 'update'
-                })
-              }}
-            >
-              <Tab key="update" title="更新时间" />
-              <Tab key="expire" title="到期时间" />
-            </Tabs>
-          </SettingItem>
-          <SettingItem
-            title="为不同订阅分别指定工作目录"
-            actions={
-              <Tooltip content="开启后可以避免不同订阅中存在相同代理组名时无法分别保存选择的节点">
-                <Button isIconOnly size="sm" variant="light">
-                  <IoIosHelpCircle className="text-lg" />
-                </Button>
-              </Tooltip>
-            }
-            divider
-          >
-            <Switch
-              size="sm"
-              isSelected={diffWorkDir}
-              onValueChange={(v) => {
-                patchAppConfig({ diffWorkDir: v })
-              }}
-            />
-          </SettingItem>
-          <SettingItem title="订阅拉取 UA" divider>
-            <Input
-              size="sm"
-              className="w-[60%]"
-              value={ua}
-              placeholder={`默认 ${defaultUserAgent}`}
-              onValueChange={(v) => {
-                setUa(v)
-                setUaDebounce(v)
-              }}
-            />
-          </SettingItem>
-          <SettingItem
-            title="同步运行时配置到 Gist"
-            actions={
-              <Button
-                title="复制 Gist URL"
-                isIconOnly
-                size="sm"
-                variant="light"
-                onPress={async () => {
-                  try {
-                    const url = await getGistUrl()
-                    if (url !== '') {
-                      await navigator.clipboard.writeText(`${url}/raw/sparkle.yaml`)
-                    }
-                  } catch (e) {
-                    alert(e)
-                  }
-                }}
+    <Modal>
+      <Modal.Backdrop
+        isOpen={true}
+        onOpenChange={onClose}
+        variant="blur"
+        className="top-12 h-[calc(100%-48px)]"
+      >
+        <Modal.Container scroll="inside">
+          <Modal.Dialog className="max-w-md flag-emoji">
+            <Modal.Header className="pb-0">
+              <Modal.Heading>订阅设置</Modal.Heading>
+            </Modal.Header>
+            <Modal.Body className="py-2 gap-1">
+              <SettingItem compatKey="legacy" title="显示日期" divider>
+                <Tabs
+                  size="sm"
+                  color="primary"
+                  selectedKey={profileDisplayDate}
+                  onSelectionChange={async (v) => {
+                    await patchAppConfig({
+                      profileDisplayDate: v as 'expire' | 'update'
+                    })
+                  }}
+                >
+                  <Tab key="update" title="更新时间" />
+                  <Tab key="expire" title="到期时间" />
+                </Tabs>
+              </SettingItem>
+              <SettingItem
+                compatKey="legacy"
+                title="为不同订阅分别指定工作目录"
+                actions={
+                  <Tooltip content="开启后可以避免不同订阅中存在相同代理组名时无法分别保存选择的节点">
+                    <Button isIconOnly size="sm" variant="light">
+                      <IoIosHelpCircle className="text-lg" />
+                    </Button>
+                  </Tooltip>
+                }
+                divider
               >
-                <BiCopy className="text-lg" />
-              </Button>
-            }
-          >
-            <Input
-              type="password"
-              size="sm"
-              className="w-[60%]"
-              value={githubToken}
-              placeholder="GitHub Token"
-              onValueChange={(v) => {
-                patchAppConfig({ githubToken: v })
-              }}
-            />
-          </SettingItem>
-        </ModalBody>
-        <ModalFooter>
-          <Button size="sm" variant="light" onPress={onClose}>
-            关闭
-          </Button>
-        </ModalFooter>
-      </ModalContent>
+                <Switch
+                  size="sm"
+                  isSelected={diffWorkDir}
+                  onValueChange={(v) => {
+                    patchAppConfig({ diffWorkDir: v })
+                  }}
+                />
+              </SettingItem>
+              <SettingItem compatKey="legacy" title="订阅拉取 UA" divider>
+                <Input
+                  size="sm"
+                  className="w-[60%]"
+                  value={ua}
+                  placeholder={`默认 ${defaultUserAgent}`}
+                  onValueChange={(v) => {
+                    setUa(v)
+                    setUaDebounce(v)
+                  }}
+                />
+              </SettingItem>
+              <SettingItem
+                compatKey="legacy"
+                title="同步运行时配置到 Gist"
+                actions={
+                  <Button
+                    title="复制 Gist URL"
+                    isIconOnly
+                    size="sm"
+                    variant="light"
+                    onPress={async () => {
+                      try {
+                        const url = await getGistUrl()
+                        if (url !== '') {
+                          await navigator.clipboard.writeText(`${url}/raw/sparkle.yaml`)
+                        }
+                      } catch (e) {
+                        alert(e)
+                      }
+                    }}
+                  >
+                    <BiCopy className="text-lg" />
+                  </Button>
+                }
+              >
+                <Input
+                  type="password"
+                  size="sm"
+                  className="w-[60%]"
+                  value={githubToken}
+                  placeholder="GitHub Token"
+                  onValueChange={(v) => {
+                    patchAppConfig({ githubToken: v })
+                  }}
+                />
+              </SettingItem>
+            </Modal.Body>
+            <Modal.CloseTrigger className="app-nodrag" />
+          </Modal.Dialog>
+        </Modal.Container>
+      </Modal.Backdrop>
     </Modal>
   )
 }

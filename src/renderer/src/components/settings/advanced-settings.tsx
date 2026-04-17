@@ -47,6 +47,7 @@ const AdvancedSettings: React.FC = () => {
   return (
     <SettingCard title="更多设置">
       <SettingItem
+        compatKey="legacy"
         title="自动开启轻量模式"
         actions={
           <Tooltip content="关闭窗口指定时间后自动进入轻量模式">
@@ -67,7 +68,7 @@ const AdvancedSettings: React.FC = () => {
       </SettingItem>
       {autoLightweight && (
         <>
-          <SettingItem title="轻量模式行为" divider>
+          <SettingItem compatKey="legacy" title="轻量模式行为" divider>
             <Tabs
               size="sm"
               color="primary"
@@ -83,7 +84,7 @@ const AdvancedSettings: React.FC = () => {
               <Tab key="tray" title="仅关闭渲染进程" />
             </Tabs>
           </SettingItem>
-          <SettingItem title="自动开启轻量模式延时" divider>
+          <SettingItem compatKey="legacy" title="自动开启轻量模式延时" divider>
             <Input
               size="sm"
               className="w-25"
@@ -102,6 +103,7 @@ const AdvancedSettings: React.FC = () => {
         </>
       )}
       <SettingItem
+        compatKey="legacy"
         title="复制环境变量类型"
         actions={envType.map((type) => (
           <Button
@@ -142,7 +144,7 @@ const AdvancedSettings: React.FC = () => {
         </Select>
       </SettingItem>
       {platform === 'win32' && (
-        <SettingItem title="内核进程优先级" divider>
+        <SettingItem compatKey="legacy" title="内核进程优先级" divider>
           <Select
             classNames={{ trigger: 'data-[hover=true]:bg-default-200' }}
             className="w-37.5"
@@ -169,7 +171,7 @@ const AdvancedSettings: React.FC = () => {
           </Select>
         </SettingItem>
       )}
-      <SettingItem title="接管 DNS 设置" divider>
+      <SettingItem compatKey="legacy" title="接管 DNS 设置" divider>
         <Switch
           size="sm"
           isSelected={controlDns}
@@ -184,7 +186,7 @@ const AdvancedSettings: React.FC = () => {
           }}
         />
       </SettingItem>
-      <SettingItem title="接管域名嗅探设置" divider>
+      <SettingItem compatKey="legacy" title="接管域名嗅探设置" divider>
         <Switch
           size="sm"
           isSelected={controlSniff}
@@ -200,6 +202,7 @@ const AdvancedSettings: React.FC = () => {
         />
       </SettingItem>
       <SettingItem
+        compatKey="legacy"
         title="断网时停止内核"
         actions={
           <Tooltip content="开启后，应用会在检测到网络断开时自动停止内核，并在网络恢复后自动重启内核">
@@ -225,7 +228,7 @@ const AdvancedSettings: React.FC = () => {
       </SettingItem>
       {networkDetection && (
         <>
-          <SettingItem title="断网检测间隔" divider>
+          <SettingItem compatKey="legacy" title="断网检测间隔" divider>
             <div className="flex">
               {interval !== networkDetectionInterval && (
                 <Button
@@ -253,7 +256,7 @@ const AdvancedSettings: React.FC = () => {
               />
             </div>
           </SettingItem>
-          <SettingItem title="绕过检测的接口">
+          <SettingItem compatKey="legacy" title="绕过检测的接口">
             {bypass.length != networkDetectionBypass.length && (
               <Button
                 size="sm"
@@ -270,7 +273,7 @@ const AdvancedSettings: React.FC = () => {
           <EditableList items={bypass} onChange={(list) => setBypass(list as string[])} />
         </>
       )}
-      <SettingItem title="在特定的 WiFi SSID 下直连">
+      <SettingItem compatKey="legacy" title="在特定的 WiFi SSID 下直连">
         {pauseSSIDInput.join('') !== pauseSSIDArray.join('') && (
           <Button
             size="sm"

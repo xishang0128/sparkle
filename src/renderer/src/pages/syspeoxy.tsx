@@ -138,7 +138,7 @@ const Sysproxy: React.FC = () => {
         />
       )}
       <SettingCard className="sysproxy-settings">
-        <SettingItem title="代理主机" divider>
+        <SettingItem compatKey="legacy" title="代理主机" divider>
           <Input
             size="sm"
             className="w-[50%]"
@@ -149,7 +149,7 @@ const Sysproxy: React.FC = () => {
             }}
           />
         </SettingItem>
-        <SettingItem title="代理模式" divider>
+        <SettingItem compatKey="legacy" title="代理模式" divider>
           <Tabs
             size="sm"
             color="primary"
@@ -161,7 +161,7 @@ const Sysproxy: React.FC = () => {
           </Tabs>
         </SettingItem>
         {platform === 'win32' && (
-          <SettingItem title="UWP 工具" divider>
+          <SettingItem compatKey="legacy" title="UWP 工具" divider>
             <Button
               size="sm"
               onPress={async () => {
@@ -174,7 +174,7 @@ const Sysproxy: React.FC = () => {
         )}
         {platform == 'darwin' && (
           <>
-            <SettingItem title="设置方式" divider>
+            <SettingItem compatKey="legacy" title="设置方式" divider>
               <Tabs
                 size="sm"
                 color="primary"
@@ -188,6 +188,7 @@ const Sysproxy: React.FC = () => {
               </Tabs>
             </SettingItem>
             <SettingItem
+              compatKey="legacy"
               title="仅为活跃接口设置"
               actions={
                 <Tooltip
@@ -216,7 +217,7 @@ const Sysproxy: React.FC = () => {
           </>
         )}
         {values.mode === 'auto' && (
-          <SettingItem title="代理模式">
+          <SettingItem compatKey="legacy" title="代理模式">
             <Button size="sm" onPress={() => setOpenPacEditor(true)}>
               编辑 PAC 脚本
             </Button>
@@ -224,7 +225,7 @@ const Sysproxy: React.FC = () => {
         )}
         {values.mode === 'manual' && (
           <>
-            <SettingItem title="添加默认代理绕过" divider>
+            <SettingItem compatKey="legacy" title="添加默认代理绕过" divider>
               <Button
                 size="sm"
                 onPress={() => {
@@ -237,7 +238,7 @@ const Sysproxy: React.FC = () => {
                 添加默认代理绕过
               </Button>
             </SettingItem>
-            <SettingItem title="代理绕过列表">
+            <SettingItem compatKey="legacy" title="代理绕过列表">
               <Button
                 size="sm"
                 onPress={async () => {
