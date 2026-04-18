@@ -1,4 +1,6 @@
----
+description: 请求 sparkle 未实现的功能
+name: 功能请求
+title: '[Feature] '
 body:
   - attributes:
       description: 在提交之前，请执行并勾选以下所有选项以证明您已经阅读并理解了以下要求，否则该 issue 将被关闭。
@@ -27,6 +29,3 @@ body:
     type: textarea
     validations:
       required: true
-description: 请求 sparkle 未实现的功能
-name: 功能请求
-title: '[Feature] '

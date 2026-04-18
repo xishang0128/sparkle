@@ -1,4 +1,6 @@
----
+description: 提交 sparkle 漏洞
+name: 错误反馈
+title: '[Bug] '
 body:
   - attributes:
       description: 在提交之前，请执行并勾选以下所有选项以证明您已经阅读并理解了以下要求，否则该 issue 将被关闭。
@@ -13,6 +15,7 @@ body:
         - label: 我已经使用最新的测试版本测试过，问题依旧存在
         - label: 我已经尝试过重启程序/电脑，问题依旧存在
         - label: 我已确认在其他设备（例如全新虚拟机）上该问题依旧存在
+        - label: 这是一个明确的 bug，而不是一个功能请求或者使用问题，或者询问性质的问题 
     id: ensure
     type: checkboxes
   - attributes:
@@ -27,15 +30,15 @@ body:
     validations:
       required: true
   - attributes:
-      description: 请提供出现问题的操作系统版本，需要具体到小版本号，如果没有该 issues 将会被直接关闭
-      label: 系统版本
+      description: 请提供出现问题的 sparkle 版本，需要具体到小版本号，如果没有该 issues 将会被直接关闭
+      label: 发生问题的 sparkle 版本
     type: input
     validations:
       required: true
   - attributes:
-      description: 请提供出现问题的 sparkle 版本，需要具体到小版本号，如果没有该 issues 将会被直接关闭
-      label: 发生问题的 sparkle 版本
-    type: input
+      description: 请安装并执行`fastfetch --logo none`或者`neofetch --off`，将输出结果粘贴在下面，如果没有该 issues 将会被直接关闭
+      label: 系统信息
+    type: textarea
     validations:
       required: true
   - attributes:
@@ -45,11 +48,8 @@ body:
     validations:
       required: true
   - attributes:
-      description: 请提供重现错误的步骤，如果没有该 issues 将会被直接关闭
+      description: 请提供重现错误的步骤，且可以在全新系统环境中复现，如果没有该 issues 将会被直接关闭
       label: 重现方式
     type: textarea
     validations:
       required: true
-description: 提交 sparkle 漏洞
-name: 错误反馈
-title: '[Bug] '
