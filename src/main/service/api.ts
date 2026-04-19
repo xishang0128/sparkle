@@ -89,6 +89,16 @@ export const getProxyStatus = async (): Promise<Record<string, unknown>> => {
   return await instance.get('/sysproxy/status')
 }
 
+export const stopServiceApi = async (): Promise<Record<string, unknown>> => {
+  const instance = getServiceAxios()
+  return await instance.post('/service/stop')
+}
+
+export const restartServiceApi = async (): Promise<Record<string, unknown>> => {
+  const instance = getServiceAxios()
+  return await instance.post('/service/restart')
+}
+
 export const setPac = async (
   url: string,
   device?: string,

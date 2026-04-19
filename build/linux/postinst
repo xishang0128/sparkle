@@ -20,6 +20,21 @@ if [ -d '/opt/sparkle/resources/files/sub-store-frontend' ]; then
     chmod -R go-w '/opt/sparkle/resources/files/sub-store-frontend' 2>/dev/null || true
 fi
 
+restart_sparkle_service_if_running() {
+    SERVICE_BIN="$1"
+
+    if [ ! -x "$SERVICE_BIN" ]; then
+        return
+    fi
+
+    STATUS_OUTPUT="$("$SERVICE_BIN" service status 2>&1 || true)"
+    if printf '%s' "$STATUS_OUTPUT" | grep -Eq '服务状态：运行中|running'; then
+        "$SERVICE_BIN" service restart >/dev/null 2>&1 || true
+    fi
+}
+
+restart_sparkle_service_if_running '/opt/sparkle/resources/files/sparkle-service'
+
 if hash update-mime-database 2>/dev/null; then
     update-mime-database /usr/share/mime || true
 fi
