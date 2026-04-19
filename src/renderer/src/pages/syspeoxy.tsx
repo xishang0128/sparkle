@@ -172,49 +172,47 @@ const Sysproxy: React.FC = () => {
             </Button>
           </SettingItem>
         )}
-        {platform == 'darwin' && (
-          <>
-            <SettingItem compatKey="legacy" title="设置方式" divider>
-              <Tabs
-                size="sm"
-                color="primary"
-                selectedKey={values.settingMode}
-                onSelectionChange={(key) => {
-                  setValues({ ...values, settingMode: key as 'exec' | 'service' })
-                }}
+        <SettingItem compatKey="legacy" title="设置方式" divider>
+          <Tabs
+            size="sm"
+            color="primary"
+            selectedKey={values.settingMode}
+            onSelectionChange={(key) => {
+              setValues({ ...values, settingMode: key as 'exec' | 'service' })
+            }}
+          >
+            <Tab key="exec" title="执行命令" />
+            <Tab key="service" title="服务模式" />
+          </Tabs>
+        </SettingItem>
+        {platform !== 'linux' && (
+          <SettingItem
+            compatKey="legacy"
+            title="仅为活跃接口设置"
+            actions={
+              <Tooltip
+                content={
+                  <>
+                    <div>开启后，系统代理仅会为当前活跃的网络接口设置，仅服务模式下生效</div>
+                  </>
+                }
               >
-                <Tab key="exec" title="执行命令" />
-                <Tab key="service" title="服务模式" />
-              </Tabs>
-            </SettingItem>
-            <SettingItem
-              compatKey="legacy"
-              title="仅为活跃接口设置"
-              actions={
-                <Tooltip
-                  content={
-                    <>
-                      <div>开启后，系统代理仅会为当前活跃的网络接口设置，仅服务模式下生效</div>
-                    </>
-                  }
-                >
-                  <Button isIconOnly size="sm" variant="light">
-                    <IoIosHelpCircle className="text-lg" />
-                  </Button>
-                </Tooltip>
-              }
-              divider
-            >
-              <Switch
-                size="sm"
-                isSelected={onlyActiveDevice}
-                isDisabled={!values.settingMode || values.settingMode !== 'service'}
-                onValueChange={(v) => {
-                  patchAppConfig({ onlyActiveDevice: v })
-                }}
-              />
-            </SettingItem>
-          </>
+                <Button isIconOnly size="sm" variant="light">
+                  <IoIosHelpCircle className="text-lg" />
+                </Button>
+              </Tooltip>
+            }
+            divider
+          >
+            <Switch
+              size="sm"
+              isSelected={onlyActiveDevice}
+              isDisabled={!values.settingMode || values.settingMode !== 'service'}
+              onValueChange={(v) => {
+                patchAppConfig({ onlyActiveDevice: v })
+              }}
+            />
+          </SettingItem>
         )}
         {values.mode === 'auto' && (
           <SettingItem compatKey="legacy" title="代理模式">

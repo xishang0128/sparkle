@@ -10,15 +10,15 @@ let defaultBypass: string[]
 let triggerSysProxyTimer: NodeJS.Timeout | null = null
 
 export async function triggerSysProxy(enable: boolean, onlyActiveDevice: boolean): Promise<void> {
-  if (net.isOnline()) {
-    if (enable) {
+  if (enable) {
+    if (net.isOnline()) {
       await setSysProxy(onlyActiveDevice)
     } else {
-      await disableSysProxy(onlyActiveDevice)
+      if (triggerSysProxyTimer) clearTimeout(triggerSysProxyTimer)
+      triggerSysProxyTimer = setTimeout(() => triggerSysProxy(enable, onlyActiveDevice), 5000)
     }
   } else {
-    if (triggerSysProxyTimer) clearTimeout(triggerSysProxyTimer)
-    triggerSysProxyTimer = setTimeout(() => triggerSysProxy(enable, onlyActiveDevice), 5000)
+    await disableSysProxy(onlyActiveDevice)
   }
 }
 
@@ -73,11 +73,10 @@ async function setSysProxy(onlyActiveDevice: boolean): Promise<void> {
   const { mode, host, bypass = defaultBypass, settingMode = 'exec' } = sysProxy
   const { 'mixed-port': port = 7890 } = await getControledMihomoConfig()
   const execFilePromise = promisify(execFile)
-  const useService = process.platform === 'darwin' && settingMode === 'service'
 
   switch (mode || 'manual') {
     case 'auto': {
-      if (useService) {
+      if (settingMode === 'service') {
         try {
           await setPac(`http://${host || '127.0.0.1'}:${pacPort}/pac`, '', onlyActiveDevice)
         } catch {
@@ -95,7 +94,7 @@ async function setSysProxy(onlyActiveDevice: boolean): Promise<void> {
 
     case 'manual': {
       if (port != 0) {
-        if (useService) {
+        if (settingMode === 'service') {
           try {
             await setProxy(`${host || '127.0.0.1'}:${port}`, bypass.join(','), '', onlyActiveDevice)
           } catch {
@@ -121,9 +120,8 @@ export async function disableSysProxy(onlyActiveDevice: boolean): Promise<void> 
   const { sysProxy } = await getAppConfig()
   const { settingMode = 'exec' } = sysProxy
   const execFilePromise = promisify(execFile)
-  const useService = process.platform === 'darwin' && settingMode === 'service'
 
-  if (useService) {
+  if (settingMode === 'service') {
     try {
       await disableProxy('', onlyActiveDevice)
     } catch (e) {
