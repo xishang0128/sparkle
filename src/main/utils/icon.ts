@@ -8,6 +8,7 @@ import { app } from 'electron'
 import os from 'os'
 import crypto from 'crypto'
 import { exec } from 'child_process'
+import { promisify } from 'util'
 
 export function isIOSApp(appPath: string): boolean {
   const appDir = appPath.endsWith('.app')
@@ -569,6 +570,59 @@ function getIconMimeType(iconPath: string): string {
   return 'image/png'
 }
 
+async function getWindowsFileIconDataURL(appPath: string): Promise<string> {
+  let tempLinkPath: string | null = null
+
+  try {
+    let targetPath = appPath
+
+    if (/[\u4e00-\u9fff]/.test(appPath)) {
+      const tempDir = os.tmpdir()
+      const randomName = crypto.randomBytes(8).toString('hex')
+      const fileExt = path.extname(appPath)
+      tempLinkPath = path.join(tempDir, `${randomName}${fileExt}`)
+
+      try {
+        await promisify(exec)(`mklink "${tempLinkPath}" "${appPath}"`)
+        targetPath = tempLinkPath
+      } catch {
+        tempLinkPath = null
+      }
+    }
+
+    const iconBuffer = await new Promise<Buffer>((resolve, reject) => {
+      getIcon(targetPath, (b64d) => {
+        try {
+          resolve(Buffer.from(b64d, 'base64'))
+        } catch (err) {
+          reject(err)
+        }
+      })
+    })
+
+    return `data:image/png;base64,${iconBuffer.toString('base64')}`
+  } catch {
+    try {
+      const icon = await app.getFileIcon(appPath, { size: 'large' })
+      if (!icon.isEmpty()) {
+        return icon.toDataURL()
+      }
+    } catch {
+      // ignore
+    }
+
+    return windowsDefaultIcon
+  } finally {
+    if (tempLinkPath && fs.existsSync(tempLinkPath)) {
+      try {
+        fs.unlinkSync(tempLinkPath)
+      } catch {
+        // ignore
+      }
+    }
+  }
+}
+
 export async function getIconDataURL(appPath: string): Promise<string> {
   if (!appPath) {
     return otherDevicesIcon
@@ -600,46 +654,7 @@ export async function getIconDataURL(appPath: string): Promise<string> {
       }
     }
     if (fs.existsSync(appPath) && /\.(exe|dll)$/i.test(appPath)) {
-      try {
-        let targetPath = appPath
-        let tempLinkPath: string | null = null
-
-        if (/[\u4e00-\u9fff]/.test(appPath)) {
-          const tempDir = os.tmpdir()
-          const randomName = crypto.randomBytes(8).toString('hex')
-          const fileExt = path.extname(appPath)
-          tempLinkPath = path.join(tempDir, `${randomName}${fileExt}`)
-
-          try {
-            exec(`mklink "${tempLinkPath}" "${appPath}"`)
-            targetPath = tempLinkPath
-          } catch {
-            // ignore
-          }
-        }
-
-        const iconBuffer = await new Promise<Buffer>((resolve, reject) => {
-          getIcon(targetPath, (b64d) => {
-            try {
-              resolve(Buffer.from(b64d, 'base64'))
-            } catch (err) {
-              reject(err)
-            }
-          })
-        })
-
-        if (tempLinkPath && fs.existsSync(tempLinkPath)) {
-          try {
-            fs.unlinkSync(tempLinkPath)
-          } catch {
-            // ignore
-          }
-        }
-
-        return `data:image/png;base64,${iconBuffer.toString('base64')}`
-      } catch {
-        return windowsDefaultIcon
-      }
+      return getWindowsFileIconDataURL(appPath)
     } else {
       return windowsDefaultIcon
     }

@@ -38,6 +38,8 @@ import { applyTheme } from './theme'
 
 export let tray: Tray | null = null
 let customTrayWindow: BrowserWindow | null = null
+let trayIconUpdateListenerRegistered = false
+let updateTrayMenuListenerRegistered = false
 
 function formatDelayText(delay: number): string {
   if (delay === 0) {
@@ -46,6 +48,12 @@ function formatDelayText(delay: number): string {
     return `${delay} ms`
   }
   return ''
+}
+
+function createDarwinTrayIcon(): Electron.NativeImage {
+  const icon = nativeImage.createFromPath(templateIcon).resize({ height: 16 })
+  icon.setTemplateImage(true)
+  return icon
 }
 
 function positionCustomTrayWindow(win: BrowserWindow): void {
@@ -442,15 +450,16 @@ export const buildContextMenu = async (): Promise<Menu> => {
 
 export async function createTray(): Promise<void> {
   const { useDockIcon = true } = await getAppConfig()
+  if (tray) {
+    return
+  }
   if (process.platform === 'linux') {
     tray = new Tray(pngIcon)
     const menu = await buildContextMenu()
     tray.setContextMenu(menu)
   }
   if (process.platform === 'darwin') {
-    const icon = nativeImage.createFromPath(templateIcon).resize({ height: 16 })
-    icon.setTemplateImage(true)
-    tray = new Tray(icon)
+    tray = new Tray(createDarwinTrayIcon())
   }
   if (process.platform === 'win32') {
     tray = new Tray(icoIcon)
@@ -461,11 +470,21 @@ export async function createTray(): Promise<void> {
     if (!useDockIcon && app.dock) {
       app.dock.hide()
     }
-    ipcMain.on('trayIconUpdate', async (_, png: string) => {
-      const image = nativeImage.createFromDataURL(png).resize({ height: 16 })
-      image.setTemplateImage(true)
-      tray?.setImage(image)
-    })
+    if (!trayIconUpdateListenerRegistered) {
+      ipcMain.on('trayIconUpdate', async (_, png?: string) => {
+        if (!png) {
+          tray?.setImage(createDarwinTrayIcon())
+          return
+        }
+        const image = nativeImage.createFromDataURL(png).resize({ height: 16 })
+        if (image.isEmpty()) {
+          return
+        }
+        image.setTemplateImage(true)
+        tray?.setImage(image)
+      })
+      trayIconUpdateListenerRegistered = true
+    }
     tray?.addListener('right-click', async () => {
       await triggerMainWindow()
     })
@@ -485,9 +504,12 @@ export async function createTray(): Promise<void> {
     tray?.addListener('click', async () => {
       await triggerMainWindow()
     })
-    ipcMain.on('updateTrayMenu', async () => {
-      await updateTrayMenu()
-    })
+    if (!updateTrayMenuListenerRegistered) {
+      ipcMain.on('updateTrayMenu', async () => {
+        await updateTrayMenu()
+      })
+      updateTrayMenuListenerRegistered = true
+    }
   }
 }
 
