@@ -231,9 +231,18 @@ export async function startMonitor(): Promise<void> {
   return ipcErrorWrapper(await window.electron.ipcRenderer.invoke('startMonitor'))
 }
 
-export async function triggerSysProxy(enable: boolean, onlyActiveDevice: boolean): Promise<void> {
+export async function triggerSysProxy(
+  enable: boolean,
+  onlyActiveDevice: boolean,
+  useRegistry?: boolean
+): Promise<void> {
   return ipcErrorWrapper(
-    await window.electron.ipcRenderer.invoke('triggerSysProxy', enable, onlyActiveDevice)
+    await window.electron.ipcRenderer.invoke(
+      'triggerSysProxy',
+      enable,
+      onlyActiveDevice,
+      useRegistry
+    )
   )
 }
 

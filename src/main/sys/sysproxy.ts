@@ -9,20 +9,31 @@ import { disableProxy, setPac, setProxy } from '../service/api'
 let defaultBypass: string[]
 let triggerSysProxyTimer: NodeJS.Timeout | null = null
 
-export async function triggerSysProxy(enable: boolean, onlyActiveDevice: boolean): Promise<void> {
+function registryArgs(useRegistry: boolean): string[] {
+  return process.platform === 'win32' && useRegistry ? ['--use-registry'] : []
+}
+
+export async function triggerSysProxy(
+  enable: boolean,
+  onlyActiveDevice: boolean,
+  useRegistry = false
+): Promise<void> {
   if (enable) {
     if (net.isOnline()) {
-      await setSysProxy(onlyActiveDevice)
+      await setSysProxy(onlyActiveDevice, useRegistry)
     } else {
       if (triggerSysProxyTimer) clearTimeout(triggerSysProxyTimer)
-      triggerSysProxyTimer = setTimeout(() => triggerSysProxy(enable, onlyActiveDevice), 5000)
+      triggerSysProxyTimer = setTimeout(
+        () => triggerSysProxy(enable, onlyActiveDevice, useRegistry),
+        5000
+      )
     }
   } else {
-    await disableSysProxy(onlyActiveDevice)
+    await disableSysProxy(onlyActiveDevice, useRegistry)
   }
 }
 
-async function setSysProxy(onlyActiveDevice: boolean): Promise<void> {
+async function setSysProxy(onlyActiveDevice: boolean, useRegistry = false): Promise<void> {
   if (process.platform === 'linux')
     defaultBypass = [
       'localhost',
@@ -78,7 +89,12 @@ async function setSysProxy(onlyActiveDevice: boolean): Promise<void> {
     case 'auto': {
       if (settingMode === 'service') {
         try {
-          await setPac(`http://${host || '127.0.0.1'}:${pacPort}/pac`, '', onlyActiveDevice)
+          await setPac(
+            `http://${host || '127.0.0.1'}:${pacPort}/pac`,
+            '',
+            onlyActiveDevice,
+            useRegistry
+          )
         } catch {
           throw new Error('服务可能未安装')
         }
@@ -86,7 +102,8 @@ async function setSysProxy(onlyActiveDevice: boolean): Promise<void> {
         await execFilePromise(servicePath(), [
           'pac',
           '--url',
-          `http://${host || '127.0.0.1'}:${pacPort}/pac`
+          `http://${host || '127.0.0.1'}:${pacPort}/pac`,
+          ...registryArgs(useRegistry)
         ])
       }
       break
@@ -96,7 +113,13 @@ async function setSysProxy(onlyActiveDevice: boolean): Promise<void> {
       if (port != 0) {
         if (settingMode === 'service') {
           try {
-            await setProxy(`${host || '127.0.0.1'}:${port}`, bypass.join(','), '', onlyActiveDevice)
+            await setProxy(
+              `${host || '127.0.0.1'}:${port}`,
+              bypass.join(','),
+              '',
+              onlyActiveDevice,
+              useRegistry
+            )
           } catch {
             throw new Error('服务可能未安装')
           }
@@ -106,7 +129,8 @@ async function setSysProxy(onlyActiveDevice: boolean): Promise<void> {
             '--server',
             `${host || '127.0.0.1'}:${port}`,
             '--bypass',
-            process.platform === 'win32' ? bypass.join(';') : bypass.join(',')
+            process.platform === 'win32' ? bypass.join(';') : bypass.join(','),
+            ...registryArgs(useRegistry)
           ])
         }
       }
@@ -115,7 +139,7 @@ async function setSysProxy(onlyActiveDevice: boolean): Promise<void> {
   }
 }
 
-export async function disableSysProxy(onlyActiveDevice: boolean): Promise<void> {
+async function disableSysProxy(onlyActiveDevice: boolean, useRegistry = false): Promise<void> {
   await stopPacServer()
   const { sysProxy } = await getAppConfig()
   const { settingMode = 'exec' } = sysProxy
@@ -123,20 +147,23 @@ export async function disableSysProxy(onlyActiveDevice: boolean): Promise<void> 
 
   if (settingMode === 'service') {
     try {
-      await disableProxy('', onlyActiveDevice)
+      await disableProxy('', onlyActiveDevice, useRegistry)
     } catch (e) {
       throw new Error('服务可能未安装')
     }
   } else {
-    await execFilePromise(servicePath(), ['disable'])
+    await execFilePromise(servicePath(), ['disable', ...registryArgs(useRegistry)])
   }
 }
 
-export function disableSysProxySync(): void {
+export function disableSysProxySync(useRegistry = false): void {
   if (process.platform !== 'win32') return
 
   try {
-    execFileSync(servicePath(), ['disable'], { stdio: 'ignore', timeout: 5000 })
+    execFileSync(servicePath(), ['disable', ...registryArgs(useRegistry)], {
+      stdio: 'ignore',
+      timeout: 5000
+    })
   } catch {
     // ignore
   }

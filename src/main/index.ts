@@ -265,7 +265,7 @@ powerMonitor.on('shutdown', async () => {
     clearTimeout(quitTimeout)
     quitTimeout = null
   }
-  await triggerSysProxy(false, false)
+  await triggerSysProxy(false, false, true)
   await stopCore()
   exitApp()
 })
@@ -583,7 +583,7 @@ export async function createWindow(appConfig?: AppConfig): Promise<void> {
     })
 
     mainWindow.on('session-end', async () => {
-      await triggerSysProxy(false, false)
+      await triggerSysProxy(false, false, true)
       await stopCore()
     })
 

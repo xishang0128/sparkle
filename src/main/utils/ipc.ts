@@ -221,8 +221,8 @@ export function registerIpcMainHandlers(): void {
   ipcMain.handle('restartCore', ipcErrorWrapper(restartCore))
   ipcMain.handle('restartMihomoConnections', ipcErrorWrapper(restartMihomoConnections))
   ipcMain.handle('startMonitor', (_e, detached) => ipcErrorWrapper(startMonitor)(detached))
-  ipcMain.handle('triggerSysProxy', (_e, enable, onlyActiveDevice) =>
-    ipcErrorWrapper(triggerSysProxy)(enable, onlyActiveDevice)
+  ipcMain.handle('triggerSysProxy', (_e, enable, onlyActiveDevice, useRegistry) =>
+    ipcErrorWrapper(triggerSysProxy)(enable, onlyActiveDevice, useRegistry)
   )
   ipcMain.handle('manualGrantCorePermition', (_e, cores?: ('mihomo' | 'mihomo-alpha')[]) =>
     ipcErrorWrapper(manualGrantCorePermition)(cores)
