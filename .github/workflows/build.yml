@@ -74,6 +74,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 25
+
       - name: Setup pnpm
         run: npm install -g pnpm
 
@@ -229,6 +234,11 @@ jobs:
         with:
           fetch-depth: '0'
           fetch-tags: 'true'
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 25
 
       - name: Generate Changelog
         env:
