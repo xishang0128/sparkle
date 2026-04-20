@@ -5,11 +5,23 @@
 !macroend
 
 !macro StopSparkleServiceIfRunning
-  nsExec::ExecToStack '"$SYSDIR\cmd.exe" /C ""$SYSDIR\sc.exe" query SparkleService | "$SYSDIR\find.exe" "RUNNING" >NUL"'
+  nsExec::ExecToStack '"$SYSDIR\sc.exe" query SparkleService'
   Pop $R2
   Pop $R3
 
-  ${If} $R2 == 0
+  StrCpy $R4 "false"
+  StrCpy $R5 0
+  StrLen $R6 $R3
+  ${Do}
+    StrCpy $R7 $R3 7 $R5
+    ${If} $R7 == "RUNNING"
+      StrCpy $R4 "true"
+      ${Break}
+    ${EndIf}
+    IntOp $R5 $R5 + 1
+  ${LoopUntil} $R5 >= $R6
+
+  ${If} $R4 == "true"
     StrCpy $sparkleServiceWasRunning "true"
     DetailPrint "Stopping Sparkle service"
     nsExec::ExecToLog '"$SYSDIR\sc.exe" stop SparkleService'
@@ -27,7 +39,8 @@
     StrCpy $R1 "$INSTDIR\resources\files\sparkle-service.exe"
     ${If} ${FileExists} "$R1"
       DetailPrint "Starting Sparkle service: $R1"
-      ExecWait '"$R1" service start' $R2
+      nsExec::ExecToLog '"$R1" service start'
+      Pop $R2
       ${If} $R2 != 0
         DetailPrint "Sparkle service start exited with code $R2"
       ${EndIf}
