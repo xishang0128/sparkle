@@ -1,7 +1,7 @@
 import { getAppConfig, getControledMihomoConfig } from '../config'
 import { pacPort, startPacServer, stopPacServer } from '../resolve/server'
 import { promisify } from 'util'
-import { execFile } from 'child_process'
+import { execFile, execFileSync } from 'child_process'
 import { servicePath } from '../utils/dirs'
 import { net } from 'electron'
 import { disableProxy, setPac, setProxy } from '../service/api'
@@ -129,5 +129,15 @@ export async function disableSysProxy(onlyActiveDevice: boolean): Promise<void> 
     }
   } else {
     await execFilePromise(servicePath(), ['disable'])
+  }
+}
+
+export function disableSysProxySync(): void {
+  if (process.platform !== 'win32') return
+
+  try {
+    execFileSync(servicePath(), ['disable'], { stdio: 'ignore', timeout: 5000 })
+  } catch {
+    // ignore
   }
 }

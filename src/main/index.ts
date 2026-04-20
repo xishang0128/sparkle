@@ -13,7 +13,7 @@ import {
 } from 'electron'
 import { addOverrideItem, addProfileItem, getAppConfig, patchControledMihomoConfig } from './config'
 import { quitWithoutCore, startCore, stopCore } from './core/manager'
-import { triggerSysProxy } from './sys/sysproxy'
+import { disableSysProxySync, triggerSysProxy } from './sys/sysproxy'
 import icon from '../../resources/icon.png?asset'
 import { createTray } from './resolve/tray'
 import { createApplicationMenu } from './resolve/menu'
@@ -70,6 +70,11 @@ async function scheduleLightweightMode(): Promise<void> {
 
 const syncConfig = getAppConfigSync()
 
+function exitApp(): void {
+  disableSysProxySync()
+  app.exit()
+}
+
 if (
   process.platform === 'win32' &&
   !is.dev &&
@@ -104,7 +109,7 @@ if (
         `首次启动请以管理员权限运行\n${createErrorStr}\n${eStr}`
       )
     } finally {
-      app.exit()
+      exitApp()
     }
   }
 }
@@ -226,7 +231,7 @@ app.on('before-quit', async (e) => {
       }
       await triggerSysProxy(false, false)
       await stopCore()
-      app.exit()
+      exitApp()
       return
     }
     lastQuitAttempt = now
@@ -241,7 +246,7 @@ app.on('before-quit', async (e) => {
       }
       await triggerSysProxy(false, false)
       await stopCore()
-      app.exit()
+      exitApp()
     }
   } else if (notQuitDialog) {
     isQuitting = true
@@ -251,7 +256,7 @@ app.on('before-quit', async (e) => {
     }
     await triggerSysProxy(false, false)
     await stopCore()
-    app.exit()
+    exitApp()
   }
 })
 
@@ -262,7 +267,11 @@ powerMonitor.on('shutdown', async () => {
   }
   await triggerSysProxy(false, false)
   await stopCore()
-  app.exit()
+  exitApp()
+})
+
+app.on('will-quit', () => {
+  disableSysProxySync()
 })
 
 // This method will be called when Electron has finished
