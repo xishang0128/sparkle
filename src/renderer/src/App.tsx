@@ -88,6 +88,7 @@ const App: React.FC = () => {
   const siderWidthValueRef = useRef(siderWidthValue)
   const [resizing, setResizing] = useState(false)
   const resizingRef = useRef(resizing)
+  const resizePointerIdRef = useRef<number | null>(null)
   const suppressSiderClickRef = useRef(false)
   const suppressSiderClickTimerRef = useRef<number | undefined>(undefined)
   const sensors = useCardDndSensors({
@@ -122,6 +123,7 @@ const App: React.FC = () => {
   useEffect(() => {
     setOrder(siderOrderArray)
     setSiderWidthValue(siderWidth)
+    siderWidthValueRef.current = siderWidth
   }, [siderOrderArray, siderWidth])
 
   useEffect(() => {
@@ -152,20 +154,59 @@ const App: React.FC = () => {
   }, [customTheme])
 
   useEffect(() => {
-    window.addEventListener('mouseup', onResizeEnd)
+    window.addEventListener('pointermove', onResizeMove)
+    window.addEventListener('pointerup', onResizeEnd)
+    window.addEventListener('pointercancel', onResizeEnd)
     return (): void => {
-      window.removeEventListener('mouseup', onResizeEnd)
+      window.removeEventListener('pointermove', onResizeMove)
+      window.removeEventListener('pointerup', onResizeEnd)
+      window.removeEventListener('pointercancel', onResizeEnd)
       if (suppressSiderClickTimerRef.current) {
         window.clearTimeout(suppressSiderClickTimerRef.current)
       }
     }
   }, [])
 
-  const onResizeEnd = (): void => {
+  const updateSiderWidthFromClientX = (clientX: number): void => {
+    let nextWidth: number
+    if (clientX <= 150) {
+      nextWidth = narrowWidth
+    } else if (clientX <= 250) {
+      nextWidth = 250
+    } else if (clientX >= 400) {
+      nextWidth = 400
+    } else {
+      nextWidth = clientX
+    }
+
+    siderWidthValueRef.current = nextWidth
+    setSiderWidthValue(nextWidth)
+  }
+
+  const onResizeMove = (event: PointerEvent): void => {
+    if (!resizingRef.current) return
+    if (resizePointerIdRef.current !== null && event.pointerId !== resizePointerIdRef.current) {
+      return
+    }
+
+    event.preventDefault()
+    updateSiderWidthFromClientX(event.clientX)
+  }
+
+  const onResizeEnd = (event?: PointerEvent): void => {
+    if (
+      event &&
+      resizePointerIdRef.current !== null &&
+      event.pointerId !== resizePointerIdRef.current
+    ) {
+      return
+    }
+
     if (resizingRef.current) {
       setResizing(false)
       patchAppConfig({ siderWidth: siderWidthValueRef.current })
     }
+    resizePointerIdRef.current = null
   }
 
   const onDragEnd = async (event: DragEndEvent): Promise<void> => {
@@ -298,21 +339,7 @@ const App: React.FC = () => {
   }
 
   return (
-    <div
-      onMouseMove={(e) => {
-        if (!resizing) return
-        if (e.clientX <= 150) {
-          setSiderWidthValue(narrowWidth)
-        } else if (e.clientX <= 250) {
-          setSiderWidthValue(250)
-        } else if (e.clientX >= 400) {
-          setSiderWidthValue(400)
-        } else {
-          setSiderWidthValue(e.clientX)
-        }
-      }}
-      className={`w-full h-screen flex ${resizing ? 'cursor-ew-resize' : ''}`}
-    >
+    <div className={`w-full h-screen flex ${resizing ? 'cursor-ew-resize' : ''}`}>
       {showQuitConfirm && (
         <ConfirmModal
           title="确定要退出 Sparkle 吗？"
@@ -470,19 +497,29 @@ const App: React.FC = () => {
       )}
 
       <div
-        onMouseDown={() => {
+        onPointerDown={(event) => {
+          resizePointerIdRef.current = event.pointerId
+          event.currentTarget.setPointerCapture(event.pointerId)
+          updateSiderWidthFromClientX(event.clientX)
           setResizing(true)
         }}
         style={{
           position: 'fixed',
           zIndex: 50,
-          left: `${siderWidthValue - 2}px`,
-          width: '5px',
+          left: `${siderWidthValue - 6}px`,
+          width: '12px',
           height: '100vh',
-          cursor: 'ew-resize'
+          cursor: 'ew-resize',
+          touchAction: 'none'
         }}
-        className={resizing ? 'bg-primary' : ''}
-      />
+        className="group flex justify-center"
+      >
+        <div
+          className={`h-full w-0.5 transition-colors ${
+            resizing ? 'bg-primary' : 'bg-transparent group-hover:bg-primary/60'
+          }`}
+        />
+      </div>
       <Divider orientation="vertical" />
       <div
         style={{ width: `calc(100% - ${siderWidthValue + 1}px)` }}
