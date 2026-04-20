@@ -30,19 +30,22 @@ import {
   patchMihomoConfig,
   mihomoGroups
 } from './mihomoApi'
-import { readFile, rm, writeFile } from 'fs/promises'
+import { mkdir, readFile, rm, writeFile } from 'fs/promises'
 import { promisify } from 'util'
 import { mainWindow } from '..'
 import path from 'path'
 import os from 'os'
-import { createWriteStream, existsSync } from 'fs'
+import { createWriteStream, existsSync, watch } from 'fs'
+import type { FSWatcher } from 'fs'
 import { uploadRuntimeConfig } from '../resolve/gistApi'
 import { startMonitor } from '../resolve/trafficMonitor'
 import { triggerSysProxy } from '../sys/sysproxy'
 import { getAxios } from './mihomoApi'
 import { setSysDns } from '../service/api'
+import { randomUUID } from 'crypto'
 
 const ctlParam = process.platform === 'win32' ? '-ext-ctl-pipe' : '-ext-ctl-unix'
+const coreHookTimeout = 30000
 
 class UserCancelledError extends Error {
   constructor(message = '用户取消操作') {
@@ -73,9 +76,125 @@ let networkDownHandled = false
 let child: ChildProcess
 let retry = 10
 
+interface CoreStartupHook {
+  hookDir: string
+  upFile: string
+  upFileName: string
+  postUpCommand: string
+  postDownCommand: string
+}
+
+interface CoreHookWaiter {
+  promise: Promise<void>
+  attachProcess: (process: ChildProcess) => void
+}
+
+function shellQuote(value: string): string {
+  return `'${value.replace(/'/g, "'\\''")}'`
+}
+
+function hookTouchCommand(file: string): string {
+  return process.platform === 'win32' ? `type nul > ${file}` : `: > ${shellQuote(file)}`
+}
+
+function coreHookDir(): string {
+  if (process.platform === 'win32' && process.env.ProgramData) {
+    return path.join(process.env.ProgramData, 'sparkle', 'core-hooks')
+  }
+  return path.join(dataDir(), 'core-hooks')
+}
+
+async function createCoreStartupHook(): Promise<CoreStartupHook> {
+  const runId = randomUUID()
+  const hookDir = coreHookDir()
+
+  await rm(hookDir, { recursive: true, force: true })
+  await mkdir(hookDir, { recursive: true })
+
+  const upFileName = `${runId}.up`
+  const downFileName = `${runId}.down`
+  const upFile = path.join(hookDir, upFileName)
+  const downFile = path.join(hookDir, downFileName)
+
+  return {
+    hookDir,
+    upFile,
+    upFileName,
+    postUpCommand: hookTouchCommand(upFile),
+    postDownCommand: hookTouchCommand(downFile)
+  }
+}
+
+function createCoreHookWaiter(hook: CoreStartupHook): CoreHookWaiter {
+  let watcher: FSWatcher | undefined
+  let timer: NodeJS.Timeout | undefined
+  let attachedProcess: ChildProcess | undefined
+  let completed = false
+
+  let resolvePromise: () => void
+  let rejectPromise: (reason?: unknown) => void
+
+  const cleanup = (): void => {
+    if (timer) {
+      clearTimeout(timer)
+      timer = undefined
+    }
+    if (watcher) {
+      watcher.close()
+      watcher = undefined
+    }
+    if (attachedProcess) {
+      attachedProcess.off('close', handleClose)
+      attachedProcess = undefined
+    }
+  }
+
+  const complete = (error?: unknown): void => {
+    if (completed) return
+    completed = true
+    cleanup()
+    if (error) {
+      rejectPromise(error)
+    } else {
+      resolvePromise()
+    }
+  }
+
+  const handleClose = (code: number | null, signal: NodeJS.Signals | null): void => {
+    complete(new Error(`内核启动失败，post-up 未触发，code: ${code}, signal: ${signal}`))
+  }
+
+  const promise = new Promise<void>((resolve, reject) => {
+    resolvePromise = resolve
+    rejectPromise = reject
+
+    watcher = watch(hook.hookDir, (_eventType, filename) => {
+      const changedFile = filename?.toString()
+      if (changedFile === hook.upFileName || (!changedFile && existsSync(hook.upFile))) {
+        complete()
+      }
+    })
+
+    watcher.on('error', complete)
+
+    timer = setTimeout(() => {
+      complete(new Error(`等待内核 post-up 超时：${coreHookTimeout}ms`))
+    }, coreHookTimeout)
+  })
+
+  return {
+    promise,
+    attachProcess: (process) => {
+      attachedProcess = process
+      attachedProcess.once('close', handleClose)
+    }
+  }
+}
+
 export async function startCore(detached = false): Promise<Promise<void>[]> {
   const {
     core = 'mihomo',
+    coreStartupMode = 'post-up',
     autoSetDNSMode = 'exec',
     diffWorkDir = false,
     mihomoCpuPriority = 'PRIORITY_NORMAL',
@@ -135,20 +254,33 @@ export async function startCore(detached = false): Promise<Promise<void>[]> {
     PATH: process.env.PATH
   }
   let initialized = false
-  child = spawn(
-    corePath,
-    [
-      '-d',
-      diffWorkDir ? mihomoProfileWorkDir(current) : mihomoWorkDir(),
-      ctlParam,
-      mihomoIpcPath()
-    ],
-    {
-      detached: detached,
-      stdio: detached ? 'ignore' : undefined,
-      env: env
-    }
-  )
+  const coreHook =
+    !detached && coreStartupMode === 'post-up' ? await createCoreStartupHook() : undefined
+  const hookWaiter = coreHook ? createCoreHookWaiter(coreHook) : undefined
+  const spawnArgs = [
+    '-d',
+    diffWorkDir ? mihomoProfileWorkDir(current) : mihomoWorkDir(),
+    ctlParam,
+    mihomoIpcPath()
+  ]
+
+  if (coreHook) {
+    await writeFile(
+      logPath(),
+      `[Manager]: Core startup mode: post-up, post-up command: ${coreHook.postUpCommand}\n`,
+      { flag: 'a' }
+    )
+    spawnArgs.push('-post-up', coreHook.postUpCommand, '-post-down', coreHook.postDownCommand)
+  } else if (!detached) {
+    await writeFile(logPath(), `[Manager]: Core startup mode: log\n`, { flag: 'a' })
+  }
+
+  child = spawn(corePath, spawnArgs, {
+    detached: detached,
+    stdio: detached ? 'ignore' : undefined,
+    env: env
+  })
+  hookWaiter?.attachProcess(child)
   if (process.platform === 'win32' && child.pid) {
     os.setPriority(child.pid, os.constants.priority[mihomoCpuPriority])
   }
@@ -172,100 +304,153 @@ export async function startCore(detached = false): Promise<Promise<void>[]> {
   })
   child.stdout?.pipe(stdout)
   child.stderr?.pipe(stderr)
-  return new Promise((resolve, reject) => {
-    child.stdout?.on('data', async (data) => {
-      const str = data.toString()
-      if (
-        (process.platform !== 'win32' && str.includes('External controller unix listen error')) ||
-        (process.platform === 'win32' && str.includes('External controller pipe listen error'))
-      ) {
-        reject(`控制器监听错误:\n${str}`)
+
+  const handleCoreOutput = async (
+    str: string,
+    reject: (reason?: unknown) => void
+  ): Promise<void> => {
+    if (
+      (process.platform !== 'win32' && str.includes('External controller unix listen error')) ||
+      (process.platform === 'win32' && str.includes('External controller pipe listen error'))
+    ) {
+      reject(`控制器监听错误:\n${str}`)
+    }
+
+    if (process.platform === 'win32' && str.includes('updater: finished')) {
+      try {
+        await stopCore(true)
+        const promises = await startCore()
+        await Promise.all(promises)
+      } catch (e) {
+        dialog.showErrorBox('内核启动出错', `${e}`)
       }
+    }
+  }
 
-      if (process.platform === 'win32' && str.includes('updater: finished')) {
-        try {
-          await stopCore(true)
-          const promises = await startCore()
-          await Promise.all(promises)
-        } catch (e) {
-          dialog.showErrorBox('内核启动出错', `${e}`)
-        }
-      }
+  const startMihomoApiStreams = async (): Promise<void> => {
+    await startMihomoTraffic()
+    await startMihomoConnections()
+    await startMihomoLogs()
+    await startMihomoMemory()
+    retry = 10
+  }
 
-      if (
-        (process.platform !== 'win32' && str.includes('RESTful API unix listening at')) ||
-        (process.platform === 'win32' && str.includes('RESTful API pipe listening at'))
-      ) {
-        resolve([
-          new Promise((resolve, reject) => {
-            const handleProviderInitialization = async (logLine: string): Promise<void> => {
-              for (const match of logLine.matchAll(/Start initial provider ([^"]+)"/g)) {
-                const name = normalize(match[1])
-                if (providerNames.has(name)) {
-                  unmatchedProviders.delete(name)
-                }
-              }
+  const completeCoreInitialization = async (): Promise<void> => {
+    const tasks: Promise<unknown>[] = [
+      new Promise<void>((resolve) => setTimeout(resolve, 100)).then(() => {
+        mainWindow?.webContents.send('groupsUpdated')
+        mainWindow?.webContents.send('rulesUpdated')
+      }),
+      uploadRuntimeConfig()
+    ]
 
-              if (
-                logLine.includes(
-                  'Start TUN listening error: configure tun interface: Connect: operation not permitted'
-                )
-              ) {
-                patchControledMihomoConfig({ tun: { enable: false } })
-                mainWindow?.webContents.send('controledMihomoConfigUpdated')
-                ipcMain.emit('updateTrayMenu')
-                reject('虚拟网卡启动失败，前往内核设置页尝试手动授予内核权限')
-              }
+    if (logLevel) {
+      tasks.push(
+        new Promise<void>((resolve) => setTimeout(resolve, 100)).then(() =>
+          patchMihomoConfig({ 'log-level': logLevel })
+        )
+      )
+    }
 
-              const isDefaultProvider = logLine.includes(
-                'Start initial compatible provider default'
-              )
-              const isAllProvidersMatched = providerNames.size > 0 && unmatchedProviders.size === 0
+    await Promise.all(tasks)
+  }
 
-              if ((providerNames.size === 0 && isDefaultProvider) || isAllProvidersMatched) {
-                const waitForMihomoReady = async (): Promise<void> => {
-                  const maxRetries = 30
-                  const retryInterval = 100
+  const waitForCoreReadyByLog = (): Promise<Promise<void>[]> => {
+    let controllerReady = false
 
-                  for (let i = 0; i < maxRetries; i++) {
-                    try {
-                      await mihomoGroups()
-                      break
-                    } catch (error) {
-                      await new Promise((r) => setTimeout(r, retryInterval))
-                    }
+    return new Promise((resolve, reject) => {
+      child.stdout?.on('data', async (data) => {
+        const str = data.toString()
+        await handleCoreOutput(str, reject)
+
+        if (
+          !controllerReady &&
+          ((process.platform !== 'win32' && str.includes('RESTful API unix listening at')) ||
+            (process.platform === 'win32' && str.includes('RESTful API pipe listening at')))
+        ) {
+          controllerReady = true
+          resolve([
+            new Promise((resolve, reject) => {
+              const handleProviderInitialization = async (logLine: string): Promise<void> => {
+                for (const match of logLine.matchAll(/Start initial provider ([^"]+)"/g)) {
+                  const name = normalize(match[1])
+                  if (providerNames.has(name)) {
+                    unmatchedProviders.delete(name)
                   }
                 }
 
-                await waitForMihomoReady()
-                initialized = true
-                Promise.all([
-                  new Promise((r) => setTimeout(r, 100)).then(() => {
-                    mainWindow?.webContents.send('groupsUpdated')
-                    mainWindow?.webContents.send('rulesUpdated')
-                  }),
-                  uploadRuntimeConfig(),
-                  new Promise((r) => setTimeout(r, 100)).then(() =>
-                    patchMihomoConfig({ 'log-level': logLevel })
+                if (
+                  logLine.includes(
+                    'Start TUN listening error: configure tun interface: Connect: operation not permitted'
                   )
-                ]).then(() => resolve())
+                ) {
+                  patchControledMihomoConfig({ tun: { enable: false } })
+                  mainWindow?.webContents.send('controledMihomoConfigUpdated')
+                  ipcMain.emit('updateTrayMenu')
+                  reject('虚拟网卡启动失败，前往内核设置页尝试手动授予内核权限')
+                }
+
+                const isDefaultProvider = logLine.includes(
+                  'Start initial compatible provider default'
+                )
+                const isAllProvidersMatched =
+                  providerNames.size > 0 && unmatchedProviders.size === 0
+
+                if ((providerNames.size === 0 && isDefaultProvider) || isAllProvidersMatched) {
+                  const waitForMihomoReady = async (): Promise<void> => {
+                    const maxRetries = 30
+                    const retryInterval = 100
+
+                    for (let i = 0; i < maxRetries; i++) {
+                      try {
+                        await mihomoGroups()
+                        break
+                      } catch (error) {
+                        await new Promise((r) => setTimeout(r, retryInterval))
+                      }
+                    }
+                  }
+
+                  await waitForMihomoReady()
+                  initialized = true
+                  completeCoreInitialization()
+                    .then(() => resolve())
+                    .catch(reject)
+                }
               }
-            }
-            child.stdout?.on('data', (data) => {
-              if (!initialized) {
-                handleProviderInitialization(data.toString())
-              }
+
+              child.stdout?.on('data', (data) => {
+                if (!initialized) {
+                  handleProviderInitialization(data.toString()).catch(reject)
+                }
+              })
             })
-          })
-        ])
-        await startMihomoTraffic()
-        await startMihomoConnections()
-        await startMihomoLogs()
-        await startMihomoMemory()
-        retry = 10
-      }
+          ])
+          await startMihomoApiStreams()
+        }
+      })
     })
-  })
+  }
+
+  const waitForCoreReadyByHook = (): Promise<Promise<void>[]> => {
+    if (!hookWaiter) return waitForCoreReadyByLog()
+
+    return new Promise((resolve, reject) => {
+      child.stdout?.on('data', (data) => {
+        handleCoreOutput(data.toString(), reject).catch(reject)
+      })
+
+      hookWaiter.promise
+        .then(async () => {
+          initialized = true
+          await startMihomoApiStreams()
+          resolve([completeCoreInitialization()])
+        })
+        .catch(reject)
+    })
+  }
+
+  return coreStartupMode === 'post-up' ? waitForCoreReadyByHook() : waitForCoreReadyByLog()
 }
 
 export async function stopCore(force = false): Promise<void> {

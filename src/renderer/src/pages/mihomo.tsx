@@ -58,7 +58,12 @@ getSystemCorePaths().catch(() => {})
 
 const Mihomo: React.FC = () => {
   const { appConfig, patchAppConfig } = useAppConfig()
-  const { core = 'mihomo', maxLogDays = 7, corePermissionMode = 'elevated' } = appConfig || {}
+  const {
+    core = 'mihomo',
+    maxLogDays = 7,
+    corePermissionMode = 'elevated',
+    coreStartupMode = 'post-up'
+  } = appConfig || {}
   const { controledMihomoConfig, patchControledMihomoConfig } = useControledMihomoConfig()
   const { ipv6, 'log-level': logLevel = 'info' } = controledMihomoConfig || {}
 
@@ -348,6 +353,17 @@ const Mihomo: React.FC = () => {
           >
             <Tab key="elevated" title={platform === 'win32' ? '任务计划' : '授权运行'} />
             <Tab key="service" title="系统服务" />
+          </Tabs>
+        </SettingItem>
+        <SettingItem compatKey="legacy" title="启动检测方式" divider>
+          <Tabs
+            size="sm"
+            color="primary"
+            selectedKey={coreStartupMode}
+            onSelectionChange={(key) => handleConfigChangeWithRestart('coreStartupMode', key)}
+          >
+            <Tab key="post-up" title="Post Up" />
+            <Tab key="log" title="日志解析" />
           </Tabs>
         </SettingItem>
         <SettingItem

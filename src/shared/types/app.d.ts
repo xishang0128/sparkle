@@ -63,6 +63,7 @@ interface AppConfig {
   autoLightweight?: boolean
   autoLightweightDelay?: number
   autoLightweightMode?: 'core' | 'tray'
+  coreStartupMode?: 'post-up' | 'log'
   useCustomSubStore?: boolean
   useProxyInSubStore?: boolean
   mihomoCpuPriority?: Priority

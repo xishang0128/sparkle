@@ -48,6 +48,7 @@ export const defaultConfig: AppConfig = {
   proxyDisplayLayout: 'double',
   groupDisplayLayout: 'double',
   autoLightweightMode: 'core',
+  coreStartupMode: 'post-up',
   delayTestUrlScope: 'group'
 }
 
