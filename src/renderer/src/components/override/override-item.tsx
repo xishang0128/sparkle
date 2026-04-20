@@ -148,19 +148,21 @@ const OverrideItem: React.FC<Props> = (props) => {
 
   useEffect(() => {
     if (isDragging) {
-      setTimeout(() => {
-        setDisableOpen(true)
-      }, 200)
-    } else {
-      setTimeout(() => {
-        setDisableOpen(false)
-      }, 200)
+      setDisableOpen(true)
+      return
     }
+
+    const timer = window.setTimeout(() => {
+      setDisableOpen(false)
+    }, 160)
+
+    return (): void => window.clearTimeout(timer)
   }, [isDragging])
 
   return (
     <div
-      className="grid col-span-1"
+      ref={setNodeRef}
+      className="grid col-span-1 touch-sortable-card"
       style={{
         position: 'relative',
         transform: CSS.Transform.toString(transform),
@@ -207,16 +209,18 @@ const OverrideItem: React.FC<Props> = (props) => {
           setOpenFileEditor(true)
         }}
       >
-        <div ref={setNodeRef} {...attributes} {...listeners} className="h-full w-full">
+        <div {...attributes} {...listeners} className="h-full w-full">
           <CardBody>
-            <div className="flex justify-between h-8">
-              <h3
-                title={info?.name}
-                className={`text-ellipsis whitespace-nowrap overflow-hidden text-md font-bold leading-8 text-foreground`}
-              >
-                {info?.name}
-              </h3>
-              <div className="flex" onClick={(e) => e.stopPropagation()}>
+            <div className="flex justify-between h-8 gap-1">
+              <div className="flex min-w-0 items-center">
+                <h3
+                  title={info?.name}
+                  className={`text-ellipsis whitespace-nowrap overflow-hidden text-md font-bold leading-8 text-foreground`}
+                >
+                  {info?.name}
+                </h3>
+              </div>
+              <div className="flex shrink-0" data-no-dnd onClick={(e) => e.stopPropagation()}>
                 {info.type === 'remote' && (
                   <Button
                     isIconOnly

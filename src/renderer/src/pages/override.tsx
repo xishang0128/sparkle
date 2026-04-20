@@ -11,14 +11,7 @@ import BasePage from '@renderer/components/base/base-page'
 import { getFilePath, readTextFile } from '@renderer/utils/ipc'
 import { useEffect, useRef, useState } from 'react'
 import { MdContentPaste } from 'react-icons/md'
-import {
-  DndContext,
-  closestCenter,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  DragEndEvent
-} from '@dnd-kit/core'
+import { DndContext, closestCenter, DragEndEvent } from '@dnd-kit/core'
 import { SortableContext } from '@dnd-kit/sortable'
 import { useOverrideConfig } from '@renderer/hooks/use-override-config'
 import OverrideItem from '@renderer/components/override/override-item'
@@ -26,6 +19,7 @@ import EditInfoModal from '@renderer/components/override/edit-info-modal'
 import { FaPlus } from 'react-icons/fa6'
 import { HiOutlineDocumentText } from 'react-icons/hi'
 import { RiArchiveLine } from 'react-icons/ri'
+import { useCardDndSensors } from '@renderer/hooks/use-card-dnd-sensors'
 
 const emptyItems: OverrideItem[] = []
 
@@ -46,13 +40,7 @@ const Override: React.FC = () => {
   const [url, setUrl] = useState('')
   const [showEditModal, setShowEditModal] = useState(false)
   const [editingItem, setEditingItem] = useState<OverrideItem | null>(null)
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 2
-      }
-    })
-  )
+  const sensors = useCardDndSensors()
   const isProcessingDrop = useRef(false)
   const handleImport = async (): Promise<void> => {
     setImporting(true)
@@ -78,8 +66,10 @@ const Override: React.FC = () => {
         const newOrder = sortedItems.slice()
         const activeIndex = newOrder.findIndex((item) => item.id === active.id)
         const overIndex = newOrder.findIndex((item) => item.id === over.id)
-        newOrder.splice(activeIndex, 1)
-        newOrder.splice(overIndex, 0, itemsArray[activeIndex])
+        if (activeIndex === -1 || overIndex === -1) return
+        const [activeItem] = newOrder.splice(activeIndex, 1)
+        if (!activeItem) return
+        newOrder.splice(overIndex, 0, activeItem)
         setSortedItems(newOrder)
         await setOverrideConfig({ items: newOrder })
       }

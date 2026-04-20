@@ -71,6 +71,26 @@
   -webkit-app-region: drag;
 }
 
+.touch-sortable-card {
+  touch-action: pan-y;
+}
+
+.sysproxy-card,
+.tun-card,
+.dns-card,
+.sniff-card,
+.proxy-card,
+.conn-card,
+.profile-card,
+.mihomo-core-card,
+.rule-card,
+.resource-card,
+.override-card,
+.log-card,
+.substore-card {
+  touch-action: pan-y;
+}
+
 .app-drag > .header {
   width: auto;
   padding: 0;

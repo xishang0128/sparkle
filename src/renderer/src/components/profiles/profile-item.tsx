@@ -164,19 +164,21 @@ const ProfileItem: React.FC<Props> = (props) => {
 
   useEffect(() => {
     if (isDragging) {
-      setTimeout(() => {
-        setDisableSelect(true)
-      }, 100)
-    } else {
-      setTimeout(() => {
-        setDisableSelect(false)
-      }, 100)
+      setDisableSelect(true)
+      return
     }
+
+    const timer = window.setTimeout(() => {
+      setDisableSelect(false)
+    }, 160)
+
+    return (): void => window.clearTimeout(timer)
   }, [isDragging])
 
   return (
     <div
-      className="grid col-span-1"
+      ref={setNodeRef}
+      className="grid col-span-1 touch-sortable-card"
       style={{
         position: 'relative',
         transform: CSS.Transform.toString(transform),
@@ -227,16 +229,18 @@ const ProfileItem: React.FC<Props> = (props) => {
         }}
         className={`${isCurrent ? 'bg-primary' : ''} ${selecting ? 'blur-sm' : ''}`}
       >
-        <div ref={setNodeRef} {...attributes} {...listeners} className="w-full h-full">
+        <div {...attributes} {...listeners} className="w-full h-full">
           <CardBody className="pb-1">
-            <div className="flex justify-between h-8">
-              <h3
-                title={info?.name}
-                className={`text-ellipsis whitespace-nowrap overflow-hidden text-md font-bold leading-8 ${isCurrent ? 'text-primary-foreground' : 'text-foreground'}`}
-              >
-                {info?.name}
-              </h3>
-              <div className="flex" onClick={(e) => e.stopPropagation()}>
+            <div className="flex justify-between h-8 gap-1">
+              <div className="flex min-w-0 items-center">
+                <h3
+                  title={info?.name}
+                  className={`text-ellipsis whitespace-nowrap overflow-hidden text-md font-bold leading-8 ${isCurrent ? 'text-primary-foreground' : 'text-foreground'}`}
+                >
+                  {info?.name}
+                </h3>
+              </div>
+              <div className="flex shrink-0" data-no-dnd onClick={(e) => e.stopPropagation()}>
                 {info.type === 'remote' && (
                   <Tooltip placement="left" content={dayjs(info.updated).fromNow()}>
                     <Button

@@ -18,14 +18,7 @@ import { getFilePath, readTextFile, subStoreCollections, subStoreSubs } from '@r
 import type { KeyboardEvent } from 'react'
 import { ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { MdContentPaste } from 'react-icons/md'
-import {
-  DndContext,
-  closestCenter,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  DragEndEvent
-} from '@dnd-kit/core'
+import { DndContext, closestCenter, DragEndEvent } from '@dnd-kit/core'
 import { SortableContext } from '@dnd-kit/sortable'
 import { FaPlus } from 'react-icons/fa6'
 import { IoMdRefresh } from 'react-icons/io'
@@ -34,6 +27,7 @@ import SubStoreIcon from '@renderer/components/base/substore-icon'
 import ProfileSettingModal from '@renderer/components/profiles/profile-setting-modal'
 import useSWR from 'swr'
 import { useNavigate } from 'react-router-dom'
+import { useCardDndSensors } from '@renderer/hooks/use-card-dnd-sensors'
 
 const emptyItems: ProfileItem[] = []
 
@@ -64,13 +58,7 @@ const Profiles: React.FC = () => {
   const [editingItem, setEditingItem] = useState<ProfileItem | null>(null)
   const [url, setUrl] = useState('')
   const isUrlEmpty = url.trim() === ''
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 2
-      }
-    })
-  )
+  const sensors = useCardDndSensors()
   const { data: subs = [], mutate: mutateSubs } = useSWR(
     useSubStore ? 'subStoreSubs' : undefined,
     useSubStore ? subStoreSubs : (): undefined => {}
@@ -152,8 +140,10 @@ const Profiles: React.FC = () => {
         const newOrder = sortedItems.slice()
         const activeIndex = newOrder.findIndex((item) => item.id === active.id)
         const overIndex = newOrder.findIndex((item) => item.id === over.id)
-        newOrder.splice(activeIndex, 1)
-        newOrder.splice(overIndex, 0, itemsArray[activeIndex])
+        if (activeIndex === -1 || overIndex === -1) return
+        const [activeItem] = newOrder.splice(activeIndex, 1)
+        if (!activeItem) return
+        newOrder.splice(overIndex, 0, activeItem)
         setSortedItems(newOrder)
         await setProfileConfig({ current, items: newOrder })
       }
