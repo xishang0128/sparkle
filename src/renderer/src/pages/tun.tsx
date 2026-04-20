@@ -55,6 +55,7 @@ const Tun: React.FC = () => {
     <>
       <BasePage
         title="虚拟网卡设置"
+        contentClassName="no-scrollbar"
         header={
           changed && (
             <Button

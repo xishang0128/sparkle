@@ -106,6 +106,7 @@ const Sysproxy: React.FC = () => {
   return (
     <BasePage
       title="系统代理设置"
+      contentClassName="no-scrollbar"
       header={
         changed && (
           <Button color="primary" className="app-nodrag" size="sm" onPress={onSave}>

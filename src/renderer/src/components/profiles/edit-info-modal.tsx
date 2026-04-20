@@ -126,8 +126,9 @@ const EditInfoModal: React.FC<Props> = (props) => {
             <FaPlus />
           </Button>
         </Dropdown.Trigger>
-        <Dropdown.Popover>
+        <Dropdown.Popover className="no-scrollbar overflow-y-auto">
           <Dropdown.Menu
+            className="no-scrollbar"
             onAction={(key) => {
               setValues({
                 ...values,

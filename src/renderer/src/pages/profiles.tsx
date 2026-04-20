@@ -220,6 +220,7 @@ const Profiles: React.FC = () => {
     <BasePage
       ref={pageRef}
       title="订阅管理"
+      contentClassName="no-scrollbar"
       header={
         <>
           <Button

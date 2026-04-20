@@ -208,7 +208,7 @@ const Mihomo: React.FC = () => {
   ]
 
   return (
-    <BasePage title="内核设置">
+    <BasePage title="内核设置" contentClassName="no-scrollbar">
       {showGrantConfirm && (
         <ConfirmModal
           onChange={setShowGrantConfirm}

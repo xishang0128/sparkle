@@ -79,6 +79,7 @@ const Sniffer: React.FC = () => {
   return (
     <BasePage
       title="域名嗅探设置"
+      contentClassName="no-scrollbar"
       header={
         changed && (
           <Button

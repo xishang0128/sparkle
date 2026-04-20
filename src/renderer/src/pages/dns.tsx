@@ -108,6 +108,7 @@ const DNS: React.FC = () => {
   return (
     <BasePage
       title="DNS 设置"
+      contentClassName="no-scrollbar"
       header={
         changed && (
           <Button
