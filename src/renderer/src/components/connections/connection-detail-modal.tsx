@@ -1,5 +1,16 @@
-import { Button, Description, Dropdown, Label, Modal, Separator, Surface } from '@heroui-v3/react'
+import {
+  Button,
+  Description,
+  Dropdown,
+  Label,
+  Modal,
+  Separator,
+  Surface,
+  Tabs
+} from '@heroui-v3/react'
 import type { ReactNode } from 'react'
+import { useMemo, useState } from 'react'
+import { BaseEditor } from '@renderer/components/base/base-editor-lazy'
 import { calcTraffic } from '@renderer/utils/calc'
 import dayjs from 'dayjs'
 import { BiCopy } from 'react-icons/bi'
@@ -97,6 +108,9 @@ function buildCopyMenuItems(value: string | string[], displayName?: string, pref
 }
 
 const ConnectionDetailModal = ({ connection, onClose }: Props) => {
+  const [viewMode, setViewMode] = useState<'detail' | 'raw'>('detail')
+  const rawJson = useMemo(() => JSON.stringify(connection, null, 2), [connection])
+
   const renderRow = (
     title: string,
     content: ReactNode,
@@ -431,17 +445,56 @@ const ConnectionDetailModal = ({ connection, onClose }: Props) => {
             <Modal.Header className="app-drag pb-0">
               <Modal.Heading>连接详情</Modal.Heading>
             </Modal.Header>
-            <Modal.Body className="no-scrollbar max-h-[70vh] overflow-y-auto pt-4 pb-4">
-              <Surface variant="transparent" className="flex flex-col">
-                {rows.map((row, index) => {
-                  const hasSeparator = index < rows.length - 1
+            <Tabs
+              aria-label="连接详情视图"
+              className="flex min-h-0 flex-col"
+              selectedKey={viewMode}
+              onSelectionChange={(key) => setViewMode(key as 'detail' | 'raw')}
+            >
+              <Modal.Body className="min-h-0 overflow-hidden pt-4 pb-1">
+                <Tabs.Panel
+                  id="detail"
+                  className="no-scrollbar mt-0! h-[min(56vh,520px)] overflow-y-auto p-0!"
+                >
+                  <Surface variant="transparent" className="flex flex-col">
+                    {rows.map((row, index) => {
+                      const hasSeparator = index < rows.length - 1
 
-                  return row.kind === 'copy'
-                    ? renderCopyableRow(row, hasSeparator)
-                    : renderRow(row.title, row.content, undefined, hasSeparator)
-                })}
-              </Surface>
-            </Modal.Body>
+                      return row.kind === 'copy'
+                        ? renderCopyableRow(row, hasSeparator)
+                        : renderRow(row.title, row.content, undefined, hasSeparator)
+                    })}
+                  </Surface>
+                </Tabs.Panel>
+                <Tabs.Panel id="raw" className="mt-0! overflow-hidden p-0!">
+                  <Surface
+                    variant="secondary"
+                    className="app-nodrag h-[min(56vh,520px)] overflow-hidden rounded-lg"
+                  >
+                    {viewMode === 'raw' ? (
+                      <BaseEditor value={rawJson} language="json" readOnly />
+                    ) : null}
+                  </Surface>
+                </Tabs.Panel>
+              </Modal.Body>
+              <Modal.Footer className="app-nodrag mt-0! justify-start px-0! pt-0! pb-0!">
+                <Tabs.ListContainer>
+                  <Tabs.List
+                    aria-label="连接详情视图切换"
+                    className="w-fit gap-0.5 rounded-lg bg-primary/10 p-px *:h-5 *:min-w-fit *:rounded-md *:px-1.5 *:text-[11px] *:font-medium *:whitespace-nowrap *:text-foreground-500 *:transition-colors *:hover:opacity-100 *:hover:text-foreground-700 *:data-[hovered=true]:opacity-100 *:data-[hovered=true]:text-foreground-700 *:data-[selected=true]:text-foreground **:data-[slot=tabs-indicator]:rounded-md **:data-[slot=tabs-indicator]:bg-primary/18 **:data-[slot=tabs-indicator]:shadow-none"
+                  >
+                    <Tabs.Tab id="detail">
+                      详情
+                      <Tabs.Indicator />
+                    </Tabs.Tab>
+                    <Tabs.Tab id="raw">
+                      原始数据
+                      <Tabs.Indicator />
+                    </Tabs.Tab>
+                  </Tabs.List>
+                </Tabs.ListContainer>
+              </Modal.Footer>
+            </Tabs>
             <Modal.CloseTrigger className="app-nodrag" />
           </Modal.Dialog>
         </Modal.Container>
