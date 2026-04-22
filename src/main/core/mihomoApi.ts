@@ -324,9 +324,7 @@ export const stopMihomoLogs = (): void => {
 }
 
 const mihomoLogs = async (): Promise<void> => {
-  const { 'log-level': logLevel = 'info' } = await getControledMihomoConfig()
-
-  mihomoLogsWs = new WebSocket(`ws+unix:${mihomoIpcPath()}:/logs?level=${logLevel}`)
+  mihomoLogsWs = new WebSocket(`ws+unix:${mihomoIpcPath()}:/logs?level=debug`)
 
   mihomoLogsWs.onmessage = (e): void => {
     const data = e.data as string
