@@ -11,6 +11,9 @@ let logs: MihomoLogEntry[] = []
 let maxEntries = 500
 let initialized = false
 let nextLogId = 0
+let pendingLogs: MihomoIncomingLog[] = []
+let flushTimer: number | null = null
+const flushIntervalMs = 32
 
 function trimLogs(nextLogs: MihomoLogEntry[]): MihomoLogEntry[] {
   if (nextLogs.length <= maxEntries) return nextLogs
@@ -20,6 +23,22 @@ function trimLogs(nextLogs: MihomoLogEntry[]): MihomoLogEntry[] {
 function notify(): void {
   const snapshot = [...logs]
   listeners.forEach((listener) => listener(snapshot))
+}
+
+function flushPendingLogs(): void {
+  flushTimer = null
+  if (pendingLogs.length === 0) return
+
+  logs = mergeLogs(logs, pendingLogs)
+  pendingLogs = []
+  notify()
+}
+
+function scheduleFlush(): void {
+  if (flushTimer) return
+  flushTimer = window.setTimeout(() => {
+    flushPendingLogs()
+  }, flushIntervalMs)
 }
 
 function createLogId(log: MihomoIncomingLog): string {
@@ -91,8 +110,8 @@ function initLogStore(): void {
 
   initialized = true
   window.electron.ipcRenderer.on('mihomoLogs', (_event, log: MihomoIncomingLog) => {
-    logs = mergeLogs(logs, [log])
-    notify()
+    pendingLogs.push(log)
+    scheduleFlush()
   })
 
   void getCachedMihomoLogs()
@@ -121,6 +140,11 @@ export function subscribeMihomoLogs(listener: MihomoLogListener): () => void {
 }
 
 export function clearMihomoLogs(): void {
+  if (flushTimer) {
+    window.clearTimeout(flushTimer)
+    flushTimer = null
+  }
+  pendingLogs = []
   logs = []
   notify()
   void clearCachedMihomoLogs()

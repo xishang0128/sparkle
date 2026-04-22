@@ -7,6 +7,7 @@ import { appLogPath, coreLogPath, substoreLogPath } from './dirs'
 
 type LogTarget = 'app' | 'core' | 'substore'
 type MihomoLogSource = 'out' | 'ws'
+type LogContent = string | Buffer
 interface CachedControllerLog extends ControllerLog {
   seq: number
 }
@@ -24,6 +25,8 @@ const logFileSizeMap = new Map<LogTarget, { path: string; size: number | null }>
 let nextLogSeq = 0
 let mihomoLogSource: MihomoLogSource = 'out'
 const logfmtFieldPattern = /([A-Za-z0-9_.-]+)=("(?:\\.|[^"\\])*"|[^\s]+)/g
+const logStreamHighWaterMark = 256 * 1024
+const logTrimLowWatermarkRatio = 0.7
 
 function resolveLogPath(target: LogTarget): string {
   switch (target) {
@@ -63,19 +66,44 @@ function getWriteStream(target: LogTarget): WriteStream {
     return current.stream
   }
 
-  current?.stream.end()
+  if (current) {
+    streamMap.delete(target)
+    current.stream.end()
+  }
 
-  const stream = createWriteStream(nextPath, { flags: 'a' })
+  const stream = createWriteStream(nextPath, { flags: 'a', highWaterMark: logStreamHighWaterMark })
   streamMap.set(target, { path: nextPath, stream })
   return stream
 }
 
-function closeWriteStream(target: LogTarget): void {
+async function closeWriteStream(target: LogTarget): Promise<void> {
   const current = streamMap.get(target)
   if (!current) return
 
-  current.stream.end()
   streamMap.delete(target)
+  const { stream } = current
+
+  if (stream.closed || stream.destroyed) return
+
+  await new Promise<void>((resolve) => {
+    const cleanup = (): void => {
+      stream.removeListener('close', onClose)
+      stream.removeListener('error', onError)
+      resolve()
+    }
+
+    const onClose = (): void => {
+      cleanup()
+    }
+
+    const onError = (): void => {
+      cleanup()
+    }
+
+    stream.once('close', onClose)
+    stream.once('error', onError)
+    stream.end()
+  })
 }
 
 function retainTarget(target: LogTarget): void {
@@ -90,12 +118,20 @@ function releaseTarget(target: LogTarget): void {
   }
 
   consumerCount.delete(target)
-  closeWriteStream(target)
+  void closeWriteStream(target)
 }
 
 function trimCachedLogs(): void {
   if (cachedLogs.length <= cachedLogLimit) return
   cachedLogs.splice(0, cachedLogs.length - cachedLogLimit)
+}
+
+function isEmptyLogContent(content: LogContent): boolean {
+  return typeof content === 'string' ? content.length === 0 : content.byteLength === 0
+}
+
+function getLogContentSize(content: LogContent): number {
+  return typeof content === 'string' ? Buffer.byteLength(content, 'utf-8') : content.byteLength
 }
 
 function normalizeLogContent(content: string): string[] {
@@ -136,19 +172,24 @@ async function getLogFileSize(target: LogTarget, path: string): Promise<number> 
   }
 }
 
-async function trimLogFileToSize(target: LogTarget, path: string, maxBytes: number): Promise<void> {
+async function trimLogFileToSize(
+  target: LogTarget,
+  path: string,
+  targetBytes: number
+): Promise<void> {
+  await closeWriteStream(target)
   const content = await readFile(path, 'utf-8').catch(() => '')
   const { lines, hasTrailingNewline } = parseFileLines(content)
   const normalizedContent = content.replace(/\r\n/g, '\n')
   let currentSize = Buffer.byteLength(normalizedContent, 'utf-8')
 
-  if (currentSize <= maxBytes) {
+  if (currentSize <= targetBytes) {
     logFileSizeMap.set(target, { path, size: currentSize })
     return
   }
 
   let startIndex = 0
-  while (startIndex < lines.length && currentSize > maxBytes) {
+  while (startIndex < lines.length && currentSize > targetBytes) {
     currentSize -= Buffer.byteLength(lines[startIndex], 'utf-8')
     if (startIndex < lines.length - 1 || hasTrailingNewline) {
       currentSize -= 1
@@ -160,7 +201,6 @@ async function trimLogFileToSize(target: LogTarget, path: string, maxBytes: numb
   const trimmedContent =
     trimmedLines.join('\n') + (trimmedLines.length > 0 && hasTrailingNewline ? '\n' : '')
 
-  closeWriteStream(target)
   await writeFile(path, trimmedContent, 'utf-8')
   logFileSizeMap.set(target, { path, size: Buffer.byteLength(trimmedContent, 'utf-8') })
 }
@@ -168,16 +208,16 @@ async function trimLogFileToSize(target: LogTarget, path: string, maxBytes: numb
 async function enforceLogFileSizeLimit(
   target: LogTarget,
   path: string,
-  appendedContent: string,
+  appendedBytes: number,
   maxBytes: number
 ): Promise<void> {
-  const nextSize =
-    (await getLogFileSize(target, path)) + Buffer.byteLength(appendedContent, 'utf-8')
+  const nextSize = (await getLogFileSize(target, path)) + appendedBytes
   logFileSizeMap.set(target, { path, size: nextSize })
 
   if (nextSize <= maxBytes) return
 
-  await trimLogFileToSize(target, path, maxBytes)
+  const trimTargetBytes = Math.max(1, Math.floor(maxBytes * logTrimLowWatermarkRatio))
+  await trimLogFileToSize(target, path, trimTargetBytes)
 }
 
 function unquoteLogfmtValue(value: string): string {
@@ -279,11 +319,24 @@ function publishTargetLogLines(content: string, type: LogLevel): void {
   })
 }
 
-async function appendLog(target: LogTarget, content: string): Promise<void> {
-  if (!content || !(await shouldSaveLogs())) return
+function flushCoreLogLines(lineBuffer: string, content: string, type: LogLevel): string {
+  const normalized = `${lineBuffer}${content}`.replace(/\r\n/g, '\n')
+  const lines = normalized.split('\n')
+  const nextLineBuffer = lines.pop() || ''
+  publishTargetLogLines(lines.join('\n'), type)
+  return nextLineBuffer
+}
+
+function normalizeWriteChunk(chunk: string | Buffer): Buffer {
+  return Buffer.isBuffer(chunk) ? chunk : Buffer.from(String(chunk), 'utf-8')
+}
+
+async function appendLog(target: LogTarget, content: LogContent): Promise<void> {
+  if (isEmptyLogContent(content) || !(await shouldSaveLogs())) return
 
   const path = resolveLogPath(target)
   const maxLogFileSizeBytes = await getMaxLogFileSizeBytes()
+  const contentSize = getLogContentSize(content)
   const currentQueue = writeQueue[target].catch(() => {})
   writeQueue[target] = (async () => {
     await currentQueue
@@ -298,9 +351,9 @@ async function appendLog(target: LogTarget, content: string): Promise<void> {
           }
         })
       })
-      await enforceLogFileSizeLimit(target, path, content, maxLogFileSizeBytes)
+      await enforceLogFileSizeLimit(target, path, contentSize, maxLogFileSizeBytes)
     } catch (error) {
-      closeWriteStream(target)
+      await closeWriteStream(target)
       throw error
     }
   })()
@@ -342,12 +395,22 @@ export function createLogWritable(target: LogTarget, type: LogLevel = 'info'): W
 
   return new Writable({
     write(chunk, _encoding, callback) {
-      const content = Buffer.isBuffer(chunk) ? chunk.toString('utf-8') : String(chunk)
+      const content = normalizeWriteChunk(chunk)
       if (target === 'core' && mihomoLogSource === 'out') {
-        const normalized = `${lineBuffer}${content}`.replace(/\r\n/g, '\n')
-        const lines = normalized.split('\n')
-        lineBuffer = lines.pop() || ''
-        publishTargetLogLines(lines.join('\n'), type)
+        lineBuffer = flushCoreLogLines(lineBuffer, content.toString('utf-8'), type)
+      }
+      void appendLog(target, content).then(
+        () => callback(),
+        (error) => callback(error as Error)
+      )
+    },
+    writev(chunks, callback) {
+      const content =
+        chunks.length === 1
+          ? normalizeWriteChunk(chunks[0].chunk as string | Buffer)
+          : Buffer.concat(chunks.map(({ chunk }) => normalizeWriteChunk(chunk as string | Buffer)))
+      if (target === 'core' && mihomoLogSource === 'out') {
+        lineBuffer = flushCoreLogLines(lineBuffer, content.toString('utf-8'), type)
       }
       void appendLog(target, content).then(
         () => callback(),
