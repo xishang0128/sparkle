@@ -56,7 +56,7 @@ const SubStoreConfig: React.FC = () => {
   }, [subStoreBackendUploadCron])
 
   return (
-    <SettingCard title="Sub-Store 设置">
+    <SettingCard header="Sub-Store 设置">
       <SettingItem compatKey="legacy" title="启用 Sub-Store" divider={useSubStore}>
         <Switch
           size="sm"

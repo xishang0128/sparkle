@@ -63,7 +63,7 @@ const ControllerSetting: React.FC = () => {
   }
 
   return (
-    <SettingCard title="外部控制器">
+    <SettingCard header="外部控制器">
       <SettingItem compatKey="legacy" title="监听地址" divider={externalController !== ''}>
         <div className="flex">
           {externalControllerInput != externalController && !externalControllerError && (

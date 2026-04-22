@@ -167,16 +167,26 @@ export function logDir(): string {
   return path.join(dataDir(), 'logs')
 }
 
-export function logPath(): string {
+function datedLogPath(prefix?: string): string {
   const date = new Date()
   const name = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`
-  return path.join(logDir(), `${name}.log`)
+  return path.join(logDir(), `${prefix ? `${prefix}-` : ''}${name}.log`)
+}
+
+export function logPath(): string {
+  return datedLogPath()
+}
+
+export function appLogPath(): string {
+  return datedLogPath('app')
+}
+
+export function coreLogPath(): string {
+  return datedLogPath('core')
 }
 
 export function substoreLogPath(): string {
-  const date = new Date()
-  const name = `sub-store-${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`
-  return path.join(logDir(), `${name}.log`)
+  return datedLogPath('sub-store')
 }
 
 function hasCommand(command: string): boolean {

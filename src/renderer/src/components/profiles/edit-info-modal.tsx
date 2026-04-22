@@ -6,7 +6,6 @@ import { useOverrideConfig } from '@renderer/hooks/use-override-config'
 import { restartCore } from '@renderer/utils/ipc'
 import { MdDeleteForever } from 'react-icons/md'
 import { FaPlus } from 'react-icons/fa6'
-import { useAppConfig } from '@renderer/hooks/use-app-config'
 import { IoIosHelpCircle } from 'react-icons/io'
 
 interface Props {
@@ -18,11 +17,9 @@ interface Props {
 
 const EditInfoModal: React.FC<Props> = (props) => {
   const { item, isCurrent, updateProfileItem, onClose } = props
-  useAppConfig()
   const { overrideConfig } = useOverrideConfig()
   const { items: overrideItems = [] } = overrideConfig || {}
   const [values, setValues] = useState({ ...item, autoUpdate: item.autoUpdate ?? true })
-  const fieldWidth = 'w-full'
 
   const onSave = async (): Promise<void> => {
     try {
@@ -60,15 +57,15 @@ const EditInfoModal: React.FC<Props> = (props) => {
         <Surface
           variant="transparent"
           className={cn(
-            'grid grid-cols-[88px_minmax(0,1fr)] gap-x-3 gap-y-2 py-2',
+            'grid grid-cols-[150px_minmax(0,1fr)] gap-x-3 gap-y-2 py-2',
             align === 'start' ? 'items-start' : 'items-center'
           )}
         >
           <Surface variant="transparent" className="flex min-h-9 items-center gap-2">
             <Label className="text-sm leading-6 text-foreground-500">{title}</Label>
-            {actions}
           </Surface>
           <Surface variant="transparent" className="flex min-w-0 justify-end">
+            {actions}
             {content}
           </Surface>
         </Surface>
@@ -77,82 +74,119 @@ const EditInfoModal: React.FC<Props> = (props) => {
     )
   }
 
-  const overrideContent = (
-    <Surface variant="secondary" className="flex flex-col gap-2 rounded-2xl p-3">
-      {overrideItems
-        .filter((i) => i.global)
-        .map((i) => {
-          return (
-            <Button
-              key={i.id}
-              disabled
-              fullWidth
-              variant="flat"
-              size="sm"
-              className="justify-start"
-            >
-              {i.name} (全局)
-            </Button>
-          )
-        })}
-      {values.override?.map((i) => {
-        if (!overrideItems.find((t) => t.id === i)) return null
-        if (overrideItems.find((t) => t.id === i)?.global) return null
+  const globalOverrideRows = overrideItems
+    .filter((i) => i.global)
+    .map((i) => (
+      <Surface
+        key={i.id}
+        variant="transparent"
+        className="flex items-center gap-1.5 px-1.5 py-0.75"
+      >
+        <Button
+          disabled
+          fullWidth
+          variant="flat"
+          size="sm"
+          className="h-6.5 min-h-6.5 justify-start rounded-md px-2 text-[13px]"
+        >
+          {i.name} (全局)
+        </Button>
+      </Surface>
+    ))
 
-        return (
-          <Surface key={i} variant="transparent" className="flex items-center gap-2">
-            <Button disabled fullWidth variant="flat" size="sm" className="justify-start">
-              {overrideItems.find((t) => t.id === i)?.name}
-            </Button>
+  const localOverrideRows = (values.override || []).flatMap((id) => {
+    const overrideItem = overrideItems.find((item) => item.id === id)
+    if (!overrideItem || overrideItem.global) return []
+
+    return (
+      <Surface key={id} variant="transparent" className="flex items-center gap-1.5 px-1.5 py-0.75">
+        <Button
+          disabled
+          fullWidth
+          variant="flat"
+          size="sm"
+          className="h-6.5 min-h-6.5 justify-start rounded-md px-2 text-[13px]"
+        >
+          {overrideItem.name}
+        </Button>
+        <Button
+          color="warning"
+          variant="flat"
+          size="sm"
+          className="h-6.5 min-h-6.5 min-w-6.5 rounded-md px-1.5"
+          onPress={() => {
+            setValues({
+              ...values,
+              override: values.override?.filter((item) => item !== id)
+            })
+          }}
+        >
+          <MdDeleteForever className="text-lg" />
+        </Button>
+      </Surface>
+    )
+  })
+
+  const overrideRows = [...globalOverrideRows, ...localOverrideRows]
+
+  const overrideContent = (
+    <Surface
+      variant="secondary"
+      className="w-40 max-w-full flex flex-col overflow-hidden rounded-lg"
+    >
+      {overrideRows}
+      <Surface variant="transparent" className="px-1.5 py-0.75">
+        <Dropdown>
+          <Dropdown.Trigger className="block rounded-md">
             <Button
-              color="warning"
-              variant="flat"
+              fullWidth
               size="sm"
-              onPress={() => {
+              variant="flat"
+              color="default"
+              className="h-6.5 min-h-6.5 rounded-md"
+            >
+              <FaPlus className="text-[13px]" />
+            </Button>
+          </Dropdown.Trigger>
+          <Dropdown.Popover className="no-scrollbar overflow-y-auto rounded-lg">
+            <Dropdown.Menu
+              className="no-scrollbar p-1 text-sm"
+              onAction={(key) => {
                 setValues({
                   ...values,
-                  override: values.override?.filter((t) => t !== i)
+                  override: Array.from(values.override || []).concat(key.toString())
                 })
               }}
             >
-              <MdDeleteForever className="text-lg" />
-            </Button>
-          </Surface>
-        )
-      })}
-      <Dropdown>
-        <Dropdown.Trigger>
-          <Button fullWidth size="sm" variant="flat" color="default">
-            <FaPlus />
-          </Button>
-        </Dropdown.Trigger>
-        <Dropdown.Popover className="no-scrollbar overflow-y-auto">
-          <Dropdown.Menu
-            className="no-scrollbar"
-            onAction={(key) => {
-              setValues({
-                ...values,
-                override: Array.from(values.override || []).concat(key.toString())
-              })
-            }}
-          >
-            {overrideItems.filter((i) => !values.override?.includes(i.id) && !i.global).length >
-            0 ? (
-              overrideItems
-                .filter((i) => !values.override?.includes(i.id) && !i.global)
-                .map((i) => (
-                  <Dropdown.Item id={i.id} key={i.id} textValue={i.name}>
-                    <Label>{i.name}</Label>
-                  </Dropdown.Item>
-                ))
-            ) : (
-              <Dropdown.Item id="empty" key="empty" textValue="没有可用的覆写" isDisabled>
-                <Label>没有可用的覆写</Label>
-              </Dropdown.Item>
-            )}
-          </Dropdown.Menu>
-        </Dropdown.Popover>
-      </Dropdown>
+              {overrideItems.filter((i) => !values.override?.includes(i.id) && !i.global).length >
+              0 ? (
+                overrideItems
+                  .filter((i) => !values.override?.includes(i.id) && !i.global)
+                  .map((i) => (
+                    <Dropdown.Item
+                      id={i.id}
+                      key={i.id}
+                      textValue={i.name}
+                      className="min-h-8 rounded-md px-2.5 py-1.5"
+                    >
+                      <Label className="-translate-y-px text-sm leading-5">{i.name}</Label>
+                    </Dropdown.Item>
+                  ))
+              ) : (
+                <Dropdown.Item
+                  id="empty"
+                  key="empty"
+                  textValue="没有可用的覆写"
+                  isDisabled
+                  className="min-h-8 rounded-md px-2.5 py-1.5"
+                >
+                  <Label className="-translate-y-px text-sm leading-5">没有可用的覆写</Label>
+                </Dropdown.Item>
+              )}
+            </Dropdown.Menu>
+          </Dropdown.Popover>
+        </Dropdown>
+      </Surface>
     </Surface>
   )
 
@@ -165,7 +199,7 @@ const EditInfoModal: React.FC<Props> = (props) => {
         className="top-12 h-[calc(100%-48px)]"
       >
         <Modal.Container scroll="inside">
-          <Modal.Dialog className="w-[min(500px,calc(100%-24px))] max-w-none">
+          <Modal.Dialog className="w-[min(600px,calc(100%-24px))] max-w-none">
             <Modal.Header className="app-drag pb-1">
               <Modal.Heading>{item.id ? '编辑信息' : '导入远程配置'}</Modal.Heading>
             </Modal.Header>
@@ -175,7 +209,7 @@ const EditInfoModal: React.FC<Props> = (props) => {
                   '名称',
                   <Input
                     size="sm"
-                    className={cn(fieldWidth)}
+                    className="w-full"
                     value={values.name}
                     onValueChange={(v) => {
                       setValues({ ...values, name: v })
@@ -187,7 +221,7 @@ const EditInfoModal: React.FC<Props> = (props) => {
                     '订阅地址',
                     <Input
                       size="sm"
-                      className={cn(fieldWidth)}
+                      className="w-full"
                       value={values.url}
                       onValueChange={(v) => {
                         setValues({ ...values, url: v })
@@ -200,7 +234,7 @@ const EditInfoModal: React.FC<Props> = (props) => {
                     '证书指纹',
                     <Input
                       size="sm"
-                      className={cn(fieldWidth)}
+                      className="w-full"
                       value={values.fingerprint ?? ''}
                       onValueChange={(v) => {
                         setValues({ ...values, fingerprint: v.trim() || undefined })
@@ -212,7 +246,7 @@ const EditInfoModal: React.FC<Props> = (props) => {
                     '指定 UA',
                     <Input
                       size="sm"
-                      className={cn(fieldWidth)}
+                      className="w-full"
                       value={values.ua ?? ''}
                       onValueChange={(v) => {
                         setValues({ ...values, ua: v.trim() || undefined })
@@ -259,7 +293,7 @@ const EditInfoModal: React.FC<Props> = (props) => {
                     <Input
                       size="sm"
                       type="number"
-                      className={cn(fieldWidth)}
+                      className="w-40"
                       value={values.interval?.toString() ?? ''}
                       onValueChange={(v) => {
                         setValues({ ...values, interval: parseInt(v) })

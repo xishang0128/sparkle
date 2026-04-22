@@ -45,7 +45,7 @@ const AdvancedSettings: React.FC = () => {
   }, [pauseSSIDArray])
 
   return (
-    <SettingCard title="更多设置">
+    <SettingCard header="更多设置">
       <SettingItem
         compatKey="legacy"
         title="自动开启轻量模式"

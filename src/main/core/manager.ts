@@ -1,7 +1,6 @@
 import { ChildProcess, execFile, execFileSync, spawn } from 'child_process'
 import {
   dataDir,
-  logPath,
   mihomoCorePath,
   mihomoIpcPath,
   mihomoProfileWorkDir,
@@ -35,7 +34,7 @@ import { promisify } from 'util'
 import { mainWindow } from '..'
 import path from 'path'
 import os from 'os'
-import { createWriteStream, existsSync, watch } from 'fs'
+import { existsSync, watch } from 'fs'
 import type { FSWatcher } from 'fs'
 import { uploadRuntimeConfig } from '../resolve/gistApi'
 import { startMonitor } from '../resolve/trafficMonitor'
@@ -43,6 +42,7 @@ import { triggerSysProxy } from '../sys/sysproxy'
 import { getAxios } from './mihomoApi'
 import { setSysDns } from '../service/api'
 import { randomUUID } from 'crypto'
+import { appendAppLog, createLogWritable, setMihomoLogSource } from '../utils/log'
 
 const ctlParam = process.platform === 'win32' ? '-ext-ctl-pipe' : '-ext-ctl-unix'
 const coreHookTimeout = 30000
@@ -222,13 +222,12 @@ export async function startCore(detached = false): Promise<Promise<void>[]> {
   await generateProfile()
   await checkProfile()
   await stopCore()
+  setMihomoLogSource('out')
   if (tun?.enable && autoSetDNSMode !== 'none') {
     try {
       await setPublicDNS()
     } catch (error) {
-      await writeFile(logPath(), `[Manager]: set dns failed, ${error}`, {
-        flag: 'a'
-      })
+      await appendAppLog(`[Manager]: set dns failed, ${error}\n`)
     }
   }
   const { 'rule-providers': ruleProviders, 'proxy-providers': proxyProviders } =
@@ -243,8 +242,8 @@ export async function startCore(detached = false): Promise<Promise<void>[]> {
     [...Object.keys(ruleProviders || {}), ...Object.keys(proxyProviders || {})].map(normalize)
   )
   const unmatchedProviders = new Set(providerNames)
-  const stdout = createWriteStream(logPath(), { flags: 'a' })
-  const stderr = createWriteStream(logPath(), { flags: 'a' })
+  const stdout = createLogWritable('core', 'info')
+  const stderr = createLogWritable('core', 'error')
   const env = {
     DISABLE_LOOPBACK_DETECTOR: String(disableLoopbackDetector),
     DISABLE_EMBED_CA: String(disableEmbedCA),
@@ -265,14 +264,12 @@ export async function startCore(detached = false): Promise<Promise<void>[]> {
   ]
 
   if (coreHook) {
-    await writeFile(
-      logPath(),
-      `[Manager]: Core startup mode: post-up, post-up command: ${coreHook.postUpCommand}\n`,
-      { flag: 'a' }
+    await appendAppLog(
+      `[Manager]: Core startup mode: post-up, post-up command: ${coreHook.postUpCommand}\n`
     )
     spawnArgs.push('-post-up', coreHook.postUpCommand, '-post-down', coreHook.postDownCommand)
   } else if (!detached) {
-    await writeFile(logPath(), `[Manager]: Core startup mode: log\n`, { flag: 'a' })
+    await appendAppLog(`[Manager]: Core startup mode: log\n`)
   }
 
   child = spawn(corePath, spawnArgs, {
@@ -291,11 +288,9 @@ export async function startCore(detached = false): Promise<Promise<void>[]> {
     })
   }
   child.on('close', async (code, signal) => {
-    await writeFile(logPath(), `[Manager]: Core closed, code: ${code}, signal: ${signal}\n`, {
-      flag: 'a'
-    })
+    await appendAppLog(`[Manager]: Core closed, code: ${code}, signal: ${signal}\n`)
     if (retry) {
-      await writeFile(logPath(), `[Manager]: Try Restart Core\n`, { flag: 'a' })
+      await appendAppLog(`[Manager]: Try Restart Core\n`)
       retry--
       await restartCore()
     } else {
@@ -353,6 +348,7 @@ export async function startCore(detached = false): Promise<Promise<void>[]> {
     }
 
     await Promise.all(tasks)
+    setMihomoLogSource('ws')
   }
 
   const waitForCoreReadyByLog = (): Promise<Promise<void>[]> => {
@@ -459,9 +455,7 @@ export async function stopCore(force = false): Promise<void> {
       await recoverDNS()
     }
   } catch (error) {
-    await writeFile(logPath(), `[Manager]: recover dns failed, ${error}`, {
-      flag: 'a'
-    })
+    await appendAppLog(`[Manager]: recover dns failed, ${error}\n`)
   }
 
   stopMihomoTraffic()
@@ -551,9 +545,7 @@ async function stopChildProcess(process: ChildProcess): Promise<void> {
             if (pid) {
               globalThis.process.kill(pid, 0)
               process.kill('SIGKILL')
-              await writeFile(logPath(), `[Manager]: Force killed process ${pid} with SIGKILL\n`, {
-                flag: 'a'
-              })
+              await appendAppLog(`[Manager]: Force killed process ${pid} with SIGKILL\n`)
             }
           } catch {
             // ignore

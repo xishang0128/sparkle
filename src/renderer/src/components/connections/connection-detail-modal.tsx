@@ -136,19 +136,20 @@ const ConnectionDetailModal = ({ connection, onClose }: Props) => {
     const menuItems = buildCopyMenuItems(value, displayName, prefix)
     const action = (
       <Dropdown>
-        <Dropdown.Trigger>
+        <Dropdown.Trigger className="rounded-lg">
           <Button
             aria-label="复制规则"
             isIconOnly
             size="sm"
             variant="tertiary"
-            className="app-nodrag h-6 min-h-6 w-6 min-w-6"
+            className="app-nodrag h-6 min-h-6 w-6 min-w-6 rounded-lg"
           >
             <BiCopy className="text-base" />
           </Button>
         </Dropdown.Trigger>
-        <Dropdown.Popover placement="bottom end" className="min-w-55">
+        <Dropdown.Popover placement="bottom end" className="min-w-55 rounded-lg">
           <Dropdown.Menu
+            className="p-1 text-sm"
             onAction={(key) =>
               navigator.clipboard.writeText(
                 key === 'raw' ? (Array.isArray(value) ? value.join(', ') : value) : (key as string)
@@ -158,8 +159,13 @@ const ConnectionDetailModal = ({ connection, onClose }: Props) => {
             {menuItems
               .filter((item) => item !== null)
               .map(({ key, text }) => (
-                <Dropdown.Item id={key} key={key} textValue={text}>
-                  <Label>{text}</Label>
+                <Dropdown.Item
+                  id={key}
+                  key={key}
+                  textValue={text}
+                  className="min-h-8 rounded-md px-2.5 py-1.5"
+                >
+                  <Label className="-translate-y-px text-sm leading-5">{text}</Label>
                 </Dropdown.Item>
               ))}
           </Dropdown.Menu>

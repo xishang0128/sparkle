@@ -129,7 +129,12 @@ async function cleanup(): Promise<void> {
   const { maxLogDays = 7 } = await getAppConfig()
   const logs = await readdir(logDir())
   for (const log of logs) {
-    const date = new Date(log.split('.')[0])
+    const dateStr = log.match(/(\d{4}-\d{1,2}-\d{1,2})(?=\.log$)/)?.[1]
+    if (!dateStr) continue
+
+    const date = new Date(dateStr)
+    if (Number.isNaN(date.getTime())) continue
+
     const diff = Date.now() - date.getTime()
     if (diff > maxLogDays * 24 * 60 * 60 * 1000) {
       try {

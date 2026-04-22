@@ -106,7 +106,6 @@ interface ControllerConnectionDetail {
   downloadSpeed?: number
 }
 
-// ${api}/logs
 interface ControllerLog {
   type: LogLevel
   payload: string

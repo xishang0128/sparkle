@@ -73,7 +73,7 @@ const AppearanceConfig: React.FC = () => {
           }}
         />
       )}
-      <SettingCard title="外观设置">
+      <SettingCard header="外观设置">
         <SettingItem
           compatKey="legacy"
           title="显示悬浮窗"

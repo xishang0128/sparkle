@@ -54,7 +54,7 @@ const ShortcutConfig: React.FC = () => {
   } = appConfig || {}
 
   return (
-    <SettingCard title="快捷键设置">
+    <SettingCard header="快捷键设置">
       <SettingItem compatKey="legacy" title="打开/关闭窗口" divider>
         <div className="flex justify-end w-[60%]">
           <ShortcutInput

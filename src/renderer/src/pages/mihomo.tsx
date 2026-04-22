@@ -1,4 +1,4 @@
-import { Button, Input, Select, SelectItem, Switch, Tab, Tabs } from '@heroui/react'
+import { Button, Select, SelectItem, Switch, Tab, Tabs } from '@heroui/react'
 import BasePage from '@renderer/components/base/base-page'
 import SettingCard from '@renderer/components/base/base-setting-card'
 import SettingItem from '@renderer/components/base/base-setting-item'
@@ -32,6 +32,7 @@ import React, { useState, useEffect } from 'react'
 import ControllerSetting from '@renderer/components/mihomo/controller-setting'
 import EnvSetting from '@renderer/components/mihomo/env-setting'
 import AdvancedSetting from '@renderer/components/mihomo/advanced-settings'
+import LogSetting from '@renderer/components/mihomo/log-setting'
 
 let systemCorePathsCache: string[] | null = null
 let cachePromise: Promise<string[]> | null = null
@@ -60,12 +61,11 @@ const Mihomo: React.FC = () => {
   const { appConfig, patchAppConfig } = useAppConfig()
   const {
     core = 'mihomo',
-    maxLogDays = 7,
     corePermissionMode = 'elevated',
     coreStartupMode = 'post-up'
   } = appConfig || {}
   const { controledMihomoConfig, patchControledMihomoConfig } = useControledMihomoConfig()
-  const { ipv6, 'log-level': logLevel = 'info' } = controledMihomoConfig || {}
+  const { ipv6 } = controledMihomoConfig || {}
 
   const [upgrading, setUpgrading] = useState(false)
   const [showGrantConfirm, setShowGrantConfirm] = useState(false)
@@ -380,44 +380,18 @@ const Mihomo: React.FC = () => {
             管理
           </Button>
         </SettingItem>
-        <SettingItem compatKey="legacy" title="IPv6" divider>
+        <SettingItem compatKey="legacy" title="IPv6">
           <Switch
             size="sm"
             isSelected={ipv6}
             onValueChange={(v) => onChangeNeedRestart({ ipv6: v })}
           />
         </SettingItem>
-        <SettingItem compatKey="legacy" title="日志保留天数" divider>
-          <Input
-            size="sm"
-            type="number"
-            className="w-25"
-            value={maxLogDays.toString()}
-            onValueChange={(v) => patchAppConfig({ maxLogDays: parseInt(v) })}
-          />
-        </SettingItem>
-        <SettingItem compatKey="legacy" title="日志等级">
-          <Select
-            classNames={{ trigger: 'data-[hover=true]:bg-default-200' }}
-            className="w-25"
-            size="sm"
-            selectedKeys={new Set([logLevel])}
-            disallowEmptySelection={true}
-            onSelectionChange={(v) =>
-              onChangeNeedRestart({ 'log-level': v.currentKey as LogLevel })
-            }
-          >
-            <SelectItem key="silent">静默</SelectItem>
-            <SelectItem key="error">错误</SelectItem>
-            <SelectItem key="warning">警告</SelectItem>
-            <SelectItem key="info">信息</SelectItem>
-            <SelectItem key="debug">调试</SelectItem>
-          </Select>
-        </SettingItem>
       </SettingCard>
       <PortSetting />
       <ControllerSetting />
       <EnvSetting />
+      <LogSetting />
       <AdvancedSetting />
     </BasePage>
   )

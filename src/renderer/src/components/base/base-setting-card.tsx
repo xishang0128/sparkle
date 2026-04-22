@@ -2,22 +2,25 @@ import React from 'react'
 import { Accordion, AccordionItem, Card, CardBody } from '@heroui/react'
 
 interface Props {
-  title?: string
+  header?: string
   children?: React.ReactNode
   className?: string
 }
 
 const SettingCard: React.FC<Props> = (props) => {
-  return !props.title ? (
-    <Card className={`${props.className} m-2`}>
-      <CardBody>{props.children}</CardBody>
+  const { header, children, className } = props
+
+  return !header ? (
+    <Card className={`${className || ''} m-2`}>
+      <CardBody>{children}</CardBody>
     </Card>
   ) : (
-    <Accordion isCompact className={`${props.className} my-2`} variant="splitted" {...props}>
+    <Accordion isCompact className={`${className || ''} my-2`} variant="splitted">
       <AccordionItem
+        aria-label={header}
         className="data-[open=true]:pb-2"
         keepContentMounted
-        title={props.title}
+        title={<span>{header}</span>}
         indicator={({ isOpen }) => (
           <svg
             className={`transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
@@ -37,7 +40,7 @@ const SettingCard: React.FC<Props> = (props) => {
           </svg>
         )}
       >
-        {props.children}
+        {children}
       </AccordionItem>
     </Accordion>
   )

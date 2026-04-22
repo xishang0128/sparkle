@@ -32,7 +32,7 @@ const AdvancedSetting: React.FC = () => {
   }
 
   return (
-    <SettingCard title="高级设置">
+    <SettingCard header="高级设置">
       <SettingItem compatKey="legacy" title="查找进程" divider>
         <Tabs
           size="sm"

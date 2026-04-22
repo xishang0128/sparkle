@@ -69,7 +69,7 @@ const AdvancedDnsSetting: React.FC<AdvancedDnsSettingProps> = ({
   ])
 
   return (
-    <SettingCard title="更多设置">
+    <SettingCard header="更多设置">
       <SettingItem compatKey="legacy" title="连接遵守规则" divider>
         <Switch
           size="sm"

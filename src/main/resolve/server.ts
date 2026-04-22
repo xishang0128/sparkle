@@ -1,8 +1,8 @@
 import { getAppConfig, getControledMihomoConfig } from '../config'
 import { Worker } from 'worker_threads'
-import { mihomoWorkDir, subStoreDir, substoreLogPath } from '../utils/dirs'
+import { mihomoWorkDir, subStoreDir } from '../utils/dirs'
 import subStoreIcon from '../../../resources/subStoreIcon.png?asset'
-import { createWriteStream, existsSync, mkdirSync } from 'fs'
+import { existsSync, mkdirSync } from 'fs'
 import { writeFile, rm, cp } from 'fs/promises'
 import http from 'http'
 import net from 'net'
@@ -11,6 +11,7 @@ import { nativeImage } from 'electron'
 import express from 'express'
 import axios from 'axios'
 import AdmZip from 'adm-zip'
+import { createLogWritable } from '../utils/log'
 
 export let pacPort: number
 export let subStorePort: number
@@ -108,8 +109,8 @@ export async function startSubStoreBackendServer(): Promise<void> {
     subStorePort = await findAvailablePort(38324)
     const icon = nativeImage.createFromPath(subStoreIcon)
     icon.toDataURL()
-    const stdout = createWriteStream(substoreLogPath(), { flags: 'a' })
-    const stderr = createWriteStream(substoreLogPath(), { flags: 'a' })
+    const stdout = createLogWritable('substore')
+    const stderr = createLogWritable('substore')
     const env = {
       SUB_STORE_BACKEND_API_PORT: subStorePort.toString(),
       SUB_STORE_BACKEND_API_HOST: subStoreHost,

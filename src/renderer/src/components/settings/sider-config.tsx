@@ -53,7 +53,7 @@ const SiderConfig: React.FC = () => {
   }
 
   return (
-    <SettingCard title="侧边栏设置">
+    <SettingCard header="侧边栏设置">
       {Object.keys(cardStatus).map((key, index, array) => {
         return (
           <SettingItem
