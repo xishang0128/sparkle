@@ -101,6 +101,10 @@ export async function patchMihomoConfig(patch: Partial<MihomoConfig>): Promise<v
   return ipcErrorWrapper(await window.electron.ipcRenderer.invoke('patchMihomoConfig', patch))
 }
 
+export async function restartMihomoLogs(): Promise<void> {
+  return ipcErrorWrapper(await window.electron.ipcRenderer.invoke('restartMihomoLogs'))
+}
+
 export async function checkAutoRun(): Promise<boolean> {
   return ipcErrorWrapper(await window.electron.ipcRenderer.invoke('checkAutoRun'))
 }

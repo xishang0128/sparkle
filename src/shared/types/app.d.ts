@@ -87,6 +87,7 @@ interface AppConfig {
   maxLogDays: number
   maxLogFileSizeMB?: number
   maxLogEntries?: number
+  realtimeLogLevel?: LogLevel
   userAgent?: string
   delayTestConcurrency?: number
   delayTestUrl?: string

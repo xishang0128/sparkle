@@ -19,6 +19,7 @@ import {
   mihomoVersion,
   mihomoConfig,
   patchMihomoConfig,
+  restartMihomoLogs,
   restartMihomoConnections,
   mihomoRulesDisable
 } from '../core/mihomoApi'
@@ -185,6 +186,7 @@ export function registerIpcMainHandlers(): void {
   )
   ipcMain.handle('mihomoRulesDisable', (_e, rules) => ipcErrorWrapper(mihomoRulesDisable)(rules))
   ipcMain.handle('patchMihomoConfig', (_e, patch) => ipcErrorWrapper(patchMihomoConfig)(patch))
+  ipcMain.handle('restartMihomoLogs', ipcErrorWrapper(restartMihomoLogs))
   ipcMain.handle('checkAutoRun', ipcErrorWrapper(checkAutoRun))
   ipcMain.handle('enableAutoRun', ipcErrorWrapper(enableAutoRun))
   ipcMain.handle('disableAutoRun', ipcErrorWrapper(disableAutoRun))

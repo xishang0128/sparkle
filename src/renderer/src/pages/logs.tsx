@@ -17,6 +17,7 @@ import {
   subscribeMihomoLogs
 } from '@renderer/utils/mihomo-log-store'
 import { ListBox, Select } from '@heroui-v3/react'
+import { restartMihomoLogs } from '@renderer/utils/ipc'
 
 const logLevelOrder: Record<LogLevel, number> = {
   silent: 0,
@@ -27,22 +28,21 @@ const logLevelOrder: Record<LogLevel, number> = {
 }
 
 const Logs: React.FC = () => {
-  const { appConfig } = useAppConfig()
+  const { appConfig, patchAppConfig } = useAppConfig()
   const { controledMihomoConfig } = useControledMihomoConfig()
-  const { maxLogEntries = 500 } = appConfig || {}
+  const { maxLogEntries = 500, realtimeLogLevel } = appConfig || {}
   const { 'log-level': logLevel = 'info' } = controledMihomoConfig || {}
 
   const [logs, setLogs] = useState<MihomoLogEntry[]>(() => getMihomoLogs())
   const [filter, setFilter] = useState('')
   const [trace, setTrace] = useState(true)
-  const [logLevelFilter, setLogLevelFilter] = useState<LogLevel | null>(null)
   const [freshLogIds, setFreshLogIds] = useState<string[]>([])
 
   const virtuosoRef = useRef<VirtuosoHandle>(null)
   const freshLogTimeoutsRef = useRef<Map<string, number>>(new Map())
   const hasHydratedLogsRef = useRef(false)
   const previousLogIdsRef = useRef<string[]>([])
-  const activeLogLevelFilter = logLevelFilter ?? logLevel
+  const activeLogLevelFilter = realtimeLogLevel ?? logLevel
   const freshLogIdSet = useMemo(() => new Set(freshLogIds), [freshLogIds])
   const logsByLevel = useMemo(() => {
     if (activeLogLevelFilter === 'silent') return []
@@ -148,12 +148,18 @@ const Logs: React.FC = () => {
             <Select
               aria-label="日志等级过滤"
               className="w-24 shrink-0"
-              placeholder="日志等级"
               value={activeLogLevelFilter}
               variant="secondary"
-              onChange={(value) => {
+              onChange={async (value) => {
                 if (Array.isArray(value) || value == null) return
-                setLogLevelFilter(value as LogLevel)
+                if (value === activeLogLevelFilter) return
+
+                try {
+                  await patchAppConfig({ realtimeLogLevel: value as LogLevel })
+                  await restartMihomoLogs()
+                } catch (error) {
+                  alert(error)
+                }
               }}
             >
               <Select.Trigger className="h-8 min-h-8 rounded-lg px-3 text-sm">
@@ -219,7 +225,6 @@ const Logs: React.FC = () => {
             <Button
               size="sm"
               isIconOnly
-              title="清空日志"
               variant="light"
               color="danger"
               onPress={() => {
