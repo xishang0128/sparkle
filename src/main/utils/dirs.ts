@@ -111,6 +111,10 @@ export function servicePath(): string {
   return path.join(resourcesFilesDir(), `sparkle-service${isWin ? '.exe' : ''}`)
 }
 
+export function serviceAuthStorePath(): string {
+  return path.join(dataDir(), 'service-auth.json')
+}
+
 export function appConfigPath(): string {
   return path.join(dataDir(), 'config.yaml')
 }
