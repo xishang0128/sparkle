@@ -38,6 +38,7 @@ import { applyTheme } from './theme'
 
 export let tray: Tray | null = null
 let customTrayWindow: BrowserWindow | null = null
+let trayMenu: Menu | null = null
 let trayIconUpdateListenerRegistered = false
 let updateTrayMenuListenerRegistered = false
 
@@ -455,8 +456,8 @@ export async function createTray(): Promise<void> {
   }
   if (process.platform === 'linux') {
     tray = new Tray(pngIcon)
-    const menu = await buildContextMenu()
-    tray.setContextMenu(menu)
+    trayMenu = await buildContextMenu()
+    tray.setContextMenu(trayMenu)
   }
   if (process.platform === 'darwin') {
     tray = new Tray(createDarwinTrayIcon())
@@ -515,6 +516,7 @@ export async function createTray(): Promise<void> {
 
 async function updateTrayMenu(): Promise<void> {
   const menu = await buildContextMenu()
+  trayMenu = menu
   tray?.popUpContextMenu(menu) // 弹出菜单
   if (process.platform === 'linux') {
     tray?.setContextMenu(menu)
@@ -576,6 +578,7 @@ export async function closeTrayIcon(): Promise<void> {
     tray.destroy()
   }
   tray = null
+  trayMenu = null
   if (customTrayWindow) {
     customTrayWindow.destroy()
   }
