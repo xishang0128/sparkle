@@ -61,14 +61,16 @@ import {
   subStorePort
 } from '../resolve/server'
 import {
-  manualGrantCorePermition,
   quitWithoutCore,
   restartCore,
   startNetworkDetection,
-  stopNetworkDetection,
-  revokeCorePermission,
-  checkCorePermission
+  stopNetworkDetection
 } from '../core/manager'
+import {
+  checkCorePermission,
+  manualGrantCorePermition,
+  revokeCorePermission
+} from '../core/permission'
 import { triggerSysProxy } from '../sys/sysproxy'
 import { checkUpdate, downloadAndInstallUpdate, cancelUpdate } from '../resolve/autoUpdater'
 import {

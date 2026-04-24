@@ -4,7 +4,7 @@ import { app } from 'electron'
 import path from 'path'
 import { execSync } from 'child_process'
 import { getAppConfigSync } from '../config/app'
-import { checkCorePermissionSync } from '../core/manager'
+import { checkCorePermissionPathSync } from '../core/permission-check'
 
 export const homeDir = app.getPath('home')
 
@@ -68,7 +68,7 @@ export function mihomoIpcPath(): string {
   if (core === 'system') {
     return '/tmp/sparkle-mihomo-external.sock'
   }
-  if (!checkCorePermissionSync(core as 'mihomo' | 'mihomo-alpha')) {
+  if (!checkCorePermissionPathSync(mihomoCorePath(core))) {
     return '/tmp/sparkle-mihomo-api-noperm.sock'
   }
   return '/tmp/sparkle-mihomo-api.sock'

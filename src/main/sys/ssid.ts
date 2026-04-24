@@ -4,7 +4,7 @@ import { getAppConfig, patchControledMihomoConfig } from '../config'
 import { patchMihomoConfig } from '../core/mihomoApi'
 import { mainWindow } from '..'
 import { ipcMain, net } from 'electron'
-import { getDefaultDevice } from '../core/manager'
+import { getDefaultDevice } from '../core/network'
 
 export async function getCurrentSSID(): Promise<string | undefined> {
   if (process.platform === 'win32') {
