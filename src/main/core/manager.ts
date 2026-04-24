@@ -28,6 +28,7 @@ import os from 'os'
 import { existsSync } from 'fs'
 import { uploadRuntimeConfig } from '../resolve/gistApi'
 import { startMonitor } from '../resolve/trafficMonitor'
+import { floatingWindow } from '../resolve/floatingWindow'
 import { getAxios } from './mihomoApi'
 import {
   getCoreStatus,
@@ -36,6 +37,7 @@ import {
   startServiceCoreEventStream,
   stopServiceCoreEventStream,
   subscribeServiceCoreEvents,
+  subscribeServiceCoreEventStream,
   type ServiceCoreEvent,
   type ServiceCoreLaunchProfile
 } from '../service/api'
@@ -72,9 +74,12 @@ let child: ChildProcess
 let retry = 10
 let serviceCoreStreamsRestartTimer: NodeJS.Timeout | null = null
 let unsubscribeServiceCoreEvents: (() => void) | null = null
+let unsubscribeServiceCoreEventStream: (() => void) | null = null
 let serviceCoreStreamsActive = false
 let serviceCoreStreamsStarting: Promise<void> | null = null
 let lastServiceCoreEventKey = ''
+let serviceCoreStartupActive = false
+let serviceCoreReconnectResumePromise: Promise<void> | null = null
 
 async function startMihomoApiStreams(): Promise<void> {
   await startMihomoTraffic()
@@ -155,9 +160,14 @@ export async function startCore(detached = false): Promise<Promise<void>[]> {
   await checkProfile()
   let serviceCoreRunning = false
   if (useServiceCore) {
-    serviceCoreRunning = await getCoreStatus()
-      .then(() => true)
-      .catch(() => false)
+    try {
+      await getCoreStatus()
+      serviceCoreRunning = true
+    } catch (error) {
+      if (isServiceConnectionError(error)) {
+        return fallbackToElevatedCore(detached, error)
+      }
+    }
   }
   if (!serviceCoreRunning) {
     await stopCore()
@@ -213,9 +223,19 @@ export async function startCore(detached = false): Promise<Promise<void>[]> {
 
     await appendAppLog(`[Manager]: Core permission mode: service\n`)
     ensureServiceCoreEventHandler()
-    await startServiceCoreEventStream()
-    if (!serviceCoreRunning) {
-      await startServiceCore(serviceProfile)
+    serviceCoreStartupActive = true
+    try {
+      await startServiceCoreEventStream()
+      if (!serviceCoreRunning) {
+        await startServiceCore(serviceProfile)
+      }
+    } catch (error) {
+      if (isServiceConnectionError(error)) {
+        return fallbackToElevatedCore(detached, error)
+      }
+      throw error
+    } finally {
+      serviceCoreStartupActive = false
     }
     await ensureServiceCoreStreamsStarted()
     initialized = true
@@ -403,20 +423,27 @@ export async function stopCore(force = false): Promise<void> {
 }
 
 function ensureServiceCoreEventHandler(): void {
-  if (unsubscribeServiceCoreEvents) {
-    return
+  if (!unsubscribeServiceCoreEvents) {
+    unsubscribeServiceCoreEvents = subscribeServiceCoreEvents((event) =>
+      handleServiceCoreEvent(event)
+    )
   }
-  unsubscribeServiceCoreEvents = subscribeServiceCoreEvents((event) =>
-    handleServiceCoreEvent(event)
-  )
+  if (!unsubscribeServiceCoreEventStream) {
+    unsubscribeServiceCoreEventStream = subscribeServiceCoreEventStream((state) =>
+      handleServiceCoreEventStreamState(state)
+    )
+  }
 }
 
 function releaseServiceCoreEventHandler(): void {
-  if (!unsubscribeServiceCoreEvents) {
-    return
+  if (unsubscribeServiceCoreEvents) {
+    unsubscribeServiceCoreEvents()
+    unsubscribeServiceCoreEvents = null
   }
-  unsubscribeServiceCoreEvents()
-  unsubscribeServiceCoreEvents = null
+  if (unsubscribeServiceCoreEventStream) {
+    unsubscribeServiceCoreEventStream()
+    unsubscribeServiceCoreEventStream = null
+  }
 }
 
 async function handleServiceCoreEvent(event: ServiceCoreEvent): Promise<void> {
@@ -469,6 +496,51 @@ async function handleServiceCoreEvent(event: ServiceCoreEvent): Promise<void> {
       mainWindow?.webContents.send('core-stopped', event)
       break
   }
+}
+
+async function handleServiceCoreEventStreamState(
+  state: 'connected' | 'disconnected'
+): Promise<void> {
+  await appendAppLog(`[Manager]: Service core event stream ${state}\n`)
+  if (state !== 'connected') {
+    return
+  }
+  if (serviceCoreStartupActive || serviceCoreReconnectResumePromise) {
+    return
+  }
+
+  serviceCoreReconnectResumePromise = resumeServiceCoreAfterReconnect()
+  try {
+    await serviceCoreReconnectResumePromise
+  } finally {
+    serviceCoreReconnectResumePromise = null
+  }
+}
+
+async function resumeServiceCoreAfterReconnect(): Promise<void> {
+  await new Promise((resolve) => setTimeout(resolve, 500))
+  if (serviceCoreStartupActive) {
+    return
+  }
+
+  const { corePermissionMode = 'elevated' } = await getAppConfig()
+  if (corePermissionMode !== 'service') {
+    return
+  }
+
+  try {
+    await getCoreStatus()
+    return
+  } catch (error) {
+    if (isServiceConnectionError(error)) {
+      return
+    }
+  }
+
+  await appendAppLog(`[Manager]: Service reconnected without running core, starting core\n`)
+  const promises = await startCore()
+  await Promise.all(promises)
+  mainWindow?.webContents.send('core-started')
 }
 
 function isDuplicateServiceCoreEvent(event: ServiceCoreEvent): boolean {
@@ -533,6 +605,33 @@ async function ensureServiceCoreStreamsStarted(): Promise<void> {
   } finally {
     serviceCoreStreamsStarting = null
   }
+}
+
+async function fallbackToElevatedCore(
+  detached: boolean,
+  reason: unknown
+): Promise<Promise<void>[]> {
+  await appendAppLog(`[Manager]: Service unavailable, fallback to elevated core, ${reason}\n`)
+  stopServiceCoreEventStream()
+  releaseServiceCoreEventHandler()
+  await patchAppConfig({ corePermissionMode: 'elevated' })
+  mainWindow?.webContents.send('appConfigUpdated')
+  floatingWindow?.webContents.send('appConfigUpdated')
+  return startCore(detached)
+}
+
+function isServiceConnectionError(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error)
+  return [
+    'ECONNREFUSED',
+    'ECONNRESET',
+    'ENOENT',
+    'EPIPE',
+    'ETIMEDOUT',
+    'socket hang up',
+    'connect ',
+    'no such file'
+  ].some((fragment) => message.toLowerCase().includes(fragment.toLowerCase()))
 }
 
 export async function restartCore(): Promise<void> {

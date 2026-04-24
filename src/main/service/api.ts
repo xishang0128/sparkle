@@ -327,16 +327,28 @@ export const createCoreEventsWebSocket = (): WebSocket => {
 }
 
 type ServiceCoreEventHandler = (event: ServiceCoreEvent) => void | Promise<void>
+type ServiceCoreEventStreamState = 'connected' | 'disconnected'
+type ServiceCoreEventStreamHandler = (state: ServiceCoreEventStreamState) => void | Promise<void>
 
 let serviceCoreEventsWs: WebSocket | null = null
 let serviceCoreEventsManualClose = false
 let serviceCoreEventsReconnectTimer: NodeJS.Timeout | null = null
 const serviceCoreEventHandlers = new Set<ServiceCoreEventHandler>()
+const serviceCoreEventStreamHandlers = new Set<ServiceCoreEventStreamHandler>()
 
 export function subscribeServiceCoreEvents(handler: ServiceCoreEventHandler): () => void {
   serviceCoreEventHandlers.add(handler)
   return () => {
     serviceCoreEventHandlers.delete(handler)
+  }
+}
+
+export function subscribeServiceCoreEventStream(
+  handler: ServiceCoreEventStreamHandler
+): () => void {
+  serviceCoreEventStreamHandlers.add(handler)
+  return () => {
+    serviceCoreEventStreamHandlers.delete(handler)
   }
 }
 
@@ -365,6 +377,11 @@ export async function startServiceCoreEventStream(): Promise<void> {
   }
 
   serviceCoreEventsWs = ws
+  ws.on('open', () => {
+    dispatchServiceCoreEventStreamState('connected').catch((error) => {
+      appendAppLog(`[Service]: handle core event stream state failed, ${error}\n`).catch(() => {})
+    })
+  })
   ws.on('message', (data) => {
     dispatchServiceCoreEvent(data).catch((error) => {
       appendAppLog(`[Service]: handle core event failed, ${error}\n`).catch(() => {})
@@ -374,6 +391,9 @@ export async function startServiceCoreEventStream(): Promise<void> {
     if (serviceCoreEventsWs === ws) {
       serviceCoreEventsWs = null
     }
+    dispatchServiceCoreEventStreamState('disconnected').catch((error) => {
+      appendAppLog(`[Service]: handle core event stream state failed, ${error}\n`).catch(() => {})
+    })
     if (!serviceCoreEventsManualClose) {
       scheduleServiceCoreEventReconnect()
     }
@@ -431,6 +451,16 @@ async function dispatchServiceCoreEvent(data: WebSocket.RawData): Promise<void> 
   for (const handler of serviceCoreEventHandlers) {
     await Promise.resolve(handler(event)).catch((error) => {
       appendAppLog(`[Service]: core event handler failed, ${error}\n`).catch(() => {})
+    })
+  }
+}
+
+async function dispatchServiceCoreEventStreamState(
+  state: ServiceCoreEventStreamState
+): Promise<void> {
+  for (const handler of serviceCoreEventStreamHandlers) {
+    await Promise.resolve(handler(state)).catch((error) => {
+      appendAppLog(`[Service]: core event stream state handler failed, ${error}\n`).catch(() => {})
     })
   }
 }
