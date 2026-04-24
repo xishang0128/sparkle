@@ -92,7 +92,8 @@ import {
   testServiceConnection,
   restartService
 } from '../service/manager'
-import { findSystemMihomo } from '../utils/dirs'
+import { patchCoreProfile } from '../service/api'
+import { coreLogPath, findSystemMihomo, logDir } from './dirs'
 import {
   getRuntimeConfig,
   getRuntimeConfigStr,
@@ -120,7 +121,6 @@ import {
   writeTheme
 } from '../resolve/theme'
 import { subStoreCollections, subStoreSubs } from '../core/subStoreApi'
-import { logDir } from './dirs'
 import path from 'path'
 import v8 from 'v8'
 import { getGistUrl } from '../resolve/gistApi'
@@ -129,7 +129,7 @@ import { startMonitor } from '../resolve/trafficMonitor'
 import { closeFloatingWindow, showContextMenu, showFloatingWindow } from '../resolve/floatingWindow'
 import { getAppName } from './appName'
 import { getUserAgent } from './userAgent'
-import { clearCachedMihomoLogs, getCachedMihomoLogs } from './log'
+import { appendAppLog, clearCachedMihomoLogs, getCachedMihomoLogs } from './log'
 
 function ipcErrorWrapper<T>( // eslint-disable-next-line @typescript-eslint/no-explicit-any
   fn: (...args: any[]) => Promise<T> // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -153,6 +153,32 @@ function ipcErrorWrapper<T>( // eslint-disable-next-line @typescript-eslint/no-e
     }
   }
 }
+
+async function patchAppConfigWithServiceSync(patch: Partial<AppConfig>): Promise<void> {
+  await patchAppConfig(patch)
+
+  if (!('saveLogs' in patch || 'maxLogFileSizeMB' in patch)) {
+    return
+  }
+
+  const {
+    corePermissionMode = 'elevated',
+    saveLogs = true,
+    maxLogFileSizeMB = 20
+  } = await getAppConfig()
+  if (corePermissionMode !== 'service') {
+    return
+  }
+
+  void patchCoreProfile({
+    log_path: coreLogPath(),
+    save_logs: saveLogs,
+    max_log_file_size_mb: maxLogFileSizeMB
+  }).catch((error) => {
+    void appendAppLog(`[Service]: sync core log config failed, ${error}\n`)
+  })
+}
+
 export function registerIpcMainHandlers(): void {
   ipcMain.handle('mihomoVersion', ipcErrorWrapper(mihomoVersion))
   ipcMain.handle('mihomoConfig', ipcErrorWrapper(mihomoConfig))
@@ -193,7 +219,9 @@ export function registerIpcMainHandlers(): void {
   ipcMain.handle('getAppConfig', (_e, force) => ipcErrorWrapper(getAppConfig)(force))
   ipcMain.handle('getCachedMihomoLogs', () => getCachedMihomoLogs())
   ipcMain.handle('clearCachedMihomoLogs', () => clearCachedMihomoLogs())
-  ipcMain.handle('patchAppConfig', (_e, config) => ipcErrorWrapper(patchAppConfig)(config))
+  ipcMain.handle('patchAppConfig', (_e, config) =>
+    ipcErrorWrapper(patchAppConfigWithServiceSync)(config)
+  )
   ipcMain.handle('getControledMihomoConfig', (_e, force) =>
     ipcErrorWrapper(getControledMihomoConfig)(force)
   )

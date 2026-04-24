@@ -1,6 +1,7 @@
 import { ChildProcess, execFile, execFileSync, spawn } from 'child_process'
 import {
   dataDir,
+  coreLogPath,
   mihomoCorePath,
   mihomoIpcPath,
   mihomoProfileWorkDir,
@@ -40,7 +41,16 @@ import { uploadRuntimeConfig } from '../resolve/gistApi'
 import { startMonitor } from '../resolve/trafficMonitor'
 import { triggerSysProxy } from '../sys/sysproxy'
 import { getAxios } from './mihomoApi'
-import { setSysDns } from '../service/api'
+import {
+  setSysDns,
+  startCore as startServiceCore,
+  stopCore as stopServiceCore,
+  startServiceCoreEventStream,
+  stopServiceCoreEventStream,
+  subscribeServiceCoreEvents,
+  type ServiceCoreEvent,
+  type ServiceCoreLaunchProfile
+} from '../service/api'
 import { randomUUID } from 'crypto'
 import { appendAppLog, createLogWritable, setMihomoLogSource } from '../utils/log'
 
@@ -75,6 +85,11 @@ let networkDownHandled = false
 
 let child: ChildProcess
 let retry = 10
+let serviceCoreStreamsRestartTimer: NodeJS.Timeout | null = null
+let unsubscribeServiceCoreEvents: (() => void) | null = null
+let serviceCoreStreamsActive = false
+let serviceCoreStreamsStarting: Promise<void> | null = null
+let lastServiceCoreEventKey = ''
 
 interface CoreStartupHook {
   hookDir: string
@@ -194,10 +209,13 @@ function createCoreHookWaiter(hook: CoreStartupHook): CoreHookWaiter {
 export async function startCore(detached = false): Promise<Promise<void>[]> {
   const {
     core = 'mihomo',
+    corePermissionMode = 'elevated',
     coreStartupMode = 'post-up',
     autoSetDNSMode = 'none',
     diffWorkDir = false,
     mihomoCpuPriority = 'PRIORITY_NORMAL',
+    saveLogs = true,
+    maxLogFileSizeMB = 20,
     disableLoopbackDetector = false,
     disableEmbedCA = false,
     disableSystemCA = false,
@@ -252,9 +270,42 @@ export async function startCore(detached = false): Promise<Promise<void>[]> {
     SAFE_PATHS: safePaths.join(path.delimiter),
     PATH: process.env.PATH
   }
+  const useServiceCore = corePermissionMode === 'service' && !detached
+
+  const startMihomoApiStreams = async (): Promise<void> => {
+    await startMihomoTraffic()
+    await startMihomoConnections()
+    await startMihomoLogs()
+    await startMihomoMemory()
+    retry = 10
+  }
+
+  const completeCoreInitialization = async (): Promise<void> => {
+    const tasks: Promise<unknown>[] = [
+      new Promise<void>((resolve) => setTimeout(resolve, 100)).then(() => {
+        mainWindow?.webContents.send('groupsUpdated')
+        mainWindow?.webContents.send('rulesUpdated')
+      }),
+      uploadRuntimeConfig()
+    ]
+
+    if (logLevel) {
+      tasks.push(
+        new Promise<void>((resolve) => setTimeout(resolve, 100)).then(() =>
+          patchMihomoConfig({ 'log-level': logLevel })
+        )
+      )
+    }
+
+    await Promise.all(tasks)
+    setMihomoLogSource('ws')
+  }
+
   let initialized = false
   const coreHook =
-    !detached && coreStartupMode === 'post-up' ? await createCoreStartupHook() : undefined
+    !useServiceCore && !detached && coreStartupMode === 'post-up'
+      ? await createCoreStartupHook()
+      : undefined
   const hookWaiter = coreHook ? createCoreHookWaiter(coreHook) : undefined
   const spawnArgs = [
     '-d',
@@ -272,14 +323,39 @@ export async function startCore(detached = false): Promise<Promise<void>[]> {
     await appendAppLog(`[Manager]: Core startup mode: log\n`)
   }
 
+  if (useServiceCore) {
+    const serviceProfile: ServiceCoreLaunchProfile = {
+      core_path: corePath,
+      args: spawnArgs,
+      safe_paths: safePaths,
+      env,
+      mihomo_cpu_priority: mihomoCpuPriority,
+      log_path: coreLogPath(),
+      save_logs: saveLogs,
+      max_log_file_size_mb: maxLogFileSizeMB
+    }
+
+    await appendAppLog(`[Manager]: Core permission mode: service\n`)
+    ensureServiceCoreEventHandler()
+    await startServiceCoreEventStream()
+    await startServiceCore(serviceProfile)
+    await ensureServiceCoreStreamsStarted()
+    initialized = true
+    return [completeCoreInitialization()]
+  }
+
   child = spawn(corePath, spawnArgs, {
     detached: detached,
     stdio: detached ? 'ignore' : undefined,
     env: env
   })
   hookWaiter?.attachProcess(child)
-  if (process.platform === 'win32' && child.pid) {
-    os.setPriority(child.pid, os.constants.priority[mihomoCpuPriority])
+  if (child.pid) {
+    try {
+      os.setPriority(child.pid, os.constants.priority[mihomoCpuPriority])
+    } catch (error) {
+      await appendAppLog(`[Manager]: set core priority failed, ${error}\n`)
+    }
   }
   if (detached) {
     child.unref()
@@ -320,35 +396,6 @@ export async function startCore(detached = false): Promise<Promise<void>[]> {
         dialog.showErrorBox('内核启动出错', `${e}`)
       }
     }
-  }
-
-  const startMihomoApiStreams = async (): Promise<void> => {
-    await startMihomoTraffic()
-    await startMihomoConnections()
-    await startMihomoLogs()
-    await startMihomoMemory()
-    retry = 10
-  }
-
-  const completeCoreInitialization = async (): Promise<void> => {
-    const tasks: Promise<unknown>[] = [
-      new Promise<void>((resolve) => setTimeout(resolve, 100)).then(() => {
-        mainWindow?.webContents.send('groupsUpdated')
-        mainWindow?.webContents.send('rulesUpdated')
-      }),
-      uploadRuntimeConfig()
-    ]
-
-    if (logLevel) {
-      tasks.push(
-        new Promise<void>((resolve) => setTimeout(resolve, 100)).then(() =>
-          patchMihomoConfig({ 'log-level': logLevel })
-        )
-      )
-    }
-
-    await Promise.all(tasks)
-    setMihomoLogSource('ws')
   }
 
   const waitForCoreReadyByLog = (): Promise<Promise<void>[]> => {
@@ -462,6 +509,23 @@ export async function stopCore(force = false): Promise<void> {
   stopMihomoConnections()
   stopMihomoLogs()
   stopMihomoMemory()
+  serviceCoreStreamsActive = false
+  if (serviceCoreStreamsRestartTimer) {
+    clearTimeout(serviceCoreStreamsRestartTimer)
+    serviceCoreStreamsRestartTimer = null
+  }
+
+  const { corePermissionMode = 'elevated' } = await getAppConfig()
+  if (corePermissionMode === 'service') {
+    try {
+      await stopServiceCore()
+    } catch (error) {
+      await appendAppLog(`[Manager]: stop service core failed, ${error}\n`)
+    } finally {
+      stopServiceCoreEventStream()
+      releaseServiceCoreEventHandler()
+    }
+  }
 
   if (child && !child.killed) {
     await stopChildProcess(child)
@@ -489,6 +553,139 @@ export async function stopCore(force = false): Promise<void> {
       }
     }
     await rm(path.join(dataDir(), 'core.pid')).catch(() => {})
+  }
+}
+
+function ensureServiceCoreEventHandler(): void {
+  if (unsubscribeServiceCoreEvents) {
+    return
+  }
+  unsubscribeServiceCoreEvents = subscribeServiceCoreEvents((event) =>
+    handleServiceCoreEvent(event)
+  )
+}
+
+function releaseServiceCoreEventHandler(): void {
+  if (!unsubscribeServiceCoreEvents) {
+    return
+  }
+  unsubscribeServiceCoreEvents()
+  unsubscribeServiceCoreEvents = null
+}
+
+async function handleServiceCoreEvent(event: ServiceCoreEvent): Promise<void> {
+  if (isDuplicateServiceCoreEvent(event)) {
+    return
+  }
+
+  await appendAppLog(
+    `[Manager]: Service core event: ${event.type}${event.pid ? `, pid: ${event.pid}` : ''}${event.error ? `, error: ${event.error}` : ''}\n`
+  )
+
+  mainWindow?.webContents.send('core-status-changed', event)
+
+  switch (event.type) {
+    case 'started':
+      await getAxios(true).catch(() => {})
+      mainWindow?.webContents.send('core-started', event)
+      mainWindow?.webContents.send('groupsUpdated')
+      mainWindow?.webContents.send('rulesUpdated')
+      ipcMain.emit('updateTrayMenu')
+      void ensureServiceCoreStreamsStarted().catch((error) => {
+        appendAppLog(`[Manager]: start service core streams failed, ${error}\n`).catch(() => {})
+      })
+      break
+    case 'takeover':
+    case 'ready':
+      await getAxios(true).catch(() => {})
+      mainWindow?.webContents.send('core-started', event)
+      mainWindow?.webContents.send('groupsUpdated')
+      mainWindow?.webContents.send('rulesUpdated')
+      ipcMain.emit('updateTrayMenu')
+      scheduleServiceCoreStreamsRestart()
+      break
+    case 'exited':
+    case 'failed':
+    case 'restart_failed':
+      stopMihomoTraffic()
+      stopMihomoConnections()
+      stopMihomoLogs()
+      stopMihomoMemory()
+      serviceCoreStreamsActive = false
+      setMihomoLogSource('out')
+      mainWindow?.webContents.send('core-stopped', event)
+      if (event.type === 'restart_failed') {
+        mainWindow?.webContents.reload()
+      }
+      break
+    case 'stopped':
+      serviceCoreStreamsActive = false
+      mainWindow?.webContents.send('core-stopped', event)
+      break
+  }
+}
+
+function isDuplicateServiceCoreEvent(event: ServiceCoreEvent): boolean {
+  const key =
+    event.seq !== undefined
+      ? `seq:${event.seq}`
+      : [event.type, event.time, event.pid ?? '', event.old_pid ?? '', event.error ?? ''].join('|')
+  if (key === lastServiceCoreEventKey) {
+    return true
+  }
+  lastServiceCoreEventKey = key
+  return false
+}
+
+function scheduleServiceCoreStreamsRestart(): void {
+  if (serviceCoreStreamsRestartTimer) {
+    clearTimeout(serviceCoreStreamsRestartTimer)
+  }
+
+  serviceCoreStreamsRestartTimer = setTimeout(() => {
+    serviceCoreStreamsRestartTimer = null
+    restartServiceCoreStreams().catch((error) => {
+      appendAppLog(`[Manager]: restart service core streams failed, ${error}\n`).catch(() => {})
+    })
+  }, 300)
+}
+
+async function restartServiceCoreStreams(): Promise<void> {
+  stopMihomoTraffic()
+  stopMihomoConnections()
+  stopMihomoLogs()
+  stopMihomoMemory()
+  serviceCoreStreamsActive = false
+  await ensureServiceCoreStreamsStarted()
+}
+
+async function ensureServiceCoreStreamsStarted(): Promise<void> {
+  if (serviceCoreStreamsRestartTimer) {
+    clearTimeout(serviceCoreStreamsRestartTimer)
+    serviceCoreStreamsRestartTimer = null
+  }
+  if (serviceCoreStreamsActive) {
+    return
+  }
+  if (serviceCoreStreamsStarting) {
+    return serviceCoreStreamsStarting
+  }
+
+  serviceCoreStreamsStarting = (async () => {
+    await getAxios(true).catch(() => {})
+    await startMihomoTraffic()
+    await startMihomoConnections()
+    await startMihomoLogs()
+    await startMihomoMemory()
+    setMihomoLogSource('ws')
+    retry = 10
+    serviceCoreStreamsActive = true
+  })()
+
+  try {
+    await serviceCoreStreamsStarting
+  } finally {
+    serviceCoreStreamsStarting = null
   }
 }
 

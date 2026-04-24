@@ -108,7 +108,7 @@ const PermissionModal: React.FC<Props> = (props) => {
         <Modal.Container scroll="inside">
           <Modal.Dialog className="w-112.5">
             <Modal.Header className="flex-col gap-1">
-              <Modal.Heading>{isWindows ? '任务计划管理' : '内核授权管理'}</Modal.Heading>
+              <Modal.Heading>提权状态管理</Modal.Heading>
             </Modal.Header>
             <Modal.Body>
               <div className="space-y-4">
@@ -121,7 +121,7 @@ const PermissionModal: React.FC<Props> = (props) => {
                       <CardBody className="py-4">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
-                            <span className="text-sm font-medium">任务计划状态</span>
+                            <span className="text-sm font-medium">提权配置状态</span>
                           </div>
                           <Chip
                             color={
@@ -138,8 +138,8 @@ const PermissionModal: React.FC<Props> = (props) => {
                               ? '检查中...'
                               : typeof hasPermission === 'boolean'
                                 ? hasPermission
-                                  ? '已注册'
-                                  : '未注册'
+                                  ? '已配置'
+                                  : '未配置'
                                 : '未知'}
                           </Chip>
                         </div>
@@ -151,7 +151,7 @@ const PermissionModal: React.FC<Props> = (props) => {
                     <div className="text-xs text-default-500 space-y-2">
                       <div className="flex items-start gap-2">
                         <span className="mt-0.5">•</span>
-                        <span>任务计划将以特权拉起客户端自身</span>
+                        <span>提权配置会让直接运行模式具备必要的系统权限</span>
                       </div>
                       <div className="flex items-start gap-2">
                         <span className="mt-0.5">•</span>
@@ -291,7 +291,7 @@ const PermissionModal: React.FC<Props> = (props) => {
                       onPress={() => handleAction(onRevoke)}
                       isLoading={isLoading}
                     >
-                      取消注册
+                      取消提权
                     </Button>
                   ) : (
                     <Button
@@ -300,7 +300,7 @@ const PermissionModal: React.FC<Props> = (props) => {
                       onPress={() => handleAction(onGrant)}
                       isLoading={isLoading}
                     >
-                      注册计划
+                      配置提权
                     </Button>
                   )
                 })()}

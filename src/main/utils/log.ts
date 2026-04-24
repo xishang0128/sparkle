@@ -2,7 +2,7 @@ import { BrowserWindow } from 'electron'
 import { createWriteStream, type WriteStream } from 'fs'
 import { readFile, stat, writeFile } from 'fs/promises'
 import { Writable } from 'stream'
-import { getAppConfig } from '../config'
+import { getAppConfig } from '../config/app'
 import { appLogPath, coreLogPath, substoreLogPath } from './dirs'
 
 type LogTarget = 'app' | 'core' | 'substore'

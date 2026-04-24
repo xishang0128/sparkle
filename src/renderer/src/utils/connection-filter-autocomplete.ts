@@ -206,11 +206,18 @@ function hasComparisonOperator(input: string): boolean {
 }
 
 function normalizeClauseForCompletion(input: string): string {
-  return input.trim().replace(/^\(+\s*/, '').replace(/\s*\)+$/, '').trim()
+  return input
+    .trim()
+    .replace(/^\(+\s*/, '')
+    .replace(/\s*\)+$/, '')
+    .trim()
 }
 
 function collectPathSuggestionTargets(prefix: string) {
-  const matchedTargets = new Map<string, { rank: number; sourceIndex: number; sourceLabel: string }>()
+  const matchedTargets = new Map<
+    string,
+    { rank: number; sourceIndex: number; sourceLabel: string }
+  >()
 
   connectionFilterFields.forEach(({ label }, sourceIndex) => {
     if (rankByPrefix(label, prefix) === Number.POSITIVE_INFINITY) return

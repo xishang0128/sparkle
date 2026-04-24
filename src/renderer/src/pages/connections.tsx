@@ -1,14 +1,6 @@
 import BasePage from '@renderer/components/base/base-page'
 import { mihomoCloseConnections, mihomoCloseConnection } from '@renderer/utils/ipc'
-import React, {
-  Key,
-  KeyboardEvent,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState
-} from 'react'
+import React, { Key, KeyboardEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { flushSync } from 'react-dom'
 import {
   Badge,
@@ -401,16 +393,19 @@ const Connections: React.FC = () => {
 
     const visiblePaths = new Set<string>()
     const otherPaths = new Set<string>()
+    let loadOtherPathsTimer: ReturnType<typeof setTimeout> | null = null
 
     const visibleConnections = filteredConnectionsRef.current.slice(0, 20)
     visibleConnections.forEach((c) => {
       const path = c.metadata.processPath || ''
+      if (!path) return
       visiblePaths.add(path)
     })
 
     const collectPaths = (connections: ControllerConnectionDetail[]) => {
       for (const c of connections) {
         const path = c.metadata.processPath || ''
+        if (!path) continue
         if (!visiblePaths.has(path)) {
           otherPaths.add(path)
         }
@@ -421,6 +416,7 @@ const Connections: React.FC = () => {
     collectPaths(closedConnections)
 
     const loadIcon = (path: string, isVisible: boolean = false): void => {
+      if (!path) return
       if (iconMapRef.current[path] || processingIcons.current.has(path)) return
 
       const fromStorage = localStorage.getItem(path)
@@ -436,6 +432,7 @@ const Connections: React.FC = () => {
     }
 
     const loadAppName = (path: string): void => {
+      if (!path) return
       if (appNameCacheRef.current[path] || processingAppNames.current.has(path)) return
       appNameRequestQueue.current.add(path)
     }
@@ -453,7 +450,7 @@ const Connections: React.FC = () => {
         })
       }
 
-      setTimeout(loadOtherPaths, 100)
+      loadOtherPathsTimer = setTimeout(loadOtherPaths, 100)
     }
 
     if (processIconTimer.current) clearTimeout(processIconTimer.current)
@@ -465,10 +462,11 @@ const Connections: React.FC = () => {
     }
 
     return (): void => {
+      if (loadOtherPathsTimer) clearTimeout(loadOtherPathsTimer)
       if (processIconTimer.current) clearTimeout(processIconTimer.current)
       if (processAppNameTimer.current) clearTimeout(processAppNameTimer.current)
     }
-  }, [activeConnections, closedConnections, displayIcon, displayAppName])
+  }, [activeConnections, closedConnections, displayIcon, displayAppName, findProcessMode])
 
   const handleTabChange = useCallback((key: Key) => {
     setTab(key as string)

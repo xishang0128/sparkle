@@ -2,7 +2,6 @@ import { Button, Select, SelectItem, Switch, Tab, Tabs } from '@heroui/react'
 import BasePage from '@renderer/components/base/base-page'
 import SettingCard from '@renderer/components/base/base-setting-card'
 import SettingItem from '@renderer/components/base/base-setting-item'
-import ConfirmModal, { ConfirmButton } from '@renderer/components/base/base-confirm'
 import PermissionModal from '@renderer/components/mihomo/permission-modal'
 import ServiceModal from '@renderer/components/mihomo/service-modal'
 import { useAppConfig } from '@renderer/hooks/use-app-config'
@@ -18,9 +17,6 @@ import {
   revokeCorePermission,
   findSystemMihomo,
   deleteElevateTask,
-  checkElevateTask,
-  relaunchApp,
-  notDialogQuit,
   installService,
   uninstallService,
   startService,
@@ -62,17 +58,15 @@ const Mihomo: React.FC = () => {
   const {
     core = 'mihomo',
     corePermissionMode = 'elevated',
-    coreStartupMode = 'post-up'
+    coreStartupMode = 'post-up',
+    mihomoCpuPriority = 'PRIORITY_NORMAL'
   } = appConfig || {}
   const { controledMihomoConfig, patchControledMihomoConfig } = useControledMihomoConfig()
   const { ipv6 } = controledMihomoConfig || {}
 
   const [upgrading, setUpgrading] = useState(false)
-  const [showGrantConfirm, setShowGrantConfirm] = useState(false)
-  const [showUnGrantConfirm, setShowUnGrantConfirm] = useState(false)
   const [showPermissionModal, setShowPermissionModal] = useState(false)
   const [showServiceModal, setShowServiceModal] = useState(false)
-  const [pendingPermissionMode, setPendingPermissionMode] = useState<string>('')
   const [systemCorePaths, setSystemCorePaths] = useState<string[]>(systemCorePathsCache || [])
   const [loadingPaths, setLoadingPaths] = useState(systemCorePathsCache === null)
 
@@ -137,106 +131,23 @@ const Mihomo: React.FC = () => {
   const handlePermissionModeChange = async (key: string): Promise<void> => {
     if (key === corePermissionMode) return
 
-    if (platform === 'win32') {
-      if (key !== 'elevated') {
-        if (await checkElevateTask()) {
-          setPendingPermissionMode(key)
-          setShowUnGrantConfirm(true)
-        } else {
-          patchAppConfig({ corePermissionMode: key as 'elevated' | 'service' })
-        }
-      } else if (key === 'elevated') {
-        setPendingPermissionMode(key)
-        setShowGrantConfirm(true)
-      }
-    } else {
-      patchAppConfig({ corePermissionMode: key as 'elevated' | 'service' })
+    try {
+      await patchAppConfig({ corePermissionMode: key as 'elevated' | 'service' })
+      await restartCore()
+    } catch (e) {
+      alert(e)
     }
   }
 
-  const unGrantButtons: ConfirmButton[] = [
-    {
-      key: 'cancel',
-      text: '取消',
-      variant: 'light',
-      onPress: () => {}
-    },
-    {
-      key: 'confirm',
-      text: platform === 'win32' ? '不重启取消' : '确认撤销',
-      color: 'warning',
-      onPress: async () => {
-        try {
-          if (platform === 'win32') {
-            await deleteElevateTask()
-            new Notification('任务计划已取消注册')
-          } else {
-            await revokeCorePermission()
-            new Notification('内核权限已撤销')
-          }
-          await patchAppConfig({
-            corePermissionMode: pendingPermissionMode as 'elevated' | 'service'
-          })
-
-          await restartCore()
-        } catch (e) {
-          alert(e)
-        }
-      }
-    },
-    ...(platform === 'win32'
-      ? [
-          {
-            key: 'cancel-and-restart',
-            text: '取消并重启',
-            color: 'danger' as const,
-            onPress: async () => {
-              try {
-                await deleteElevateTask()
-                new Notification('任务计划已取消注册')
-                await patchAppConfig({
-                  corePermissionMode: pendingPermissionMode as 'elevated' | 'service'
-                })
-                await relaunchApp()
-              } catch (e) {
-                alert(e)
-              }
-            }
-          }
-        ]
-      : [])
-  ]
-
   return (
     <BasePage title="内核设置" contentClassName="no-scrollbar">
-      {showGrantConfirm && (
-        <ConfirmModal
-          onChange={setShowGrantConfirm}
-          title="确认使用任务计划？"
-          description="确认后将退出应用，请手动使用管理员运行一次程序"
-          onConfirm={async () => {
-            await patchAppConfig({
-              corePermissionMode: pendingPermissionMode as 'elevated' | 'service'
-            })
-            await notDialogQuit()
-          }}
-        />
-      )}
-      {showUnGrantConfirm && (
-        <ConfirmModal
-          onChange={setShowUnGrantConfirm}
-          title="确认取消任务计划？"
-          description="取消任务计划后，虚拟网卡等功能可能无法正常工作。确定要继续吗？"
-          buttons={unGrantButtons}
-        />
-      )}
       {showPermissionModal && (
         <PermissionModal
           onChange={setShowPermissionModal}
           onRevoke={async () => {
             if (platform === 'win32') {
               await deleteElevateTask()
-              new Notification('任务计划已取消注册')
+              new Notification('提权配置已取消')
             } else {
               await revokeCorePermission()
               new Notification('内核权限已撤销')
@@ -263,6 +174,12 @@ const Mihomo: React.FC = () => {
           }}
           onUninstall={async () => {
             await uninstallService()
+            if (corePermissionMode === 'service') {
+              await patchAppConfig({ corePermissionMode: 'elevated' })
+              await restartCore()
+              new Notification('服务卸载成功，已切换到直接运行')
+              return
+            }
             new Notification('服务卸载成功')
           }}
           onStart={async () => {
@@ -343,34 +260,58 @@ const Mihomo: React.FC = () => {
             )}
           </SettingItem>
         )}
+        <SettingItem compatKey="legacy" title="内核进程优先级" divider>
+          <Select
+            classNames={{ trigger: 'data-[hover=true]:bg-default-200' }}
+            className="w-37.5"
+            size="sm"
+            selectedKeys={new Set([mihomoCpuPriority])}
+            disallowEmptySelection={true}
+            onSelectionChange={async (v) => {
+              try {
+                await patchAppConfig({
+                  mihomoCpuPriority: v.currentKey as Priority
+                })
+                await restartCore()
+              } catch (e) {
+                alert(e)
+              }
+            }}
+          >
+            <SelectItem key="PRIORITY_HIGHEST">实时</SelectItem>
+            <SelectItem key="PRIORITY_HIGH">高</SelectItem>
+            <SelectItem key="PRIORITY_ABOVE_NORMAL">高于正常</SelectItem>
+            <SelectItem key="PRIORITY_NORMAL">正常</SelectItem>
+            <SelectItem key="PRIORITY_BELOW_NORMAL">低于正常</SelectItem>
+            <SelectItem key="PRIORITY_LOW">低</SelectItem>
+          </Select>
+        </SettingItem>
         <SettingItem compatKey="legacy" title="运行模式" divider>
           <Tabs
             size="sm"
             color="primary"
             selectedKey={corePermissionMode}
-            disabledKeys={['service']}
             onSelectionChange={(key) => handlePermissionModeChange(key as string)}
           >
-            <Tab key="elevated" title={platform === 'win32' ? '任务计划' : '授权运行'} />
+            <Tab key="elevated" title="直接运行" />
             <Tab key="service" title="系统服务" />
           </Tabs>
         </SettingItem>
-        <SettingItem compatKey="legacy" title="启动检测方式" divider>
-          <Tabs
-            size="sm"
-            color="primary"
-            selectedKey={coreStartupMode}
-            onSelectionChange={(key) => handleConfigChangeWithRestart('coreStartupMode', key)}
-          >
-            <Tab key="post-up" title="Post Up" />
-            <Tab key="log" title="日志解析" />
-          </Tabs>
-        </SettingItem>
-        <SettingItem
-          compatKey="legacy"
-          title={platform === 'win32' ? '任务状态' : '授权状态'}
-          divider
-        >
+
+        {corePermissionMode !== 'service' && (
+          <SettingItem compatKey="legacy" title="启动检测方式" divider>
+            <Tabs
+              size="sm"
+              color="primary"
+              selectedKey={coreStartupMode}
+              onSelectionChange={(key) => handleConfigChangeWithRestart('coreStartupMode', key)}
+            >
+              <Tab key="post-up" title="Post Up" />
+              <Tab key="log" title="日志解析" />
+            </Tabs>
+          </SettingItem>
+        )}
+        <SettingItem compatKey="legacy" title="提权状态" divider>
           <Button size="sm" color="primary" onPress={() => setShowPermissionModal(true)}>
             管理
           </Button>

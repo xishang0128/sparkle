@@ -23,7 +23,6 @@ const AdvancedSettings: React.FC = () => {
     controlDns = true,
     controlSniff = true,
     pauseSSID,
-    mihomoCpuPriority = 'PRIORITY_NORMAL',
     autoLightweight = false,
     autoLightweightDelay = 60,
     autoLightweightMode = 'core',
@@ -143,34 +142,6 @@ const AdvancedSettings: React.FC = () => {
           <SelectItem key="nushell">NuShell</SelectItem>
         </Select>
       </SettingItem>
-      {platform === 'win32' && (
-        <SettingItem compatKey="legacy" title="内核进程优先级" divider>
-          <Select
-            classNames={{ trigger: 'data-[hover=true]:bg-default-200' }}
-            className="w-37.5"
-            size="sm"
-            selectedKeys={new Set([mihomoCpuPriority])}
-            disallowEmptySelection={true}
-            onSelectionChange={async (v) => {
-              try {
-                await patchAppConfig({
-                  mihomoCpuPriority: v.currentKey as Priority
-                })
-                await restartCore()
-              } catch (e) {
-                alert(e)
-              }
-            }}
-          >
-            <SelectItem key="PRIORITY_HIGHEST">实时</SelectItem>
-            <SelectItem key="PRIORITY_HIGH">高</SelectItem>
-            <SelectItem key="PRIORITY_ABOVE_NORMAL">高于正常</SelectItem>
-            <SelectItem key="PRIORITY_NORMAL">正常</SelectItem>
-            <SelectItem key="PRIORITY_BELOW_NORMAL">低于正常</SelectItem>
-            <SelectItem key="PRIORITY_LOW">低</SelectItem>
-          </Select>
-        </SettingItem>
-      )}
       <SettingItem compatKey="legacy" title="接管 DNS 设置" divider>
         <Switch
           size="sm"
