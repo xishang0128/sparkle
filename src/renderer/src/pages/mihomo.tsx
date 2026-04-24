@@ -156,7 +156,7 @@ const Mihomo: React.FC = () => {
           }}
           onGrant={async () => {
             await manualGrantCorePermition()
-            new Notification('内核授权成功')
+            new Notification(platform === 'win32' ? '提权配置成功' : '内核授权成功')
             await restartCore()
           }}
         />

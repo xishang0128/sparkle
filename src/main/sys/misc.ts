@@ -14,6 +14,7 @@ import {
   taskDir
 } from '../utils/dirs'
 import { copyFileSync, writeFileSync } from 'fs'
+import { execWithElevation } from '../utils/elevation'
 
 export function getFilePath(ext: string[]): string[] | undefined {
   return dialog.showOpenDialogSync({
@@ -105,16 +106,33 @@ const elevateTaskXml = `<?xml version="1.0" encoding="UTF-16"?>
 </Task>
 `
 
-export function createElevateTaskSync(): void {
+function prepareElevateTaskFile(): string {
   const taskFilePath = path.join(taskDir(), `sparkle-run.xml`)
   writeFileSync(taskFilePath, Buffer.from(`\ufeff${elevateTaskXml}`, 'utf-16le'))
   copyFileSync(
     path.join(resourcesFilesDir(), 'sparkle-run.exe'),
     path.join(taskDir(), 'sparkle-run.exe')
   )
+  return taskFilePath
+}
+
+export function createElevateTaskSync(): void {
+  const taskFilePath = prepareElevateTaskFile()
   execSync(
     `%SystemRoot%\\System32\\schtasks.exe /create /tn "sparkle-run" /xml "${taskFilePath}" /f`
   )
+}
+
+export async function createElevateTask(): Promise<void> {
+  const taskFilePath = prepareElevateTaskFile()
+  await execWithElevation('schtasks.exe', [
+    '/create',
+    '/tn',
+    'sparkle-run',
+    '/xml',
+    taskFilePath,
+    '/f'
+  ])
 }
 
 export async function deleteElevateTask(): Promise<void> {
