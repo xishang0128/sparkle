@@ -4,28 +4,78 @@
   Var sparkleServiceWasRunning
 !macroend
 
-!macro StopSparkleServiceIfRunning
-  nsExec::ExecToStack '"$SYSDIR\sc.exe" query SparkleService'
-  Pop $R2
-  Pop $R3
-
-  StrCpy $R4 "false"
+!macro ServiceOutputContains NEEDLE RESULT
+  StrCpy ${RESULT} "false"
   StrCpy $R5 0
   StrLen $R6 $R3
+  StrLen $R8 "${NEEDLE}"
   ${Do}
-    StrCpy $R7 $R3 7 $R5
-    ${If} $R7 == "RUNNING"
-      StrCpy $R4 "true"
+    StrCpy $R9 $R3 $R8 $R5
+    ${If} $R9 == "${NEEDLE}"
+      StrCpy ${RESULT} "true"
       ${Break}
     ${EndIf}
     IntOp $R5 $R5 + 1
   ${LoopUntil} $R5 >= $R6
+!macroend
 
-  ${If} $R4 == "true"
+!macro QuerySparkleServiceState RESULT
+  nsExec::ExecToStack '"$SYSDIR\sc.exe" query SparkleService'
+  Pop $R2
+  Pop $R3
+
+  StrCpy ${RESULT} "not-installed"
+  ${If} $R2 == 0
+    !insertmacro ServiceOutputContains "RUNNING" $R4
+    ${If} $R4 == "true"
+      StrCpy ${RESULT} "running"
+    ${Else}
+      !insertmacro ServiceOutputContains "STOP_PENDING" $R4
+      ${If} $R4 == "true"
+        StrCpy ${RESULT} "stop-pending"
+      ${Else}
+        !insertmacro ServiceOutputContains "STOPPED" $R4
+        ${If} $R4 == "true"
+          StrCpy ${RESULT} "stopped"
+        ${Else}
+          StrCpy ${RESULT} "unknown"
+        ${EndIf}
+      ${EndIf}
+    ${EndIf}
+  ${EndIf}
+!macroend
+
+!macro WaitSparkleServiceStopped
+  StrCpy $R0 0
+  ${Do}
+    !insertmacro QuerySparkleServiceState $R1
+    ${If} $R1 == "stopped"
+    ${OrIf} $R1 == "not-installed"
+      ${Break}
+    ${EndIf}
+    Sleep 500
+    IntOp $R0 $R0 + 1
+  ${LoopUntil} $R0 >= 30
+
+  !insertmacro QuerySparkleServiceState $R1
+  ${If} $R1 != "stopped"
+  ${AndIf} $R1 != "not-installed"
+    MessageBox MB_ICONSTOP "SparkleService is still running. Please stop the service and run the installer again."
+    Abort
+  ${EndIf}
+!macroend
+
+!macro StopSparkleServiceIfRunning
+  !insertmacro QuerySparkleServiceState $R1
+
+  ${If} $R1 != "stopped"
+  ${AndIf} $R1 != "not-installed"
     StrCpy $sparkleServiceWasRunning "true"
     DetailPrint "Stopping Sparkle service"
-    nsExec::ExecToLog '"$SYSDIR\sc.exe" stop SparkleService'
-    Sleep 3000
+    nsExec::ExecToStack '"$SYSDIR\sc.exe" stop SparkleService'
+    Pop $R2
+    Pop $R3
+    !insertmacro WaitSparkleServiceStopped
   ${EndIf}
 !macroend
 

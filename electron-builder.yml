@@ -66,6 +66,8 @@ linux:
   category: Utility
   artifactName: ${name}-linux-${version}-${arch}.${ext}
 deb:
+  fpm:
+    - --before-install=build/linux/preinst
   afterInstall: 'build/linux/postinst'
   depends:
     - libasound2
@@ -81,6 +83,8 @@ deb:
   recommends:
     - libappindicator3-1
 rpm:
+  fpm:
+    - --before-install=build/linux/preinst
   afterInstall: 'build/linux/postinst'
   depends:
     - alsa-lib
@@ -96,6 +100,7 @@ rpm:
 pacman:
   afterInstall: 'build/linux/postinst'
   fpm:
+    - --before-install=build/linux/preinst
     - --pacman-compression
     - zstd
   depends:

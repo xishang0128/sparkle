@@ -20,20 +20,25 @@ if [ -d '/opt/sparkle/resources/files/sub-store-frontend' ]; then
     chmod -R go-w '/opt/sparkle/resources/files/sub-store-frontend' 2>/dev/null || true
 fi
 
-restart_sparkle_service_if_running() {
-    SERVICE_BIN="$1"
+restore_sparkle_service_if_was_running() {
+    SERVICE_NAME='SparkleService'
+    STATE_FILE='/run/sparkle/service-was-running'
 
-    if [ ! -x "$SERVICE_BIN" ]; then
+    if [ ! -f "$STATE_FILE" ]; then
         return
     fi
+    rm -f "$STATE_FILE" 2>/dev/null || true
 
-    STATUS_OUTPUT="$("$SERVICE_BIN" service status 2>&1 || true)"
-    if printf '%s' "$STATUS_OUTPUT" | grep -Eq '服务状态：运行中|running'; then
-        "$SERVICE_BIN" service restart >/dev/null 2>&1 || true
+    if command -v systemctl >/dev/null 2>&1; then
+        systemctl start "$SERVICE_NAME" >/dev/null 2>&1 || true
+    elif command -v service >/dev/null 2>&1; then
+        service "$SERVICE_NAME" start >/dev/null 2>&1 || true
+    elif [ -x "/etc/init.d/$SERVICE_NAME" ]; then
+        "/etc/init.d/$SERVICE_NAME" start >/dev/null 2>&1 || true
     fi
 }
 
-restart_sparkle_service_if_running '/opt/sparkle/resources/files/sparkle-service'
+restore_sparkle_service_if_was_running
 
 if hash update-mime-database 2>/dev/null; then
     update-mime-database /usr/share/mime || true

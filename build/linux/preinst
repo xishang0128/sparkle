@@ -1,0 +1,94 @@
+#!/bin/bash
+
+SERVICE_NAME='SparkleService'
+STATE_DIR='/run/sparkle'
+STATE_FILE="$STATE_DIR/service-was-running"
+PID_FILES="/var/run/$SERVICE_NAME.pid /run/$SERVICE_NAME.pid"
+
+ensure_state_dir() {
+    mkdir -p "$STATE_DIR"
+}
+
+mark_service_running() {
+    ensure_state_dir && touch "$STATE_FILE"
+}
+
+service_pid() {
+    for pid_file in $PID_FILES; do
+        if [ -f "$pid_file" ]; then
+            pid="$(cat "$pid_file" 2>/dev/null || true)"
+            if [ -n "$pid" ] && kill -0 "$pid" 2>/dev/null; then
+                printf '%s\n' "$pid"
+                return 0
+            fi
+        fi
+    done
+    return 1
+}
+
+service_is_running() {
+    if command -v systemctl >/dev/null 2>&1 && systemctl is-active --quiet "$SERVICE_NAME"; then
+        return 0
+    fi
+
+    service_pid >/dev/null 2>&1
+}
+
+stop_service() {
+    if command -v systemctl >/dev/null 2>&1; then
+        systemctl stop "$SERVICE_NAME" >/dev/null 2>&1 || true
+    fi
+    if command -v service >/dev/null 2>&1; then
+        service "$SERVICE_NAME" stop >/dev/null 2>&1 || true
+    fi
+    if [ -x "/etc/init.d/$SERVICE_NAME" ]; then
+        "/etc/init.d/$SERVICE_NAME" stop >/dev/null 2>&1 || true
+    fi
+}
+
+force_stop_pid() {
+    pid="$(service_pid 2>/dev/null || true)"
+    if [ -n "$pid" ]; then
+        kill "$pid" >/dev/null 2>&1 || true
+    fi
+}
+
+wait_service_stopped() {
+    i=0
+    while [ "$i" -lt 30 ]; do
+        if ! service_is_running; then
+            return 0
+        fi
+        sleep 0.5
+        i=$((i + 1))
+    done
+    return 1
+}
+
+stop_sparkle_service_if_running() {
+    if ! service_is_running; then
+        return
+    fi
+
+    if ! mark_service_running; then
+        echo "Failed to record running Sparkle service state" >&2
+        exit 1
+    fi
+
+    stop_service
+    if wait_service_stopped; then
+        return
+    fi
+
+    force_stop_pid
+    if wait_service_stopped; then
+        return
+    fi
+
+    echo "Sparkle service is still running; aborting install to avoid replacing active files" >&2
+    exit 1
+}
+
+stop_sparkle_service_if_running
+
+exit 0

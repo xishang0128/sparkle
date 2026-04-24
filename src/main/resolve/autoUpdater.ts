@@ -11,6 +11,8 @@ import { promisify } from 'util'
 import { createHash } from 'crypto'
 import { setNotQuitDialog, mainWindow } from '..'
 import { triggerSysProxy } from '../sys/sysproxy'
+import { serviceStatus, stopService } from '../service/manager'
+import { appendAppLog } from '../utils/log'
 
 let downloadCancelToken: CancelTokenSource | null = null
 
@@ -39,6 +41,20 @@ export async function checkUpdate(): Promise<AppVersion | undefined> {
   } else {
     return undefined
   }
+}
+
+async function stopServiceForPortableUpdate(): Promise<void> {
+  const status = await serviceStatus().catch(async (error) => {
+    await appendAppLog(`[Updater]: query service status failed before portable update, ${error}\n`)
+    return 'unknown' as const
+  })
+
+  if (status === 'not-installed' || status === 'stopped') {
+    return
+  }
+
+  await appendAppLog(`[Updater]: stop service before portable update, status: ${status}\n`)
+  await stopService()
 }
 
 export async function downloadAndInstallUpdate(version: string): Promise<void> {
@@ -139,6 +155,7 @@ export async function downloadAndInstallUpdate(version: string): Promise<void> {
       }).unref()
     }
     if (file.endsWith('.7z')) {
+      await stopServiceForPortableUpdate()
       await copyFile(path.join(resourcesFilesDir(), '7za.exe'), path.join(dataDir(), '7za.exe'))
       spawn(
         'cmd',

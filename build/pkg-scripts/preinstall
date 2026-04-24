@@ -1,8 +1,67 @@
 #!/bin/sh
 
 OLD_SYSPROXY="/Library/PrivilegedHelperTools/sparkle.helper"
+SERVICE_NAME="SparkleService"
+SERVICE_STATE_FILE="/tmp/sparkle-service-was-running"
+APP_PATH="$2/Sparkle.app"
+SERVICE_BIN="$APP_PATH/Contents/Resources/files/sparkle-service"
 
 UNINSTALL=false
+
+service_binary_reports_running() {
+    [ -x "$SERVICE_BIN" ] || return 1
+    STATUS_OUTPUT="$("$SERVICE_BIN" service status 2>&1 || true)"
+    printf '%s' "$STATUS_OUTPUT" | grep -Eq '服务状态：运行中|running'
+}
+
+launch_service_reports_running() {
+    launchctl list 2>/dev/null | awk -v name="$SERVICE_NAME" '$3 == name && $1 != "-" { found = 1 } END { exit found ? 0 : 1 }'
+}
+
+service_is_running() {
+    service_binary_reports_running || launch_service_reports_running
+}
+
+stop_service() {
+    if [ -x "$SERVICE_BIN" ]; then
+        "$SERVICE_BIN" service stop >/dev/null 2>&1 || true
+    else
+        launchctl stop "$SERVICE_NAME" >/dev/null 2>&1 || true
+    fi
+}
+
+wait_service_stopped() {
+    i=0
+    while [ "$i" -lt 30 ]; do
+        if ! service_is_running; then
+            return 0
+        fi
+        sleep 0.5
+        i=$((i + 1))
+    done
+    return 1
+}
+
+stop_sparkle_service_if_running() {
+    if ! service_is_running; then
+        return
+    fi
+
+    if ! touch "$SERVICE_STATE_FILE"; then
+        echo "Failed to record running Sparkle service state" >&2
+        exit 1
+    fi
+
+    stop_service
+    if wait_service_stopped; then
+        return
+    fi
+
+    echo "Sparkle service is still running; aborting install to avoid replacing active files" >&2
+    exit 1
+}
+
+stop_sparkle_service_if_running
 
 if [ ! -f "$OLD_SYSPROXY" ]; then
     UNINSTALL=true

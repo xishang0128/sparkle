@@ -11,19 +11,20 @@ chmod +s "$APP_PATH/Contents/Resources/sidecar/mihomo-alpha"
   --preserve-metadata=identifier,entitlements,requirements,flags,runtime \
   "$APP_PATH"
 
-restart_sparkle_service_if_running() {
+restore_sparkle_service_if_was_running() {
   SERVICE_BIN="$1"
+  SERVICE_STATE_FILE="/tmp/sparkle-service-was-running"
 
-  if [ ! -x "$SERVICE_BIN" ]; then
+  if [ ! -f "$SERVICE_STATE_FILE" ]; then
     return
   fi
+  rm -f "$SERVICE_STATE_FILE" 2>/dev/null || true
 
-  STATUS_OUTPUT="$("$SERVICE_BIN" service status 2>&1 || true)"
-  if printf '%s' "$STATUS_OUTPUT" | grep -Eq '服务状态：运行中|running'; then
-    "$SERVICE_BIN" service restart >/dev/null 2>&1 || true
+  if [ -x "$SERVICE_BIN" ]; then
+    "$SERVICE_BIN" service start >/dev/null 2>&1 || true
   fi
 }
 
-restart_sparkle_service_if_running "$APP_PATH/Contents/Resources/files/sparkle-service"
+restore_sparkle_service_if_was_running "$APP_PATH/Contents/Resources/files/sparkle-service"
 
 exit 0
