@@ -81,11 +81,7 @@ export async function loadServiceAuthSecret(): Promise<ServiceAuthSecret | null>
     throw new Error('当前平台不允许明文服务鉴权密钥')
   }
 
-  if (
-    envelope.version !== 1 ||
-    typeof envelope.ciphertext !== 'string' ||
-    !envelope.ciphertext
-  ) {
+  if (envelope.version !== 1 || typeof envelope.ciphertext !== 'string' || !envelope.ciphertext) {
     throw new Error('服务鉴权存储格式无效')
   }
 
