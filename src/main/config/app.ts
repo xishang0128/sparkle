@@ -10,6 +10,7 @@ let appConfig: AppConfig
 let writePromise: Promise<void> = Promise.resolve()
 
 const ENCRYPTED_FIELDS = ['systemCorePath', 'serviceAuthKey'] as const
+const PLAINTEXT_FALLBACK_FIELDS = ['systemCorePath'] as const
 
 function isValidConfig(config: unknown): config is AppConfig {
   if (!config || typeof config !== 'object') return false
@@ -52,6 +53,7 @@ function decryptConfig(config: AppConfig): AppConfig {
     const value = result[field]
     if (value && typeof value === 'string') {
       if (!isEncrypted(value)) {
+        if ((PLAINTEXT_FALLBACK_FIELDS as readonly string[]).includes(field)) continue
         ;(result[field] as string) = ''
       } else {
         ;(result[field] as string) = decryptString(value)
