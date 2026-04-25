@@ -4,6 +4,12 @@ import React, { useState, useEffect, useRef } from 'react'
 import SettingItem from '../base/base-setting-item'
 import { useAppConfig } from '@renderer/hooks/use-app-config'
 import debounce from '@renderer/utils/debounce'
+import {
+  DEFAULT_DELAY_TEST_CONCURRENCY,
+  MAX_DELAY_TEST_CONCURRENCY,
+  MIN_DELAY_TEST_CONCURRENCY,
+  normalizeDelayTestConcurrency
+} from '@renderer/utils/delay-test'
 
 interface Props {
   onClose: () => void
@@ -22,6 +28,7 @@ const ProxySettingModal: React.FC<Props> = (props) => {
     closeMode = 'all',
     delayTestUrl,
     delayTestUrlScope = 'group',
+    delayTestUseGroupApi = false,
     delayTestConcurrency,
     delayTestTimeout
   } = appConfig || {}
@@ -173,18 +180,33 @@ const ProxySettingModal: React.FC<Props> = (props) => {
                   <Tab key="global" title="使用统一地址" />
                 </Tabs>
               </SettingItem>
-              <SettingItem compatKey="legacy" title="延迟测试并发数量" divider>
-                <Input
-                  type="number"
+              <SettingItem compatKey="legacy" title="使用策略组 API 测速" divider>
+                <Switch
                   size="sm"
-                  className="w-25"
-                  value={delayTestConcurrency?.toString()}
-                  placeholder="默认 50"
+                  isSelected={delayTestUseGroupApi}
                   onValueChange={(v) => {
-                    patchAppConfig({ delayTestConcurrency: parseInt(v) })
+                    patchAppConfig({ delayTestUseGroupApi: v })
                   }}
                 />
               </SettingItem>
+              {!delayTestUseGroupApi && (
+                <SettingItem compatKey="legacy" title="延迟测试并发数量" divider>
+                  <Input
+                    type="number"
+                    size="sm"
+                    className="w-25"
+                    value={delayTestConcurrency?.toString()}
+                    min={MIN_DELAY_TEST_CONCURRENCY}
+                    max={MAX_DELAY_TEST_CONCURRENCY}
+                    placeholder={`默认 ${DEFAULT_DELAY_TEST_CONCURRENCY}`}
+                    onValueChange={(v) => {
+                      patchAppConfig({
+                        delayTestConcurrency: normalizeDelayTestConcurrency(parseInt(v))
+                      })
+                    }}
+                  />
+                </SettingItem>
+              )}
               <SettingItem compatKey="legacy" title="延迟测试超时时间">
                 <Input
                   type="number"

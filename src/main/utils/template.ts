@@ -52,6 +52,8 @@ export const defaultConfig: AppConfig = {
   groupDisplayLayout: 'double',
   autoLightweightMode: 'core',
   coreStartupMode: 'post-up',
+  delayTestConcurrency: 50,
+  delayTestUseGroupApi: false,
   delayTestUrlScope: 'group'
 }
 
