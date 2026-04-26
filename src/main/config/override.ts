@@ -68,6 +68,9 @@ export async function createOverride(item: Partial<OverrideItem>): Promise<Overr
     ext: item.ext || 'js',
     url: item.url,
     global: item.global || false,
+    visualType: item.visualType,
+    visualConfig: item.visualConfig,
+    fingerprint: item.fingerprint,
     updated: new Date().getTime()
   } as OverrideItem
   switch (newItem.type) {

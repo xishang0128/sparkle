@@ -1,7 +1,7 @@
 import type { ChildProcess } from 'child_process'
 import { existsSync, watch } from 'fs'
 import type { FSWatcher } from 'fs'
-import { mkdir, rm } from 'fs/promises'
+import { mkdir } from 'fs/promises'
 import path from 'path'
 import { randomUUID } from 'crypto'
 import { dataDir } from '../utils/dirs'
@@ -38,10 +38,18 @@ function coreHookDir(): string {
 
 export async function createCoreStartupHook(): Promise<CoreStartupHook> {
   const runId = randomUUID()
-  const hookDir = coreHookDir()
+  let hookDir = path.join(coreHookDir(), runId)
 
-  await rm(hookDir, { recursive: true, force: true })
-  await mkdir(hookDir, { recursive: true })
+  try {
+    await mkdir(hookDir, { recursive: true })
+  } catch (error) {
+    const code = error && typeof error === 'object' && 'code' in error ? error.code : undefined
+    if (process.platform !== 'win32' || (code !== 'EACCES' && code !== 'EPERM')) {
+      throw error
+    }
+    hookDir = path.join(dataDir(), 'core-hooks', runId)
+    await mkdir(hookDir, { recursive: true })
+  }
 
   const upFileName = `${runId}.up`
   const downFileName = `${runId}.down`

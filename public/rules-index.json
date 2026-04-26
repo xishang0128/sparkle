@@ -1,0 +1,798 @@
+{
+  "version": 1,
+  "source": "MetaCubeX/meta-rules-dat@meta",
+  "generatedAt": "2026-04-26T19:02:27.549Z",
+  "total": 79,
+  "rules": [
+    {
+      "name": "metacube_geosite_geolocation-_cn",
+      "label": "非中国域名",
+      "category": "china",
+      "behavior": "domain",
+      "format": "mrs",
+      "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/geolocation-!cn.mrs",
+      "recommendedTarget": "直连",
+      "noResolve": false
+    },
+    {
+      "name": "metacube_geosite_category-ads-all",
+      "label": "广告拦截",
+      "category": "privacy",
+      "behavior": "domain",
+      "format": "mrs",
+      "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/category-ads-all.mrs",
+      "recommendedTarget": "直连",
+      "noResolve": false
+    },
+    {
+      "name": "metacube_geosite_category-games_cn",
+      "label": "国内游戏",
+      "category": "game",
+      "behavior": "domain",
+      "format": "mrs",
+      "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/category-games@cn.mrs",
+      "recommendedTarget": "游戏平台",
+      "noResolve": false
+    },
+    {
+      "name": "metacube_geosite_cloudmusic",
+      "label": "网易云音乐",
+      "category": "system",
+      "behavior": "domain",
+      "format": "mrs",
+      "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/cloudmusic.mrs",
+      "recommendedTarget": "默认代理",
+      "noResolve": false
+    },
+    {
+      "name": "metacube_geosite_cn",
+      "label": "中国",
+      "category": "china",
+      "behavior": "domain",
+      "format": "mrs",
+      "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/cn.mrs",
+      "recommendedTarget": "直连",
+      "noResolve": false
+    },
+    {
+      "name": "metacube_geoip_cn",
+      "label": "中国 IP",
+      "category": "basic",
+      "behavior": "ipcidr",
+      "format": "mrs",
+      "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/cn.mrs",
+      "recommendedTarget": "直连",
+      "noResolve": true
+    },
+    {
+      "name": "metacube_geosite_abema",
+      "label": "Abema",
+      "category": "media",
+      "behavior": "domain",
+      "format": "mrs",
+      "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/abema.mrs",
+      "recommendedTarget": "国际媒体",
+      "noResolve": false
+    },
+    {
+      "name": "metacube_geosite_acfun",
+      "label": "Acfun",
+      "category": "system",
+      "behavior": "domain",
+      "format": "mrs",
+      "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/acfun.mrs",
+      "recommendedTarget": "默认代理",
+      "noResolve": false
+    },
+    {
+      "name": "metacube_geosite_category-ai-_cn",
+      "label": "AI",
+      "category": "ai",
+      "behavior": "domain",
+      "format": "mrs",
+      "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/category-ai-!cn.mrs",
+      "recommendedTarget": "AI",
+      "noResolve": false
+    },
+    {
+      "name": "metacube_geosite_alibaba",
+      "label": "Alibaba",
+      "category": "china",
+      "behavior": "domain",
+      "format": "mrs",
+      "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/alibaba.mrs",
+      "recommendedTarget": "直连",
+      "noResolve": false
+    },
+    {
+      "name": "metacube_geosite_amazon",
+      "label": "Amazon",
+      "category": "payment",
+      "behavior": "domain",
+      "format": "mrs",
+      "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/amazon.mrs",
+      "recommendedTarget": "默认代理",
+      "noResolve": false
+    },
+    {
+      "name": "metacube_geosite_apple",
+      "label": "Apple",
+      "category": "system",
+      "behavior": "domain",
+      "format": "mrs",
+      "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/apple.mrs",
+      "recommendedTarget": "默认代理",
+      "noResolve": false
+    },
+    {
+      "name": "metacube_geosite_apple-cn",
+      "label": "Apple CN",
+      "category": "china",
+      "behavior": "domain",
+      "format": "mrs",
+      "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/apple-cn.mrs",
+      "recommendedTarget": "直连",
+      "noResolve": false
+    },
+    {
+      "name": "metacube_geoip_apple",
+      "label": "Apple IP",
+      "category": "system",
+      "behavior": "ipcidr",
+      "format": "mrs",
+      "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/apple.mrs",
+      "recommendedTarget": "默认代理",
+      "noResolve": true
+    },
+    {
+      "name": "metacube_geosite_applemusic",
+      "label": "Applemusic",
+      "category": "system",
+      "behavior": "domain",
+      "format": "mrs",
+      "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/applemusic.mrs",
+      "recommendedTarget": "默认代理",
+      "noResolve": false
+    },
+    {
+      "name": "metacube_geosite_bahamut",
+      "label": "Bahamut",
+      "category": "media",
+      "behavior": "domain",
+      "format": "mrs",
+      "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/bahamut.mrs",
+      "recommendedTarget": "国际媒体",
+      "noResolve": false
+    },
+    {
+      "name": "metacube_geosite_baidu",
+      "label": "Baidu",
+      "category": "ai",
+      "behavior": "domain",
+      "format": "mrs",
+      "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/baidu.mrs",
+      "recommendedTarget": "AI",
+      "noResolve": false
+    },
+    {
+      "name": "metacube_geosite_bilibili",
+      "label": "Bilibili",
+      "category": "china",
+      "behavior": "domain",
+      "format": "mrs",
+      "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/bilibili.mrs",
+      "recommendedTarget": "直连",
+      "noResolve": false
+    },
+    {
+      "name": "metacube_geosite_biliintl",
+      "label": "Bilibili 国际版",
+      "category": "media",
+      "behavior": "domain",
+      "format": "mrs",
+      "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/biliintl.mrs",
+      "recommendedTarget": "国际媒体",
+      "noResolve": false
+    },
+    {
+      "name": "metacube_geoip_bilibili",
+      "label": "Bilibili IP",
+      "category": "system",
+      "behavior": "ipcidr",
+      "format": "mrs",
+      "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/bilibili.mrs",
+      "recommendedTarget": "默认代理",
+      "noResolve": true
+    },
+    {
+      "name": "metacube_geosite_cloudflare",
+      "label": "Cloudflare",
+      "category": "system",
+      "behavior": "domain",
+      "format": "mrs",
+      "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/cloudflare.mrs",
+      "recommendedTarget": "默认代理",
+      "noResolve": false
+    },
+    {
+      "name": "metacube_geoip_cloudflare",
+      "label": "Cloudflare IP",
+      "category": "system",
+      "behavior": "ipcidr",
+      "format": "mrs",
+      "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/cloudflare.mrs",
+      "recommendedTarget": "默认代理",
+      "noResolve": true
+    },
+    {
+      "name": "metacube_geoip_cloudfront",
+      "label": "Cloudfront IP",
+      "category": "system",
+      "behavior": "ipcidr",
+      "format": "mrs",
+      "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/cloudfront.mrs",
+      "recommendedTarget": "默认代理",
+      "noResolve": true
+    },
+    {
+      "name": "metacube_geosite_discord",
+      "label": "Discord",
+      "category": "social",
+      "behavior": "domain",
+      "format": "mrs",
+      "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/discord.mrs",
+      "recommendedTarget": "默认代理",
+      "noResolve": false
+    },
+    {
+      "name": "metacube_geosite_disney",
+      "label": "Disney",
+      "category": "media",
+      "behavior": "domain",
+      "format": "mrs",
+      "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/disney.mrs",
+      "recommendedTarget": "国际媒体",
+      "noResolve": false
+    },
+    {
+      "name": "metacube_geosite_docker",
+      "label": "Docker",
+      "category": "dev",
+      "behavior": "domain",
+      "format": "mrs",
+      "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/docker.mrs",
+      "recommendedTarget": "默认代理",
+      "noResolve": false
+    },
+    {
+      "name": "metacube_geosite_douyin",
+      "label": "Douyin",
+      "category": "china",
+      "behavior": "domain",
+      "format": "mrs",
+      "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/douyin.mrs",
+      "recommendedTarget": "直连",
+      "noResolve": false
+    },
+    {
+      "name": "metacube_geosite_ea",
+      "label": "Ea",
+      "category": "game",
+      "behavior": "domain",
+      "format": "mrs",
+      "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/ea.mrs",
+      "recommendedTarget": "游戏平台",
+      "noResolve": false
+    },
+    {
+      "name": "metacube_geosite_ehentai",
+      "label": "Ehentai",
+      "category": "ai",
+      "behavior": "domain",
+      "format": "mrs",
+      "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/ehentai.mrs",
+      "recommendedTarget": "AI",
+      "noResolve": false
+    },
+    {
+      "name": "metacube_geosite_epicgames",
+      "label": "Epic Games",
+      "category": "game",
+      "behavior": "domain",
+      "format": "mrs",
+      "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/epicgames.mrs",
+      "recommendedTarget": "游戏平台",
+      "noResolve": false
+    },
+    {
+      "name": "metacube_geosite_facebook",
+      "label": "Facebook",
+      "category": "social",
+      "behavior": "domain",
+      "format": "mrs",
+      "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/facebook.mrs",
+      "recommendedTarget": "默认代理",
+      "noResolve": false
+    },
+    {
+      "name": "metacube_geoip_facebook",
+      "label": "Facebook IP",
+      "category": "system",
+      "behavior": "ipcidr",
+      "format": "mrs",
+      "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/facebook.mrs",
+      "recommendedTarget": "默认代理",
+      "noResolve": true
+    },
+    {
+      "name": "metacube_geoip_fastly",
+      "label": "Fastly IP",
+      "category": "system",
+      "behavior": "ipcidr",
+      "format": "mrs",
+      "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/fastly.mrs",
+      "recommendedTarget": "默认代理",
+      "noResolve": true
+    },
+    {
+      "name": "metacube_geosite_gfw",
+      "label": "Gfw",
+      "category": "system",
+      "behavior": "domain",
+      "format": "mrs",
+      "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/gfw.mrs",
+      "recommendedTarget": "默认代理",
+      "noResolve": false
+    },
+    {
+      "name": "metacube_geosite_github",
+      "label": "Github",
+      "category": "dev",
+      "behavior": "domain",
+      "format": "mrs",
+      "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/github.mrs",
+      "recommendedTarget": "默认代理",
+      "noResolve": false
+    },
+    {
+      "name": "metacube_geosite_gitlab",
+      "label": "Gitlab",
+      "category": "dev",
+      "behavior": "domain",
+      "format": "mrs",
+      "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/gitlab.mrs",
+      "recommendedTarget": "默认代理",
+      "noResolve": false
+    },
+    {
+      "name": "metacube_geosite_google",
+      "label": "Google",
+      "category": "system",
+      "behavior": "domain",
+      "format": "mrs",
+      "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/google.mrs",
+      "recommendedTarget": "默认代理",
+      "noResolve": false
+    },
+    {
+      "name": "metacube_geoip_google",
+      "label": "Google IP",
+      "category": "system",
+      "behavior": "ipcidr",
+      "format": "mrs",
+      "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/google.mrs",
+      "recommendedTarget": "默认代理",
+      "noResolve": true
+    },
+    {
+      "name": "metacube_geosite_hbo",
+      "label": "Hbo",
+      "category": "media",
+      "behavior": "domain",
+      "format": "mrs",
+      "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/hbo.mrs",
+      "recommendedTarget": "国际媒体",
+      "noResolve": false
+    },
+    {
+      "name": "metacube_geosite_hulu",
+      "label": "Hulu",
+      "category": "media",
+      "behavior": "domain",
+      "format": "mrs",
+      "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/hulu.mrs",
+      "recommendedTarget": "国际媒体",
+      "noResolve": false
+    },
+    {
+      "name": "metacube_geosite_icloud",
+      "label": "Icloud",
+      "category": "system",
+      "behavior": "domain",
+      "format": "mrs",
+      "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/icloud.mrs",
+      "recommendedTarget": "默认代理",
+      "noResolve": false
+    },
+    {
+      "name": "metacube_geosite_instagram",
+      "label": "Instagram",
+      "category": "social",
+      "behavior": "domain",
+      "format": "mrs",
+      "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/instagram.mrs",
+      "recommendedTarget": "默认代理",
+      "noResolve": false
+    },
+    {
+      "name": "metacube_geosite_iqiyi",
+      "label": "Iqiyi",
+      "category": "china",
+      "behavior": "domain",
+      "format": "mrs",
+      "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/iqiyi.mrs",
+      "recommendedTarget": "直连",
+      "noResolve": false
+    },
+    {
+      "name": "metacube_geosite_jd",
+      "label": "Jd",
+      "category": "china",
+      "behavior": "domain",
+      "format": "mrs",
+      "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/jd.mrs",
+      "recommendedTarget": "直连",
+      "noResolve": false
+    },
+    {
+      "name": "metacube_geosite_line",
+      "label": "Line",
+      "category": "social",
+      "behavior": "domain",
+      "format": "mrs",
+      "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/line.mrs",
+      "recommendedTarget": "默认代理",
+      "noResolve": false
+    },
+    {
+      "name": "metacube_geosite_microsoft",
+      "label": "Microsoft",
+      "category": "dev",
+      "behavior": "domain",
+      "format": "mrs",
+      "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/microsoft.mrs",
+      "recommendedTarget": "默认代理",
+      "noResolve": false
+    },
+    {
+      "name": "metacube_geosite_microsoft_cn",
+      "label": "Microsoft CN",
+      "category": "dev",
+      "behavior": "domain",
+      "format": "mrs",
+      "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/microsoft@cn.mrs",
+      "recommendedTarget": "默认代理",
+      "noResolve": false
+    },
+    {
+      "name": "metacube_geosite_netease",
+      "label": "Netease",
+      "category": "game",
+      "behavior": "domain",
+      "format": "mrs",
+      "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/netease.mrs",
+      "recommendedTarget": "游戏平台",
+      "noResolve": false
+    },
+    {
+      "name": "metacube_geosite_netflix",
+      "label": "Netflix",
+      "category": "media",
+      "behavior": "domain",
+      "format": "mrs",
+      "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/netflix.mrs",
+      "recommendedTarget": "国际媒体",
+      "noResolve": false
+    },
+    {
+      "name": "metacube_geoip_netflix",
+      "label": "Netflix IP",
+      "category": "system",
+      "behavior": "ipcidr",
+      "format": "mrs",
+      "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/netflix.mrs",
+      "recommendedTarget": "默认代理",
+      "noResolve": true
+    },
+    {
+      "name": "metacube_geosite_nintendo",
+      "label": "Nintendo",
+      "category": "game",
+      "behavior": "domain",
+      "format": "mrs",
+      "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/nintendo.mrs",
+      "recommendedTarget": "游戏平台",
+      "noResolve": false
+    },
+    {
+      "name": "metacube_geosite_onedrive",
+      "label": "Onedrive",
+      "category": "system",
+      "behavior": "domain",
+      "format": "mrs",
+      "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/onedrive.mrs",
+      "recommendedTarget": "默认代理",
+      "noResolve": false
+    },
+    {
+      "name": "metacube_geosite_openai",
+      "label": "Openai",
+      "category": "ai",
+      "behavior": "domain",
+      "format": "mrs",
+      "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/openai.mrs",
+      "recommendedTarget": "AI",
+      "noResolve": false
+    },
+    {
+      "name": "metacube_geosite_paypal",
+      "label": "Paypal",
+      "category": "payment",
+      "behavior": "domain",
+      "format": "mrs",
+      "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/paypal.mrs",
+      "recommendedTarget": "默认代理",
+      "noResolve": false
+    },
+    {
+      "name": "metacube_geosite_pixiv",
+      "label": "Pixiv",
+      "category": "system",
+      "behavior": "domain",
+      "format": "mrs",
+      "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/pixiv.mrs",
+      "recommendedTarget": "默认代理",
+      "noResolve": false
+    },
+    {
+      "name": "metacube_geosite_playstation",
+      "label": "Playstation",
+      "category": "game",
+      "behavior": "domain",
+      "format": "mrs",
+      "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/playstation.mrs",
+      "recommendedTarget": "游戏平台",
+      "noResolve": false
+    },
+    {
+      "name": "metacube_geosite_primevideo",
+      "label": "Prime Video",
+      "category": "media",
+      "behavior": "domain",
+      "format": "mrs",
+      "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/primevideo.mrs",
+      "recommendedTarget": "国际媒体",
+      "noResolve": false
+    },
+    {
+      "name": "metacube_geosite_private",
+      "label": "Private",
+      "category": "system",
+      "behavior": "domain",
+      "format": "mrs",
+      "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/private.mrs",
+      "recommendedTarget": "默认代理",
+      "noResolve": false
+    },
+    {
+      "name": "metacube_geoip_private",
+      "label": "Private IP",
+      "category": "basic",
+      "behavior": "ipcidr",
+      "format": "mrs",
+      "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/private.mrs",
+      "recommendedTarget": "直连",
+      "noResolve": true
+    },
+    {
+      "name": "metacube_geosite_proxy",
+      "label": "Proxy",
+      "category": "system",
+      "behavior": "domain",
+      "format": "mrs",
+      "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/proxy.mrs",
+      "recommendedTarget": "默认代理",
+      "noResolve": false
+    },
+    {
+      "name": "metacube_geosite_spotify",
+      "label": "Spotify",
+      "category": "media",
+      "behavior": "domain",
+      "format": "mrs",
+      "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/spotify.mrs",
+      "recommendedTarget": "国际媒体",
+      "noResolve": false
+    },
+    {
+      "name": "metacube_geosite_steam",
+      "label": "Steam",
+      "category": "game",
+      "behavior": "domain",
+      "format": "mrs",
+      "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/steam.mrs",
+      "recommendedTarget": "游戏平台",
+      "noResolve": false
+    },
+    {
+      "name": "metacube_geosite_steam_cn",
+      "label": "Steam CN",
+      "category": "game",
+      "behavior": "domain",
+      "format": "mrs",
+      "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/steam@cn.mrs",
+      "recommendedTarget": "游戏平台",
+      "noResolve": false
+    },
+    {
+      "name": "metacube_geosite_taobao",
+      "label": "Taobao",
+      "category": "china",
+      "behavior": "domain",
+      "format": "mrs",
+      "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/taobao.mrs",
+      "recommendedTarget": "直连",
+      "noResolve": false
+    },
+    {
+      "name": "metacube_geosite_telegram",
+      "label": "Telegram",
+      "category": "social",
+      "behavior": "domain",
+      "format": "mrs",
+      "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/telegram.mrs",
+      "recommendedTarget": "默认代理",
+      "noResolve": false
+    },
+    {
+      "name": "metacube_geoip_telegram",
+      "label": "Telegram IP",
+      "category": "system",
+      "behavior": "ipcidr",
+      "format": "mrs",
+      "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/telegram.mrs",
+      "recommendedTarget": "默认代理",
+      "noResolve": true
+    },
+    {
+      "name": "metacube_geosite_tiktok",
+      "label": "Tiktok",
+      "category": "media",
+      "behavior": "domain",
+      "format": "mrs",
+      "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/tiktok.mrs",
+      "recommendedTarget": "国际媒体",
+      "noResolve": false
+    },
+    {
+      "name": "metacube_geosite_tracker",
+      "label": "Tracker",
+      "category": "privacy",
+      "behavior": "domain",
+      "format": "mrs",
+      "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/tracker.mrs",
+      "recommendedTarget": "直连",
+      "noResolve": false
+    },
+    {
+      "name": "metacube_geosite_twitch",
+      "label": "Twitch",
+      "category": "media",
+      "behavior": "domain",
+      "format": "mrs",
+      "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/twitch.mrs",
+      "recommendedTarget": "国际媒体",
+      "noResolve": false
+    },
+    {
+      "name": "metacube_geosite_twitter",
+      "label": "Twitter",
+      "category": "social",
+      "behavior": "domain",
+      "format": "mrs",
+      "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/twitter.mrs",
+      "recommendedTarget": "默认代理",
+      "noResolve": false
+    },
+    {
+      "name": "metacube_geoip_twitter",
+      "label": "Twitter IP",
+      "category": "system",
+      "behavior": "ipcidr",
+      "format": "mrs",
+      "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/twitter.mrs",
+      "recommendedTarget": "默认代理",
+      "noResolve": true
+    },
+    {
+      "name": "metacube_geosite_ubisoft",
+      "label": "Ubisoft",
+      "category": "game",
+      "behavior": "domain",
+      "format": "mrs",
+      "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/ubisoft.mrs",
+      "recommendedTarget": "游戏平台",
+      "noResolve": false
+    },
+    {
+      "name": "metacube_geosite_weibo",
+      "label": "Weibo",
+      "category": "china",
+      "behavior": "domain",
+      "format": "mrs",
+      "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/weibo.mrs",
+      "recommendedTarget": "直连",
+      "noResolve": false
+    },
+    {
+      "name": "metacube_geosite_whatsapp",
+      "label": "Whatsapp",
+      "category": "social",
+      "behavior": "domain",
+      "format": "mrs",
+      "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/whatsapp.mrs",
+      "recommendedTarget": "默认代理",
+      "noResolve": false
+    },
+    {
+      "name": "metacube_geosite_xbox",
+      "label": "Xbox",
+      "category": "game",
+      "behavior": "domain",
+      "format": "mrs",
+      "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/xbox.mrs",
+      "recommendedTarget": "游戏平台",
+      "noResolve": false
+    },
+    {
+      "name": "metacube_geosite_xiaohongshu",
+      "label": "Xiaohongshu",
+      "category": "china",
+      "behavior": "domain",
+      "format": "mrs",
+      "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/xiaohongshu.mrs",
+      "recommendedTarget": "直连",
+      "noResolve": false
+    },
+    {
+      "name": "metacube_geosite_youku",
+      "label": "Youku",
+      "category": "china",
+      "behavior": "domain",
+      "format": "mrs",
+      "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/youku.mrs",
+      "recommendedTarget": "直连",
+      "noResolve": false
+    },
+    {
+      "name": "metacube_geosite_youtube",
+      "label": "Youtube",
+      "category": "media",
+      "behavior": "domain",
+      "format": "mrs",
+      "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/youtube.mrs",
+      "recommendedTarget": "国际媒体",
+      "noResolve": false
+    },
+    {
+      "name": "metacube_geosite_zhihu",
+      "label": "Zhihu",
+      "category": "china",
+      "behavior": "domain",
+      "format": "mrs",
+      "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/zhihu.mrs",
+      "recommendedTarget": "直连",
+      "noResolve": false
+    }
+  ]
+}

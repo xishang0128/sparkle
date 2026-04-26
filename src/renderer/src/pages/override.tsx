@@ -20,6 +20,7 @@ import { FaPlus } from 'react-icons/fa6'
 import { HiOutlineDocumentText } from 'react-icons/hi'
 import { RiArchiveLine } from 'react-icons/ri'
 import { useCardDndSensors } from '@renderer/hooks/use-card-dnd-sensors'
+import SplitOverrideWizardModal from '@renderer/components/override/split-override-wizard-modal'
 
 const emptyItems: OverrideItem[] = []
 
@@ -39,6 +40,7 @@ const Override: React.FC = () => {
   const [fileOver, setFileOver] = useState(false)
   const [url, setUrl] = useState('')
   const [showEditModal, setShowEditModal] = useState(false)
+  const [showSplitWizard, setShowSplitWizard] = useState(false)
   const [editingItem, setEditingItem] = useState<OverrideItem | null>(null)
   const sensors = useCardDndSensors()
   const isProcessingDrop = useRef(false)
@@ -229,6 +231,8 @@ const Override: React.FC = () => {
                     file: '# https://mihomo.party/docs/guide/override/yaml',
                     ext: 'yaml'
                   })
+                } else if (key === 'split-wizard') {
+                  setShowSplitWizard(true)
                 } else if (key === 'new-js') {
                   await addOverrideItem({
                     name: '新建 JS',
@@ -252,6 +256,7 @@ const Override: React.FC = () => {
             >
               <DropdownItem key="open">打开本地覆写</DropdownItem>
               <DropdownItem key="import">导入远程覆写</DropdownItem>
+              <DropdownItem key="split-wizard">创建分流覆写</DropdownItem>
               <DropdownItem key="new-yaml">新建 YAML</DropdownItem>
               <DropdownItem key="new-js">新建 JavaScript</DropdownItem>
             </DropdownMenu>
@@ -293,6 +298,12 @@ const Override: React.FC = () => {
             setShowEditModal(false)
             setEditingItem(null)
           }}
+        />
+      )}
+      {showSplitWizard && (
+        <SplitOverrideWizardModal
+          addOverrideItem={addOverrideItem}
+          onClose={() => setShowSplitWizard(false)}
         />
       )}
     </BasePage>

@@ -21,6 +21,44 @@
 - [x] 强大的覆写功能，任意修订配置文件
 - [x] 深度集成 Sub-Store，轻松管理订阅
 
+## 本 fork 与官方 Sparkle 的区别
+
+本仓库基于官方 [xishang0128/sparkle](https://github.com/xishang0128/sparkle) fork，当前主要面向“机场订阅 + 可视化分流覆写”的小白用户场景做增强。
+
+### 分流覆写向导
+
+- 新增“分流覆写”可视化创建/编辑入口，不需要手写 YAML。
+- 采用分步向导：基础信息、节点组、策略组、应用分流、YAML 预览。
+- 支持自定义节点组，例如香港、日本、台湾、新加坡、美国等，用户可按节点名称关键词自行分组。
+- 支持自定义策略组，例如默认代理、国际媒体、AI、游戏平台等，并可选择允许使用哪些节点组。
+- 支持应用分流规则拖动排序，生成的 `rules` 顺序与 UI 顺序一致。
+- 支持后续从覆写卡片直接“可视化编辑”，保存后同步更新覆写 YAML 和可视化元数据。
+
+### 规则库增强
+
+- 内置常用推荐规则集，覆盖基础规则、国际媒体、社交通讯、AI、开发服务、游戏平台、国内服务、支付购物、系统服务、广告/隐私等分类。
+- 保留 TikTok、Netflix、Disney+、YouTube、Google、Telegram、OpenAI/ChatGPT、Claude、Gemini、Steam、Epic、Bilibili、抖音、小红书等常见服务。
+- 支持从 MetaCubeX `meta-rules-dat` 在线同步 GeoSite/GeoIP `.mrs` 规则库，避免规则集只停留在固定内置列表。
+- 在线规则库索引由 GitHub Actions 自动生成并更新，不依赖客户端直接请求 GitHub API，避免普通用户遇到 API rate limit。
+- 在线规则会识别域名规则和 IP 规则；IP 规则会自动生成 `no-resolve`。
+- 网络同步失败时不影响内置推荐规则使用。
+
+### 覆写与启动兼容性
+
+- 覆写配置保存时保留 `visualType`、`visualConfig` 等可视化编辑元数据。
+- 修复重复默认代理组、覆写目标不存在等容易导致 Mihomo 配置检查失败的问题。
+- 优化 Windows 下 core hook 文件被占用时的启动处理，降低 `EPERM: operation not permitted, unlink` 导致的启动失败概率。
+- 优化内核启动等待逻辑，避免部分环境下 API 已可用但 `post-up` 等待超时。
+
+### 规则索引自动更新
+
+本 fork 通过 `.github/workflows/update-rules-index.yml` 定时同步 MetaCubeX 规则目录：
+
+1. GitHub Actions checkout `MetaCubeX/meta-rules-dat` 的 `meta` 分支。
+2. `scripts/generate-rules-index.mjs` 扫描 `geo/geosite/*.mrs` 和 `geo/geoip/*.mrs`。
+3. 自动生成 `public/rules-index.json` 并提交回仓库。
+4. 客户端“同步在线库”只读取这个静态 JSON，避免直接调用 GitHub API。
+
 ## 开发
 
 本项目为自用，绝大部分 pr 可能都不会合并，你可以自行 fork 修改。

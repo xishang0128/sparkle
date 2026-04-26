@@ -1,0 +1,32 @@
+name: Update rules index
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '23 */12 * * *'
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Sparkle fork
+        uses: actions/checkout@v4
+
+      - name: Checkout MetaCubeX rules
+        uses: actions/checkout@v4
+        with:
+          repository: MetaCubeX/meta-rules-dat
+          ref: meta
+          path: .cache/meta-rules-dat
+
+      - name: Generate rules index
+        run: node scripts/generate-rules-index.mjs --source .cache/meta-rules-dat --out public/rules-index.json
+
+      - name: Commit updated index
+        uses: stefanzweifel/git-auto-commit-action@v6
+        with:
+          commit_message: 'chore: update MetaCubeX rules index'
+          file_pattern: public/rules-index.json

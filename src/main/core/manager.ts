@@ -394,8 +394,30 @@ export async function startCore(detached = false): Promise<Promise<void>[]> {
     if (!hookWaiter) return waitForCoreReadyByLog()
 
     return new Promise((resolve, reject) => {
+      let controllerReady = false
+
       child.stdout?.on('data', (data) => {
-        handleCoreOutput(data.toString(), reject).catch(reject)
+        const str = data.toString()
+        handleCoreOutput(str, reject).catch(reject)
+
+        if (!controllerReady && isControllerReadyLog(str)) {
+          controllerReady = true
+        }
+
+        if (controllerReady && !initialized) {
+          providerTracker.track(str)
+
+          if (providerTracker.isReady(str)) {
+            waitForMihomoReady()
+              .then(async () => {
+                if (initialized) return
+                initialized = true
+                await startMihomoApiStreams()
+                resolve([completeCoreInitialization(logLevel)])
+              })
+              .catch(reject)
+          }
+        }
       })
 
       hookWaiter.promise

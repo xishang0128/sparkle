@@ -167,6 +167,33 @@ interface OverrideItem {
   name: string
   updated: number
   global?: boolean
+  visualType?: 'split'
+  visualConfig?: {
+    nodeGroups: Array<{
+      id: string
+      name: string
+      type: 'select' | 'url-test' | 'fallback' | 'load-balance'
+      filter: string
+      interval: number
+    }>
+    policyGroups: Array<{
+      id: string
+      name: string
+      nodeGroupIds: string[]
+    }>
+    appRules: Array<{
+      id: string
+      type: 'preset' | 'rule-set' | 'domain-suffix' | 'domain-keyword' | 'ip-cidr' | 'process-name'
+      provider?: string
+      behavior?: 'domain' | 'ipcidr' | 'classical'
+      format?: 'mrs' | 'yaml' | 'text'
+      url?: string
+      name: string
+      values?: string
+      target: string
+      enabled: boolean
+    }>
+  }
   url?: string
   file?: string
   fingerprint?: string

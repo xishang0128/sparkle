@@ -13,6 +13,7 @@ import dayjs from 'dayjs'
 import React, { Key, useEffect, useMemo, useState } from 'react'
 import EditFileModal from './edit-file-modal'
 import EditInfoModal from './edit-info-modal'
+import SplitOverrideWizardModal from './split-override-wizard-modal'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import ExecLogModal from './exec-log-modal'
@@ -42,6 +43,7 @@ const OverrideItem: React.FC<Props> = (props) => {
   const [updating, setUpdating] = useState(false)
   const [openInfoEditor, setOpenInfoEditor] = useState(false)
   const [openFileEditor, setOpenFileEditor] = useState(false)
+  const [openSplitEditor, setOpenSplitEditor] = useState(false)
   const [openLog, setOpenLog] = useState(false)
   const {
     attributes,
@@ -57,11 +59,14 @@ const OverrideItem: React.FC<Props> = (props) => {
   const [disableOpen, setDisableOpen] = useState(false)
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [showQrCode, setShowQrCode] = useState(false)
+  const isSplitOverride =
+    info.visualType === 'split' ||
+    (info.type === 'local' && info.ext === 'yaml' && info.name.includes('分流覆写'))
   const menuItems: MenuItem[] = useMemo(() => {
     const list = [
       {
         key: 'edit-info',
-        label: '编辑信息',
+        label: isSplitOverride ? '可视化编辑' : '编辑信息',
         showDivider: false,
         color: 'default',
         className: ''
@@ -116,11 +121,15 @@ const OverrideItem: React.FC<Props> = (props) => {
       list[deleteIndex - 1].showDivider = true
     }
     return list
-  }, [info])
+  }, [info, isSplitOverride])
   const onMenuAction = (key: Key): void => {
     switch (key) {
       case 'edit-info': {
-        setOpenInfoEditor(true)
+        if (isSplitOverride) {
+          setOpenSplitEditor(true)
+        } else {
+          setOpenInfoEditor(true)
+        }
         break
       }
       case 'edit-file': {
@@ -184,6 +193,13 @@ const OverrideItem: React.FC<Props> = (props) => {
           updateOverrideItem={updateOverrideItem}
         />
       )}
+      {openSplitEditor && (
+        <SplitOverrideWizardModal
+          item={info}
+          addOverrideItem={addOverrideItem}
+          onClose={() => setOpenSplitEditor(false)}
+        />
+      )}
       {showQrCode && info.url && (
         <QRCodeModal title={info.name} url={info.url} onClose={() => setShowQrCode(false)} />
       )}
@@ -206,7 +222,11 @@ const OverrideItem: React.FC<Props> = (props) => {
         isPressable
         onPress={() => {
           if (disableOpen) return
-          setOpenFileEditor(true)
+          if (isSplitOverride) {
+            setOpenSplitEditor(true)
+          } else {
+            setOpenFileEditor(true)
+          }
         }}
       >
         <div {...attributes} {...listeners} className="h-full w-full">
@@ -278,6 +298,11 @@ const OverrideItem: React.FC<Props> = (props) => {
                 <Chip size="sm" variant="bordered">
                   {info.ext === 'yaml' ? 'YAML' : 'JavaScript'}
                 </Chip>
+                {isSplitOverride && (
+                  <Chip size="sm" variant="flat" color="primary" className="ml-2">
+                    可视化
+                  </Chip>
+                )}
               </div>
               {info.type === 'remote' && (
                 <div className={`mt-2 flex justify-end`}>
