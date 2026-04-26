@@ -74,7 +74,8 @@ const Sysproxy: React.FC = () => {
     bypass: sysProxy.bypass ?? defaultBypass,
     mode: sysProxy.mode ?? 'manual',
     pacScript: sysProxy.pacScript ?? defaultPacScript,
-    settingMode: sysProxy.settingMode ?? 'exec'
+    settingMode: sysProxy.settingMode ?? 'exec',
+    guard: sysProxy.guard ?? false
   })
   useEffect(() => {
     originSetValues((prev) => ({
@@ -179,7 +180,12 @@ const Sysproxy: React.FC = () => {
             color="primary"
             selectedKey={values.settingMode}
             onSelectionChange={(key) => {
-              setValues({ ...values, settingMode: key as 'exec' | 'service' })
+              const settingMode = key as 'exec' | 'service'
+              setValues({
+                ...values,
+                settingMode,
+                guard: settingMode === 'service' ? values.guard : false
+              })
             }}
           >
             <Tab key="exec" title="执行命令" />
@@ -211,6 +217,28 @@ const Sysproxy: React.FC = () => {
               isDisabled={!values.settingMode || values.settingMode !== 'service'}
               onValueChange={(v) => {
                 patchAppConfig({ onlyActiveDevice: v })
+              }}
+            />
+          </SettingItem>
+        )}
+        {values.settingMode === 'service' && (
+          <SettingItem
+            compatKey="legacy"
+            title="系统代理守护"
+            actions={
+              <Tooltip content={<div>检测到系统代理被修改后自动恢复，仅服务模式下生效</div>}>
+                <Button isIconOnly size="sm" variant="light">
+                  <IoIosHelpCircle className="text-lg" />
+                </Button>
+              </Tooltip>
+            }
+            divider
+          >
+            <Switch
+              size="sm"
+              isSelected={values.guard}
+              onValueChange={(v) => {
+                setValues({ ...values, guard: v })
               }}
             />
           </SettingItem>

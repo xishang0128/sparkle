@@ -316,6 +316,25 @@ export interface ServiceCoreEvent {
   error?: string
 }
 
+export type ServiceSysproxyEventType =
+  | 'guard_started'
+  | 'guard_stopped'
+  | 'guard_changed'
+  | 'guard_restored'
+  | 'guard_restore_failed'
+  | 'guard_check_failed'
+  | 'guard_watch_failed'
+
+export interface ServiceSysproxyEvent {
+  seq?: number
+  type: ServiceSysproxyEventType
+  time: string
+  guard: boolean
+  mode?: string
+  message?: string
+  error?: string
+}
+
 export const createServiceWebSocket = (pathWithQuery: string): WebSocket => {
   return new WebSocket(`ws+unix:${serviceIpcPath()}:${pathWithQuery}`, {
     headers: getServiceAuthHeaders('GET', pathWithQuery)
@@ -326,15 +345,25 @@ export const createCoreEventsWebSocket = (): WebSocket => {
   return createServiceWebSocket('/core/events')
 }
 
+export const createSysproxyEventsWebSocket = (): WebSocket => {
+  return createServiceWebSocket('/sysproxy/events')
+}
+
 type ServiceCoreEventHandler = (event: ServiceCoreEvent) => void | Promise<void>
 type ServiceCoreEventStreamState = 'connected' | 'disconnected'
 type ServiceCoreEventStreamHandler = (state: ServiceCoreEventStreamState) => void | Promise<void>
+type ServiceSysproxyEventHandler = (event: ServiceSysproxyEvent) => void | Promise<void>
 
 let serviceCoreEventsWs: WebSocket | null = null
 let serviceCoreEventsManualClose = false
 let serviceCoreEventsReconnectTimer: NodeJS.Timeout | null = null
 const serviceCoreEventHandlers = new Set<ServiceCoreEventHandler>()
 const serviceCoreEventStreamHandlers = new Set<ServiceCoreEventStreamHandler>()
+
+let serviceSysproxyEventsWs: WebSocket | null = null
+let serviceSysproxyEventsManualClose = true
+let serviceSysproxyEventsReconnectTimer: NodeJS.Timeout | null = null
+const serviceSysproxyEventHandlers = new Set<ServiceSysproxyEventHandler>()
 
 export function subscribeServiceCoreEvents(handler: ServiceCoreEventHandler): () => void {
   serviceCoreEventHandlers.add(handler)
@@ -349,6 +378,13 @@ export function subscribeServiceCoreEventStream(
   serviceCoreEventStreamHandlers.add(handler)
   return () => {
     serviceCoreEventStreamHandlers.delete(handler)
+  }
+}
+
+export function subscribeServiceSysproxyEvents(handler: ServiceSysproxyEventHandler): () => void {
+  serviceSysproxyEventHandlers.add(handler)
+  return () => {
+    serviceSysproxyEventHandlers.delete(handler)
   }
 }
 
@@ -418,6 +454,64 @@ export function stopServiceCoreEventStream(): void {
   }
 }
 
+export async function startServiceSysproxyEventStream(): Promise<void> {
+  serviceSysproxyEventsManualClose = false
+  if (
+    serviceSysproxyEventsWs &&
+    (serviceSysproxyEventsWs.readyState === WebSocket.OPEN ||
+      serviceSysproxyEventsWs.readyState === WebSocket.CONNECTING)
+  ) {
+    return
+  }
+
+  if (serviceSysproxyEventsReconnectTimer) {
+    clearTimeout(serviceSysproxyEventsReconnectTimer)
+    serviceSysproxyEventsReconnectTimer = null
+  }
+
+  let ws: WebSocket
+  try {
+    ws = createSysproxyEventsWebSocket()
+  } catch (error) {
+    await appendAppLog(`[Service]: create sysproxy events ws failed, ${error}\n`)
+    scheduleServiceSysproxyEventReconnect()
+    return
+  }
+
+  serviceSysproxyEventsWs = ws
+  ws.on('message', (data) => {
+    dispatchServiceSysproxyEvent(data).catch((error) => {
+      appendAppLog(`[Service]: handle sysproxy event failed, ${error}\n`).catch(() => {})
+    })
+  })
+  ws.on('close', () => {
+    if (serviceSysproxyEventsWs === ws) {
+      serviceSysproxyEventsWs = null
+    }
+    if (!serviceSysproxyEventsManualClose) {
+      scheduleServiceSysproxyEventReconnect()
+    }
+  })
+  ws.on('error', (error) => {
+    appendAppLog(`[Service]: sysproxy events ws error, ${error}\n`).catch(() => {})
+  })
+
+  await waitForServiceSysproxyEventsSocket(ws)
+}
+
+export function stopServiceSysproxyEventStream(): void {
+  serviceSysproxyEventsManualClose = true
+  if (serviceSysproxyEventsReconnectTimer) {
+    clearTimeout(serviceSysproxyEventsReconnectTimer)
+    serviceSysproxyEventsReconnectTimer = null
+  }
+  if (serviceSysproxyEventsWs) {
+    serviceSysproxyEventsWs.removeAllListeners()
+    serviceSysproxyEventsWs.close()
+    serviceSysproxyEventsWs = null
+  }
+}
+
 function scheduleServiceCoreEventReconnect(): void {
   if (serviceCoreEventsManualClose || serviceCoreEventsReconnectTimer) return
   serviceCoreEventsReconnectTimer = setTimeout(() => {
@@ -428,7 +522,34 @@ function scheduleServiceCoreEventReconnect(): void {
   }, 1000)
 }
 
+function scheduleServiceSysproxyEventReconnect(): void {
+  if (serviceSysproxyEventsManualClose || serviceSysproxyEventsReconnectTimer) return
+  serviceSysproxyEventsReconnectTimer = setTimeout(() => {
+    serviceSysproxyEventsReconnectTimer = null
+    startServiceSysproxyEventStream().catch((error) => {
+      appendAppLog(`[Service]: reconnect sysproxy events ws failed, ${error}\n`).catch(() => {})
+    })
+  }, 1000)
+}
+
 async function waitForServiceCoreEventsSocket(ws: WebSocket): Promise<void> {
+  await new Promise<void>((resolve) => {
+    let settled = false
+    const complete = (): void => {
+      if (settled) return
+      settled = true
+      clearTimeout(timer)
+      ws.off('open', complete)
+      ws.off('error', complete)
+      resolve()
+    }
+    const timer = setTimeout(complete, 1500)
+    ws.once('open', complete)
+    ws.once('error', complete)
+  })
+}
+
+async function waitForServiceSysproxyEventsSocket(ws: WebSocket): Promise<void> {
   await new Promise<void>((resolve) => {
     let settled = false
     const complete = (): void => {
@@ -451,6 +572,16 @@ async function dispatchServiceCoreEvent(data: WebSocket.RawData): Promise<void> 
   for (const handler of serviceCoreEventHandlers) {
     await Promise.resolve(handler(event)).catch((error) => {
       appendAppLog(`[Service]: core event handler failed, ${error}\n`).catch(() => {})
+    })
+  }
+}
+
+async function dispatchServiceSysproxyEvent(data: WebSocket.RawData): Promise<void> {
+  const raw = Buffer.isBuffer(data) ? data.toString('utf8') : data.toString()
+  const event = JSON.parse(raw) as ServiceSysproxyEvent
+  for (const handler of serviceSysproxyEventHandlers) {
+    await Promise.resolve(handler(event)).catch((error) => {
+      appendAppLog(`[Service]: sysproxy event handler failed, ${error}\n`).catch(() => {})
     })
   }
 }
@@ -510,14 +641,16 @@ export const setPac = async (
   url: string,
   device?: string,
   onlyActiveDevice?: boolean,
-  useRegistry?: boolean
+  useRegistry?: boolean,
+  guard?: boolean
 ): Promise<void> => {
   const instance = getServiceAxios()
   return await instance.post('/sysproxy/pac', {
     url,
     device,
     only_active_device: onlyActiveDevice,
-    use_registry: useRegistry
+    use_registry: useRegistry,
+    guard
   })
 }
 
@@ -526,7 +659,8 @@ export const setProxy = async (
   bypass?: string,
   device?: string,
   onlyActiveDevice?: boolean,
-  useRegistry?: boolean
+  useRegistry?: boolean,
+  guard?: boolean
 ): Promise<void> => {
   const instance = getServiceAxios()
   return await instance.post('/sysproxy/proxy', {
@@ -534,7 +668,8 @@ export const setProxy = async (
     bypass,
     device,
     only_active_device: onlyActiveDevice,
-    use_registry: useRegistry
+    use_registry: useRegistry,
+    guard
   })
 }
 

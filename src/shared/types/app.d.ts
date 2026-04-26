@@ -10,6 +10,7 @@ interface ISysProxyConfig {
   bypass?: string[]
   pacScript?: string
   settingMode?: 'exec' | 'service'
+  guard?: boolean
 }
 
 interface IHost {

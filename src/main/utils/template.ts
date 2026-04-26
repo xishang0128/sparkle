@@ -41,7 +41,7 @@ export const defaultConfig: AppConfig = {
     'substore'
   ],
   siderWidth: 250,
-  sysProxy: { enable: false, mode: 'manual' },
+  sysProxy: { enable: false, mode: 'manual', guard: false },
   disableLoopbackDetector: false,
   disableEmbedCA: false,
   disableSystemCA: false,

@@ -3,11 +3,23 @@ import { pacPort, startPacServer, stopPacServer } from '../resolve/server'
 import { promisify } from 'util'
 import { execFile, execFileSync } from 'child_process'
 import { servicePath } from '../utils/dirs'
-import { net } from 'electron'
-import { disableProxy, setPac, setProxy } from '../service/api'
+import { net, Notification } from 'electron'
+import {
+  disableProxy,
+  setPac,
+  setProxy,
+  startServiceSysproxyEventStream,
+  stopServiceSysproxyEventStream,
+  subscribeServiceSysproxyEvents
+} from '../service/api'
+import type { ServiceSysproxyEvent } from '../service/api'
+import { appendAppLog } from '../utils/log'
 
 let defaultBypass: string[]
 let triggerSysProxyTimer: NodeJS.Timeout | null = null
+let sysproxyGuardEventsStartedAt = 0
+let lastSysproxyGuardNotificationKey = ''
+let unsubscribeSysproxyGuardEvents: (() => void) | null = null
 
 function registryArgs(useRegistry: boolean): string[] {
   return process.platform === 'win32' && useRegistry ? ['--use-registry'] : []
@@ -82,6 +94,7 @@ async function setSysProxy(onlyActiveDevice: boolean, useRegistry = false): Prom
   await startPacServer()
   const { sysProxy } = await getAppConfig()
   const { mode, host, bypass = defaultBypass, settingMode = 'exec' } = sysProxy
+  const guard = settingMode === 'service' && !!sysProxy.guard
   const { 'mixed-port': port = 7890 } = await getControledMihomoConfig()
   const execFilePromise = promisify(execFile)
 
@@ -93,12 +106,15 @@ async function setSysProxy(onlyActiveDevice: boolean, useRegistry = false): Prom
             `http://${host || '127.0.0.1'}:${pacPort}/pac`,
             '',
             onlyActiveDevice,
-            useRegistry
+            useRegistry,
+            guard
           )
+          updateSysproxyGuardEventStream(guard)
         } catch {
           throw new Error('服务可能未安装')
         }
       } else {
+        updateSysproxyGuardEventStream(false)
         await execFilePromise(servicePath(), [
           'pac',
           '--url',
@@ -118,12 +134,15 @@ async function setSysProxy(onlyActiveDevice: boolean, useRegistry = false): Prom
               bypass.join(','),
               '',
               onlyActiveDevice,
-              useRegistry
+              useRegistry,
+              guard
             )
+            updateSysproxyGuardEventStream(guard)
           } catch {
             throw new Error('服务可能未安装')
           }
         } else {
+          updateSysproxyGuardEventStream(false)
           await execFilePromise(servicePath(), [
             'proxy',
             '--server',
@@ -133,6 +152,8 @@ async function setSysProxy(onlyActiveDevice: boolean, useRegistry = false): Prom
             ...registryArgs(useRegistry)
           ])
         }
+      } else {
+        updateSysproxyGuardEventStream(false)
       }
       break
     }
@@ -141,6 +162,7 @@ async function setSysProxy(onlyActiveDevice: boolean, useRegistry = false): Prom
 
 async function disableSysProxy(onlyActiveDevice: boolean, useRegistry = false): Promise<void> {
   await stopPacServer()
+  updateSysproxyGuardEventStream(false)
   const { sysProxy } = await getAppConfig()
   const { settingMode = 'exec' } = sysProxy
   const execFilePromise = promisify(execFile)
@@ -154,6 +176,51 @@ async function disableSysProxy(onlyActiveDevice: boolean, useRegistry = false): 
   } else {
     await execFilePromise(servicePath(), ['disable', ...registryArgs(useRegistry)])
   }
+}
+
+function updateSysproxyGuardEventStream(enabled: boolean): void {
+  if (enabled) {
+    sysproxyGuardEventsStartedAt = Date.now()
+    if (!unsubscribeSysproxyGuardEvents) {
+      unsubscribeSysproxyGuardEvents = subscribeServiceSysproxyEvents(handleSysproxyGuardEvent)
+    }
+    startServiceSysproxyEventStream().catch((error) => {
+      appendAppLog(`[Service]: start sysproxy event stream failed, ${error}\n`).catch(() => {})
+    })
+  } else {
+    if (unsubscribeSysproxyGuardEvents) {
+      unsubscribeSysproxyGuardEvents()
+      unsubscribeSysproxyGuardEvents = null
+    }
+    stopServiceSysproxyEventStream()
+    lastSysproxyGuardNotificationKey = ''
+  }
+}
+
+async function handleSysproxyGuardEvent(event: ServiceSysproxyEvent): Promise<void> {
+  if (!shouldNotifySysproxyGuardEvent(event)) return
+
+  if (event.type === 'guard_restored') {
+    new Notification({ title: '系统代理已恢复' }).show()
+    return
+  }
+
+  new Notification({
+    title: '系统代理恢复失败',
+    body: event.error || event.message
+  }).show()
+}
+
+function shouldNotifySysproxyGuardEvent(event: ServiceSysproxyEvent): boolean {
+  if (event.type !== 'guard_restored' && event.type !== 'guard_restore_failed') return false
+
+  const eventTime = Date.parse(event.time)
+  if (Number.isFinite(eventTime) && eventTime < sysproxyGuardEventsStartedAt) return false
+
+  const key = `${event.type}:${event.seq ?? ''}:${event.time}`
+  if (key === lastSysproxyGuardNotificationKey) return false
+  lastSysproxyGuardNotificationKey = key
+  return true
 }
 
 export function disableSysProxySync(useRegistry = false): void {
