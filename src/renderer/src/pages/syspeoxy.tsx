@@ -75,7 +75,8 @@ const Sysproxy: React.FC = () => {
     mode: sysProxy.mode ?? 'manual',
     pacScript: sysProxy.pacScript ?? defaultPacScript,
     settingMode: sysProxy.settingMode ?? 'exec',
-    guard: sysProxy.guard ?? false
+    guard: sysProxy.guard ?? false,
+    guardNotify: sysProxy.guardNotify ?? false
   })
   useEffect(() => {
     originSetValues((prev) => ({
@@ -184,7 +185,8 @@ const Sysproxy: React.FC = () => {
               setValues({
                 ...values,
                 settingMode,
-                guard: settingMode === 'service' ? values.guard : false
+                guard: settingMode === 'service' ? values.guard : false,
+                guardNotify: settingMode === 'service' ? values.guardNotify : false
               })
             }}
           >
@@ -192,7 +194,7 @@ const Sysproxy: React.FC = () => {
             <Tab key="service" title="服务模式" />
           </Tabs>
         </SettingItem>
-        {platform !== 'linux' && (
+        {platform !== 'linux' && values.settingMode === 'service' && (
           <SettingItem
             compatKey="legacy"
             title="仅为活跃接口设置"
@@ -238,7 +240,30 @@ const Sysproxy: React.FC = () => {
               size="sm"
               isSelected={values.guard}
               onValueChange={(v) => {
-                setValues({ ...values, guard: v })
+                setValues({ ...values, guard: v, guardNotify: v ? values.guardNotify : false })
+              }}
+            />
+          </SettingItem>
+        )}
+        {values.settingMode === 'service' && values.guard && (
+          <SettingItem
+            compatKey="legacy"
+            title="守护通知"
+            actions={
+              <Tooltip content={<div>系统代理恢复成功或失败时发送通知</div>}>
+                <Button isIconOnly size="sm" variant="light">
+                  <IoIosHelpCircle className="text-lg" />
+                </Button>
+              </Tooltip>
+            }
+            divider
+          >
+            <Switch
+              size="sm"
+              isSelected={values.guardNotify}
+              isDisabled={!values.guard}
+              onValueChange={(v) => {
+                setValues({ ...values, guardNotify: v })
               }}
             />
           </SettingItem>

@@ -11,6 +11,7 @@ interface ISysProxyConfig {
   pacScript?: string
   settingMode?: 'exec' | 'service'
   guard?: boolean
+  guardNotify?: boolean
 }
 
 interface IHost {
