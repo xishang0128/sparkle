@@ -14,14 +14,12 @@ import {
   manualGrantCorePermition,
   mihomoUpgrade,
   restartCore,
-  stopCore,
   revokeCorePermission,
   findSystemMihomo,
   deleteElevateTask,
   installService,
   uninstallService,
   startService,
-  stopService,
   initService,
   restartService
 } from '@renderer/utils/ipc'
@@ -140,42 +138,6 @@ const Mihomo: React.FC = () => {
     }
   }
 
-  const switchUnavailableServiceModes = async (): Promise<void> => {
-    const sysProxy = appConfig?.sysProxy
-    const useServiceCore = corePermissionMode === 'service'
-    const useServiceSysProxy = sysProxy?.settingMode === 'service'
-    const useServiceDNS = appConfig?.autoSetDNSMode === 'service'
-
-    if (!useServiceCore && !useServiceSysProxy && !useServiceDNS) {
-      return
-    }
-
-    if (useServiceCore) {
-      await stopCore()
-    }
-
-    await patchAppConfig({
-      ...(useServiceCore ? { corePermissionMode: 'elevated' as const } : {}),
-      ...(useServiceSysProxy && sysProxy
-        ? {
-            sysProxy: {
-              ...sysProxy,
-              settingMode: 'exec' as const,
-              guard: false,
-              guardNotify: false
-            }
-          }
-        : {}),
-      ...(useServiceDNS ? { autoSetDNSMode: 'exec' as const } : {})
-    })
-
-    if (useServiceCore) {
-      await restartCore()
-    }
-
-    new Notification('服务不可用，已切换到非服务模式')
-  }
-
   return (
     <BasePage title="内核设置" contentClassName="no-scrollbar">
       {showPermissionModal && (
@@ -221,11 +183,6 @@ const Mihomo: React.FC = () => {
             await restartService()
             new Notification('服务重启成功')
           }}
-          onStop={async () => {
-            await stopService()
-            new Notification('服务停止成功')
-          }}
-          onServiceUnavailable={switchUnavailableServiceModes}
         />
       )}
       <SettingCard>

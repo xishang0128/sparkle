@@ -7,6 +7,10 @@ import { appendAppLog } from '../utils/log'
 
 let serviceAxios: AxiosInstance | null = null
 let keyManager: KeyManager | null = null
+let serviceUnavailableFallbackHandler: ((reason: unknown) => Promise<void>) | null = null
+let serviceUnavailableFallbackTimer: NodeJS.Timeout | null = null
+let serviceUnavailableFallbackPromise: Promise<void> | null = null
+const serviceUnavailableFallbackDelay = 12000
 
 export class ServiceAPIError extends Error {
   status?: number
@@ -147,6 +151,106 @@ function attachServiceAuth(instance: AxiosInstance): void {
   instance.interceptors.request.use((config) => signServiceRequest(instance, config))
 }
 
+export function setServiceUnavailableFallbackHandler(
+  handler: (reason: unknown) => Promise<void>
+): void {
+  serviceUnavailableFallbackHandler = handler
+}
+
+export function isServiceConnectionError(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error)
+  return [
+    'ECONNREFUSED',
+    'ECONNRESET',
+    'ENOENT',
+    'EPIPE',
+    'ETIMEDOUT',
+    'socket hang up',
+    'connect ',
+    'no such file'
+  ].some((fragment) => message.toLowerCase().includes(fragment.toLowerCase()))
+}
+
+function scheduleServiceUnavailableFallback(reason: unknown): void {
+  if (serviceUnavailableFallbackTimer || serviceUnavailableFallbackPromise) return
+
+  serviceUnavailableFallbackTimer = setTimeout(() => {
+    serviceUnavailableFallbackTimer = null
+    serviceUnavailableFallbackPromise = runServiceUnavailableFallback(reason).finally(() => {
+      serviceUnavailableFallbackPromise = null
+    })
+  }, serviceUnavailableFallbackDelay)
+}
+
+async function runServiceUnavailableFallback(reason: unknown): Promise<void> {
+  if (await isServiceReachable()) return
+
+  if (!serviceUnavailableFallbackHandler) {
+    await appendAppLog(`[Service]: service unavailable fallback handler is not registered\n`)
+    return
+  }
+
+  await serviceUnavailableFallbackHandler(reason).catch((error) =>
+    appendAppLog(`[Service]: service unavailable fallback failed, ${error}\n`)
+  )
+}
+
+async function isServiceReachable(): Promise<boolean> {
+  try {
+    await axios.get('/ping', {
+      baseURL: 'http://localhost',
+      socketPath: serviceIpcPath(),
+      timeout: 1000,
+      validateStatus: () => true
+    })
+    return true
+  } catch {
+    return false
+  }
+}
+
+function getResponseErrorMessage(responseData: unknown, fallback: string): string {
+  if (responseData && typeof responseData === 'object') {
+    const data = responseData as Record<string, unknown>
+    return String(data.message || data.error || fallback)
+  }
+
+  return fallback
+}
+
+function createServiceAPIError(error: unknown): unknown {
+  const serviceError = error as {
+    response?: { data?: unknown; status?: number }
+    message?: string
+  }
+
+  if (serviceError.response?.data) {
+    const message = getResponseErrorMessage(
+      serviceError.response.data,
+      serviceError.message || '请求失败'
+    )
+
+    return new ServiceAPIError(message, {
+      status: serviceError.response.status,
+      responseData: serviceError.response.data
+    })
+  }
+
+  if (error instanceof Error) {
+    return new ServiceAPIError(error.message)
+  }
+
+  return error
+}
+
+function handleServiceAxiosError(error: unknown): Promise<never> {
+  if (isServiceConnectionError(error)) {
+    scheduleServiceUnavailableFallback(error)
+  }
+
+  return Promise.reject(createServiceAPIError(error))
+}
+
 export const initServiceAPI = (km: KeyManager): void => {
   keyManager = km
 
@@ -163,22 +267,7 @@ export const initServiceAPI = (km: KeyManager): void => {
 
   serviceAxios.interceptors.response.use(
     (response) => response.data,
-    (error) => {
-      if (error.response?.data) {
-        const message =
-          error.response.data?.message || error.response.data?.error || error.message || '请求失败'
-        return Promise.reject(
-          new ServiceAPIError(String(message), {
-            status: error.response.status,
-            responseData: error.response.data
-          })
-        )
-      }
-      if (error instanceof Error) {
-        return Promise.reject(new ServiceAPIError(error.message))
-      }
-      return Promise.reject(error)
-    }
+    handleServiceAxiosError
   )
 }
 
@@ -196,22 +285,7 @@ export const createSignedServiceAxios = (baseURL = 'http://localhost'): AxiosIns
 
   instance.interceptors.response.use(
     (response) => response.data,
-    (error) => {
-      if (error.response?.data) {
-        const message =
-          error.response.data?.message || error.response.data?.error || error.message || '请求失败'
-        return Promise.reject(
-          new ServiceAPIError(String(message), {
-            status: error.response.status,
-            responseData: error.response.data
-          })
-        )
-      }
-      if (error instanceof Error) {
-        return Promise.reject(new ServiceAPIError(error.message))
-      }
-      return Promise.reject(error)
-    }
+    handleServiceAxiosError
   )
 
   return instance
@@ -408,6 +482,7 @@ export async function startServiceCoreEventStream(): Promise<void> {
     ws = createCoreEventsWebSocket()
   } catch (error) {
     await appendAppLog(`[Service]: create core events ws failed, ${error}\n`)
+    scheduleServiceUnavailableFallback(error)
     scheduleServiceCoreEventReconnect()
     return
   }
@@ -431,11 +506,15 @@ export async function startServiceCoreEventStream(): Promise<void> {
       appendAppLog(`[Service]: handle core event stream state failed, ${error}\n`).catch(() => {})
     })
     if (!serviceCoreEventsManualClose) {
+      scheduleServiceUnavailableFallback(new Error('core events websocket disconnected'))
       scheduleServiceCoreEventReconnect()
     }
   })
   ws.on('error', (error) => {
     appendAppLog(`[Service]: core events ws error, ${error}\n`).catch(() => {})
+    if (!serviceCoreEventsManualClose) {
+      scheduleServiceUnavailableFallback(error)
+    }
   })
 
   await waitForServiceCoreEventsSocket(ws)
@@ -474,6 +553,7 @@ export async function startServiceSysproxyEventStream(): Promise<void> {
     ws = createSysproxyEventsWebSocket()
   } catch (error) {
     await appendAppLog(`[Service]: create sysproxy events ws failed, ${error}\n`)
+    scheduleServiceUnavailableFallback(error)
     scheduleServiceSysproxyEventReconnect()
     return
   }
@@ -489,11 +569,15 @@ export async function startServiceSysproxyEventStream(): Promise<void> {
       serviceSysproxyEventsWs = null
     }
     if (!serviceSysproxyEventsManualClose) {
+      scheduleServiceUnavailableFallback(new Error('sysproxy events websocket disconnected'))
       scheduleServiceSysproxyEventReconnect()
     }
   })
   ws.on('error', (error) => {
     appendAppLog(`[Service]: sysproxy events ws error, ${error}\n`).catch(() => {})
+    if (!serviceSysproxyEventsManualClose) {
+      scheduleServiceUnavailableFallback(error)
+    }
   })
 
   await waitForServiceSysproxyEventsSocket(ws)
