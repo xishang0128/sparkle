@@ -289,7 +289,7 @@ export async function revokeCorePermission(cores?: ('mihomo' | 'mihomo-alpha')[]
 }
 
 export async function serviceStatus(): Promise<
-  'running' | 'stopped' | 'not-installed' | 'unknown'
+  'running' | 'stopped' | 'not-installed' | 'paused' | 'unknown' | 'need-init'
 > {
   return ipcErrorWrapper(await window.electron.ipcRenderer.invoke('serviceStatus'))
 }
