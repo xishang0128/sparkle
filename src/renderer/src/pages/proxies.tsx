@@ -279,8 +279,12 @@ const Proxies: React.FC = () => {
               <div className="flex justify-between h-full">
                 <div className="flex text-ellipsis overflow-hidden whitespace-nowrap h-full">
                   {groups[index].icon ? (
-                    <Avatar className="bg-transparent mr-2 w-8 h-8" size="sm">
+                    <Avatar
+                      className="mr-2 h-8 w-8 shrink-0 bg-transparent overflow-visible! rounded-none!"
+                      size="sm"
+                    >
                       <Avatar.Image
+                        className="object-contain"
                         src={
                           groups[index].icon.startsWith('<svg')
                             ? `data:image/svg+xml;utf8,${groups[index].icon}`
