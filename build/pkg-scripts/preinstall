@@ -3,7 +3,7 @@
 OLD_SYSPROXY="/Library/PrivilegedHelperTools/sparkle.helper"
 SERVICE_NAME="SparkleService"
 SERVICE_STATE_FILE="/tmp/sparkle-service-was-running"
-APP_PATH="$2/Sparkle.app"
+APP_PATH="/Applications/Sparkle.app"
 SERVICE_BIN="$APP_PATH/Contents/Resources/files/sparkle-service"
 
 UNINSTALL=false

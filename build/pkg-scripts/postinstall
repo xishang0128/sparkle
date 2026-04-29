@@ -1,18 +1,16 @@
 #!/bin/sh
 
-APP_PATH="$2/Sparkle.app"
+APP_PATH="/Applications/Sparkle.app"
 
 chown root:admin "$APP_PATH/Contents/Resources/sidecar/mihomo"
 chown root:admin "$APP_PATH/Contents/Resources/sidecar/mihomo-alpha"
 chmod +s "$APP_PATH/Contents/Resources/sidecar/mihomo"
 chmod +s "$APP_PATH/Contents/Resources/sidecar/mihomo-alpha"
 
-/usr/bin/codesign --force --deep --sign - \
-  --preserve-metadata=identifier,entitlements,requirements,flags,runtime \
-  "$APP_PATH"
+/usr/bin/codesign --force --deep --sign - "$APP_PATH"
 
 restore_sparkle_service_if_was_running() {
-  SERVICE_BIN="$1"
+  SERVICE_BIN="$APP_PATH/Contents/Resources/files/sparkle-service"
   SERVICE_STATE_FILE="/tmp/sparkle-service-was-running"
 
   if [ ! -f "$SERVICE_STATE_FILE" ]; then
@@ -25,6 +23,6 @@ restore_sparkle_service_if_was_running() {
   fi
 }
 
-restore_sparkle_service_if_was_running "$APP_PATH/Contents/Resources/files/sparkle-service"
+restore_sparkle_service_if_was_running
 
 exit 0
