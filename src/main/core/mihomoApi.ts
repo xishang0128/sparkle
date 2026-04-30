@@ -247,17 +247,19 @@ export const mihomoRulesDisable = async (rules: Record<string, boolean>): Promis
 export const mihomoUpgrade = async (channel: string): Promise<void> => {
   if (process.platform === 'win32') await patchMihomoConfig({ 'log-level': 'info' })
   const instance = await getAxios()
-  return await instance.post(`/upgrade?channel=${encodeURIComponent(channel)}`)
+  return await instance.post(`/upgrade?channel=${encodeURIComponent(channel)}`, undefined, {
+    timeout: 90000
+  })
 }
 
 export const mihomoUpgradeGeo = async (): Promise<void> => {
   const instance = await getAxios()
-  return await instance.post('/upgrade/geo')
+  return await instance.post('/upgrade/geo', undefined, { timeout: 90000 })
 }
 
 export const mihomoUpgradeUI = async (): Promise<void> => {
   const instance = await getAxios()
-  return await instance.post('/upgrade/ui')
+  return await instance.post('/upgrade/ui', undefined, { timeout: 90000 })
 }
 
 export const startMihomoTraffic = async (): Promise<void> => {
