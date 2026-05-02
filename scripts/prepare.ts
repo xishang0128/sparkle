@@ -300,7 +300,7 @@ const resolveSparkleService = () => {
 
   return resolveResource({
     file: `sparkle-service${ext}`,
-    downloadURL: `https://github.com/xishang0128/sparkle-service/releases/download/pre-release/${base}${ext}`,
+    downloadURL: `https://github.com/UruhaLushia/sparkle-service/releases/download/pre-release/${base}${ext}`,
     needExecutable: true
   })
 }
