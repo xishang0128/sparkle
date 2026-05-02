@@ -1,7 +1,7 @@
-import { Switch, Input, Select, SelectItem, Tab, Tabs } from '@heroui/react'
-import { Modal } from '@heroui-v3/react'
+import { Input, InputGroup, ListBox, Modal, Select, Switch } from '@heroui-v3/react'
 import React, { useState, useEffect, useRef } from 'react'
 import SettingItem from '../base/base-setting-item'
+import { SettingTabs, settingItemProps } from '../base/base-controls'
 import { useAppConfig } from '@renderer/hooks/use-app-config'
 import debounce from '@renderer/utils/debounce'
 import {
@@ -53,171 +53,210 @@ const ProxySettingModal: React.FC<Props> = (props) => {
         variant="blur"
         className="top-12 h-[calc(100%-48px)]"
       >
-        <Modal.Container scroll="inside">
+        <Modal.Container>
           <Modal.Dialog className="max-w-xl flag-emoji">
             <Modal.Header className="pb-0">
               <Modal.Heading>代理组设置</Modal.Heading>
             </Modal.Header>
             <Modal.Body className="no-scrollbar max-h-[70vh] overflow-y-auto py-2 gap-1">
-              <SettingItem compatKey="legacy" title="代理节点展示列数" divider>
+              <SettingItem title="代理节点展示列数" {...settingItemProps} divider>
                 <Select
-                  classNames={{ trigger: 'data-[hover=true]:bg-default-200' }}
-                  className="w-37.5"
-                  size="sm"
-                  selectedKeys={new Set([proxyCols])}
-                  disallowEmptySelection={true}
-                  onSelectionChange={async (v) => {
+                  aria-label="代理节点展示列数"
+                  value={proxyCols}
+                  variant="secondary"
+                  onChange={async (value) => {
+                    if (Array.isArray(value) || value == null) return
+                    if (value === proxyCols) return
+
                     await patchAppConfig({
-                      proxyCols: v.currentKey as 'auto' | '1' | '2' | '3' | '4'
+                      proxyCols: value as 'auto' | '1' | '2' | '3' | '4'
                     })
                   }}
                 >
-                  <SelectItem key="auto">自动</SelectItem>
-                  <SelectItem key="1">一列</SelectItem>
-                  <SelectItem key="2">两列</SelectItem>
-                  <SelectItem key="3">三列</SelectItem>
-                  <SelectItem key="4">四列</SelectItem>
+                  <Select.Trigger>
+                    <Select.Value />
+                    <Select.Indicator />
+                  </Select.Trigger>
+                  <Select.Popover>
+                    <ListBox>
+                      <ListBox.Item id="auto" textValue="自动">
+                        自动
+                        <ListBox.ItemIndicator />
+                      </ListBox.Item>
+                      <ListBox.Item id="1" textValue="一列">
+                        一列
+                        <ListBox.ItemIndicator />
+                      </ListBox.Item>
+                      <ListBox.Item id="2" textValue="两列">
+                        两列
+                        <ListBox.ItemIndicator />
+                      </ListBox.Item>
+                      <ListBox.Item id="3" textValue="三列">
+                        三列
+                        <ListBox.ItemIndicator />
+                      </ListBox.Item>
+                      <ListBox.Item id="4" textValue="四列">
+                        四列
+                        <ListBox.ItemIndicator />
+                      </ListBox.Item>
+                    </ListBox>
+                  </Select.Popover>
                 </Select>
               </SettingItem>
-              <SettingItem compatKey="legacy" title="节点排序方式" divider>
-                <Tabs
-                  size="sm"
-                  color="primary"
+              <SettingItem title="节点排序方式" {...settingItemProps} divider>
+                <SettingTabs
+                  ariaLabel="节点排序方式"
                   selectedKey={proxyDisplayOrder}
-                  onSelectionChange={async (v) => {
+                  options={[
+                    { id: 'default', label: '默认' },
+                    { id: 'delay', label: '延迟' },
+                    { id: 'name', label: '名称' }
+                  ]}
+                  onChange={async (v) => {
                     await patchAppConfig({
                       proxyDisplayOrder: v as 'default' | 'delay' | 'name'
                     })
                   }}
-                >
-                  <Tab key="default" title="默认" />
-                  <Tab key="delay" title="延迟" />
-                  <Tab key="name" title="名称" />
-                </Tabs>
+                />
               </SettingItem>
-              <SettingItem compatKey="legacy" title="代理组详细信息" divider>
-                <Tabs
-                  size="sm"
-                  color="primary"
+              <SettingItem title="代理组详细信息" {...settingItemProps} divider>
+                <SettingTabs
+                  ariaLabel="代理组详细信息"
                   selectedKey={groupDisplayLayout}
-                  onSelectionChange={async (v) => {
+                  options={[
+                    { id: 'hidden', label: '隐藏' },
+                    { id: 'single', label: '单行' },
+                    { id: 'double', label: '双行' }
+                  ]}
+                  onChange={async (v) => {
                     await patchAppConfig({
                       groupDisplayLayout: v as 'hidden' | 'single' | 'double'
                     })
                   }}
-                >
-                  <Tab key="hidden" title="隐藏" />
-                  <Tab key="single" title="单行" />
-                  <Tab key="double" title="双行" />
-                </Tabs>
+                />
               </SettingItem>
-              <SettingItem compatKey="legacy" title="代理节点详细信息" divider>
-                <Tabs
-                  size="sm"
-                  color="primary"
+              <SettingItem title="代理节点详细信息" {...settingItemProps} divider>
+                <SettingTabs
+                  ariaLabel="代理节点详细信息"
                   selectedKey={proxyDisplayLayout}
-                  onSelectionChange={async (v) => {
+                  options={[
+                    { id: 'hidden', label: '隐藏' },
+                    { id: 'single', label: '单行' },
+                    { id: 'double', label: '双行' }
+                  ]}
+                  onChange={async (v) => {
                     await patchAppConfig({
                       proxyDisplayLayout: v as 'hidden' | 'single' | 'double'
                     })
                   }}
-                >
-                  <Tab key="hidden" title="隐藏" />
-                  <Tab key="single" title="单行" />
-                  <Tab key="double" title="双行" />
-                </Tabs>
+                />
               </SettingItem>
-              <SettingItem compatKey="legacy" title="切换节点时断开连接" divider>
+              <SettingItem title="切换节点时断开连接" {...settingItemProps} divider>
                 <Switch
-                  size="sm"
+                  aria-label="切换节点时断开连接"
                   isSelected={autoCloseConnection}
-                  onValueChange={(v) => {
+                  onChange={(v) => {
                     patchAppConfig({ autoCloseConnection: v })
                   }}
-                />
+                >
+                  <Switch.Control>
+                    <Switch.Thumb />
+                  </Switch.Control>
+                </Switch>
               </SettingItem>
               {autoCloseConnection && (
-                <SettingItem compatKey="legacy" title="打断模式" divider>
-                  <Tabs
-                    size="sm"
-                    color="primary"
+                <SettingItem title="打断模式" {...settingItemProps} divider>
+                  <SettingTabs
+                    ariaLabel="打断模式"
                     selectedKey={closeMode}
-                    onSelectionChange={async (v) => {
+                    options={[
+                      { id: 'all', label: '所有连接' },
+                      { id: 'group', label: '仅当前组' }
+                    ]}
+                    onChange={async (v) => {
                       await patchAppConfig({
                         closeMode: v as 'all' | 'group'
-                      })
-                    }}
-                  >
-                    <Tab key="all" title="所有连接" />
-                    <Tab key="group" title="仅当前组" />
-                  </Tabs>
-                </SettingItem>
-              )}
-              <SettingItem compatKey="legacy" title="延迟测试地址" divider>
-                <Input
-                  size="sm"
-                  className="w-[60%]"
-                  value={url}
-                  placeholder="默认 https://www.gstatic.com/generate_204"
-                  onValueChange={(v) => {
-                    setUrl(v)
-                    setUrlDebounce(v)
-                  }}
-                />
-              </SettingItem>
-              <SettingItem compatKey="legacy" title="测试地址来源" divider>
-                <Tabs
-                  size="sm"
-                  color="primary"
-                  selectedKey={delayTestUrlScope}
-                  onSelectionChange={async (v) => {
-                    await patchAppConfig({
-                      delayTestUrlScope: v as 'group' | 'global'
-                    })
-                  }}
-                >
-                  <Tab key="group" title="使用组配置" />
-                  <Tab key="global" title="使用统一地址" />
-                </Tabs>
-              </SettingItem>
-              <SettingItem compatKey="legacy" title="使用策略组 API 测速" divider>
-                <Switch
-                  size="sm"
-                  isSelected={delayTestUseGroupApi}
-                  onValueChange={(v) => {
-                    patchAppConfig({ delayTestUseGroupApi: v })
-                  }}
-                />
-              </SettingItem>
-              {!delayTestUseGroupApi && (
-                <SettingItem compatKey="legacy" title="延迟测试并发数量" divider>
-                  <Input
-                    type="number"
-                    size="sm"
-                    className="w-25"
-                    value={delayTestConcurrency?.toString()}
-                    min={MIN_DELAY_TEST_CONCURRENCY}
-                    max={MAX_DELAY_TEST_CONCURRENCY}
-                    placeholder={`默认 ${DEFAULT_DELAY_TEST_CONCURRENCY}`}
-                    onValueChange={(v) => {
-                      patchAppConfig({
-                        delayTestConcurrency: normalizeDelayTestConcurrency(parseInt(v))
                       })
                     }}
                   />
                 </SettingItem>
               )}
-              <SettingItem compatKey="legacy" title="延迟测试超时时间">
+              <SettingItem title="延迟测试地址" {...settingItemProps} divider>
                 <Input
-                  type="number"
-                  size="sm"
-                  className="w-25"
-                  value={delayTestTimeout?.toString()}
-                  placeholder="默认 5000"
-                  onValueChange={(v) => {
-                    patchAppConfig({ delayTestTimeout: parseInt(v) })
+                  aria-label="延迟测试地址"
+                  data-setting-input="url"
+                  value={url}
+                  placeholder="默认 https://www.gstatic.com/generate_204"
+                  variant="secondary"
+                  onChange={(event) => {
+                    const v = event.target.value
+                    setUrl(v)
+                    setUrlDebounce(v)
                   }}
                 />
+              </SettingItem>
+              <SettingItem title="测试地址来源" {...settingItemProps} divider>
+                <SettingTabs
+                  ariaLabel="测试地址来源"
+                  selectedKey={delayTestUrlScope}
+                  options={[
+                    { id: 'group', label: '使用组配置' },
+                    { id: 'global', label: '使用统一地址' }
+                  ]}
+                  onChange={async (v) => {
+                    await patchAppConfig({
+                      delayTestUrlScope: v as 'group' | 'global'
+                    })
+                  }}
+                />
+              </SettingItem>
+              <SettingItem title="使用策略组 API 测速" {...settingItemProps} divider>
+                <Switch
+                  aria-label="使用策略组 API 测速"
+                  isSelected={delayTestUseGroupApi}
+                  onChange={(v) => {
+                    patchAppConfig({ delayTestUseGroupApi: v })
+                  }}
+                >
+                  <Switch.Control>
+                    <Switch.Thumb />
+                  </Switch.Control>
+                </Switch>
+              </SettingItem>
+              {!delayTestUseGroupApi && (
+                <SettingItem title="延迟测试并发数量" {...settingItemProps} divider>
+                  <InputGroup data-setting-input="number" variant="secondary">
+                    <InputGroup.Input
+                      aria-label="延迟测试并发数量"
+                      type="number"
+                      value={delayTestConcurrency?.toString()}
+                      min={MIN_DELAY_TEST_CONCURRENCY}
+                      max={MAX_DELAY_TEST_CONCURRENCY}
+                      placeholder={`默认 ${DEFAULT_DELAY_TEST_CONCURRENCY}`}
+                      onChange={(event) => {
+                        const v = event.target.value
+                        patchAppConfig({
+                          delayTestConcurrency: normalizeDelayTestConcurrency(parseInt(v))
+                        })
+                      }}
+                    />
+                  </InputGroup>
+                </SettingItem>
+              )}
+              <SettingItem title="延迟测试超时时间" {...settingItemProps}>
+                <InputGroup data-setting-input="number" variant="secondary">
+                  <InputGroup.Input
+                    aria-label="延迟测试超时时间"
+                    type="number"
+                    value={delayTestTimeout?.toString()}
+                    placeholder="默认 5000"
+                    onChange={(event) => {
+                      const v = event.target.value
+                      patchAppConfig({ delayTestTimeout: parseInt(v) })
+                    }}
+                  />
+                  <InputGroup.Suffix>ms</InputGroup.Suffix>
+                </InputGroup>
               </SettingItem>
             </Modal.Body>
             <Modal.CloseTrigger className="app-nodrag" />

@@ -17,6 +17,7 @@ export const defaultConfig: AppConfig = {
   connectionDirection: 'asc',
   connectionOrderBy: 'time',
   connectionInterval: 500,
+  gistSyncEnabled: false,
   useSubStore: true,
   proxyDisplayOrder: 'default',
   autoCheckUpdate: false,

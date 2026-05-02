@@ -1,7 +1,7 @@
-import { Button, Switch, Input } from '@heroui/react'
-import { Modal } from '@heroui-v3/react'
+import { Button, InputGroup, Modal, Switch } from '@heroui-v3/react'
 import React, { useState } from 'react'
 import SettingItem from '../base/base-setting-item'
+import { settingItemProps } from '../base/base-controls'
 import { useAppConfig } from '@renderer/hooks/use-app-config'
 import { restartMihomoConnections } from '@renderer/utils/ipc'
 
@@ -24,39 +24,46 @@ const ConnectionSettingModal: React.FC<Props> = (props) => {
         variant="blur"
         className="top-12 h-[calc(100%-48px)]"
       >
-        <Modal.Container scroll="inside">
+        <Modal.Container>
           <Modal.Dialog className="max-w-md flag-emoji">
             <Modal.Header>
               <Modal.Heading>连接设置</Modal.Heading>
             </Modal.Header>
             <Modal.Body className="py-2 gap-1">
-              <SettingItem compatKey="legacy" title="显示应用图标" divider>
+              <SettingItem title="显示应用图标" {...settingItemProps} divider>
                 <Switch
-                  size="sm"
+                  aria-label="显示应用图标"
                   isSelected={displayIcon}
-                  onValueChange={(v) => {
+                  onChange={(v) => {
                     patchAppConfig({ displayIcon: v })
                   }}
-                />
+                >
+                  <Switch.Control>
+                    <Switch.Thumb />
+                  </Switch.Control>
+                </Switch>
               </SettingItem>
-              <SettingItem compatKey="legacy" title="显示应用名称" divider>
+              <SettingItem title="显示应用名称" {...settingItemProps} divider>
                 <Switch
-                  size="sm"
+                  aria-label="显示应用名称"
                   isSelected={displayAppName}
-                  onValueChange={(v) => {
+                  onChange={(v) => {
                     patchAppConfig({ displayAppName: v })
                   }}
-                />
+                >
+                  <Switch.Control>
+                    <Switch.Thumb />
+                  </Switch.Control>
+                </Switch>
               </SettingItem>
-              <SettingItem compatKey="legacy" title="刷新间隔">
-                <div className="flex">
+              <SettingItem title="刷新间隔" {...settingItemProps}>
+                <div className="setting-item__inline-controls">
                   {intervalInput !== connectionInterval && (
                     <Button
                       size="sm"
-                      color="primary"
-                      className="mr-2"
+                      variant="primary"
                       onPress={() => {
-                        const actualValue = intervalInput < 100 ? 100 : intervalInput
+                        const actualValue = Math.min(10000, Math.max(100, intervalInput))
                         setIntervalInput(actualValue)
                         patchAppConfig({ connectionInterval: actualValue })
                         restartMihomoConnections()
@@ -65,18 +72,19 @@ const ConnectionSettingModal: React.FC<Props> = (props) => {
                       确认
                     </Button>
                   )}
-                  <Input
-                    size="sm"
-                    type="number"
-                    className="w-37.5"
-                    endContent="ms"
-                    value={intervalInput.toString()}
-                    max={65535}
-                    min={0}
-                    onValueChange={(v) => {
-                      setIntervalInput(parseInt(v) || 0)
-                    }}
-                  />
+                  <InputGroup variant="secondary">
+                    <InputGroup.Input
+                      aria-label="刷新间隔"
+                      type="number"
+                      value={intervalInput.toString()}
+                      max={10000}
+                      min={100}
+                      onChange={(event) => {
+                        setIntervalInput(parseInt(event.target.value) || 100)
+                      }}
+                    />
+                    <InputGroup.Suffix>ms</InputGroup.Suffix>
+                  </InputGroup>
                 </div>
               </SettingItem>
             </Modal.Body>

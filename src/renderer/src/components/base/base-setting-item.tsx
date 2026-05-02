@@ -2,17 +2,29 @@ import { cn, Divider } from '@heroui/react'
 
 import React from 'react'
 
-interface Props {
+export interface SettingItemProps {
   title: React.ReactNode
   actions?: React.ReactNode
   children?: React.ReactNode
   divider?: boolean
   compatKey?: string
   align?: 'start' | 'center'
+  variant?: 'default' | 'compact'
+  contentAlign?: 'start' | 'end'
 }
 
-const SettingItem: React.FC<Props> = (props) => {
-  const { title, actions, children, divider = false, compatKey, align = 'center' } = props
+const SettingItem: React.FC<SettingItemProps> = (props) => {
+  const {
+    title,
+    actions,
+    children,
+    divider = false,
+    compatKey,
+    align = 'center',
+    variant = 'default',
+    contentAlign = 'start'
+  } = props
+  const isCompact = variant === 'compact'
 
   return (
     <>
@@ -27,15 +39,17 @@ const SettingItem: React.FC<Props> = (props) => {
       ) : (
         <div
           className={cn(
-            'select-text grid w-full grid-cols-[100px_minmax(0,1fr)] gap-x-3 gap-y-2 py-2',
-            align === 'start' ? 'items-start' : 'items-center'
+            'setting-item select-text',
+            align === 'start' ? 'setting-item--start' : 'setting-item--center',
+            isCompact && 'setting-item--compact',
+            contentAlign === 'end' && 'setting-item--content-end'
           )}
         >
-          <div className="flex min-h-9 items-center gap-2">
-            <h4 className="text-sm leading-6 whitespace-nowrap text-foreground-500">{title}</h4>
+          <div className="setting-item__title-wrap">
+            <h4 className="setting-item__title">{title}</h4>
             {actions}
           </div>
-          <div className="min-w-0">{children}</div>
+          <div className="setting-item__content">{children}</div>
         </div>
       )}
       {divider && <Divider className="my-2" />}

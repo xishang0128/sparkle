@@ -57,6 +57,7 @@ interface AppConfig {
   sysproxyCardStatus?: CardStatus
   tunCardStatus?: CardStatus
   githubToken?: string
+  gistSyncEnabled?: boolean
   useSubStore: boolean
   subStoreHost?: string
   subStoreBackendSyncCron?: string

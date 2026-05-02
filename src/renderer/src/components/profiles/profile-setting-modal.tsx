@@ -1,12 +1,12 @@
-import { Button, Switch, Input, Tab, Tabs, Tooltip } from '@heroui/react'
-import { Modal } from '@heroui-v3/react'
+import { Button, Input, InputGroup, Modal, Switch, Tooltip } from '@heroui-v3/react'
 import React, { useState, useEffect, useRef } from 'react'
 import SettingItem from '../base/base-setting-item'
+import { SettingTabs, settingItemProps } from '../base/base-controls'
 import { useAppConfig } from '@renderer/hooks/use-app-config'
 import { getGistUrl, getUserAgent } from '@renderer/utils/ipc'
 import debounce from '@renderer/utils/debounce'
 import { IoIosHelpCircle } from 'react-icons/io'
-import { BiCopy } from 'react-icons/bi'
+import { BiCopy, BiHide, BiShow } from 'react-icons/bi'
 
 interface Props {
   onClose: () => void
@@ -20,16 +20,20 @@ const ProfileSettingModal: React.FC<Props> = (props) => {
     profileDisplayDate = 'update',
     userAgent,
     diffWorkDir = false,
-    githubToken = ''
+    githubToken = '',
+    gistSyncEnabled = githubToken !== ''
   } = appConfig || {}
 
   const [ua, setUa] = useState(userAgent ?? '')
+  const [tokenVisible, setTokenVisible] = useState(false)
   const [defaultUserAgent, setDefaultUserAgent] = useState<string>('')
   const userAgentFetched = useRef(false)
 
-  const setUaDebounce = debounce((v: string) => {
-    patchAppConfig({ userAgent: v })
-  }, 500)
+  const setUaDebounce = useRef(
+    debounce((v: string) => {
+      patchAppConfig({ userAgent: v })
+    }, 500)
+  ).current
 
   useEffect(() => {
     if (!userAgentFetched.current) {
@@ -52,94 +56,136 @@ const ProfileSettingModal: React.FC<Props> = (props) => {
         variant="blur"
         className="top-12 h-[calc(100%-48px)]"
       >
-        <Modal.Container scroll="inside">
+        <Modal.Container>
           <Modal.Dialog className="max-w-md flag-emoji">
             <Modal.Header className="pb-0">
               <Modal.Heading>订阅设置</Modal.Heading>
             </Modal.Header>
             <Modal.Body className="py-2 gap-1">
-              <SettingItem compatKey="legacy" title="显示日期" divider>
-                <Tabs
-                  size="sm"
-                  color="primary"
+              <SettingItem title="显示日期" {...settingItemProps} divider>
+                <SettingTabs
+                  ariaLabel="显示日期"
                   selectedKey={profileDisplayDate}
-                  onSelectionChange={async (v) => {
+                  options={[
+                    { id: 'update', label: '更新时间' },
+                    { id: 'expire', label: '到期时间' }
+                  ]}
+                  onChange={async (v) => {
                     await patchAppConfig({
                       profileDisplayDate: v as 'expire' | 'update'
                     })
                   }}
-                >
-                  <Tab key="update" title="更新时间" />
-                  <Tab key="expire" title="到期时间" />
-                </Tabs>
+                />
               </SettingItem>
               <SettingItem
-                compatKey="legacy"
                 title="为不同订阅分别指定工作目录"
                 actions={
-                  <Tooltip content="开启后可以避免不同订阅中存在相同代理组名时无法分别保存选择的节点">
-                    <Button isIconOnly size="sm" variant="light">
+                  <Tooltip>
+                    <Button aria-label="说明" isIconOnly size="sm" variant="ghost">
                       <IoIosHelpCircle className="text-lg" />
                     </Button>
+                    <Tooltip.Content>
+                      开启后可以避免不同订阅中存在相同代理组名时无法分别保存选择的节点
+                    </Tooltip.Content>
                   </Tooltip>
                 }
+                {...settingItemProps}
                 divider
               >
                 <Switch
-                  size="sm"
+                  aria-label="为不同订阅分别指定工作目录"
                   isSelected={diffWorkDir}
-                  onValueChange={(v) => {
+                  onChange={(v) => {
                     patchAppConfig({ diffWorkDir: v })
                   }}
-                />
+                >
+                  <Switch.Control>
+                    <Switch.Thumb />
+                  </Switch.Control>
+                </Switch>
               </SettingItem>
-              <SettingItem compatKey="legacy" title="订阅拉取 UA" divider>
+              <SettingItem title="订阅拉取 UA" {...settingItemProps} divider>
                 <Input
-                  size="sm"
-                  className="w-[60%]"
+                  aria-label="订阅拉取 UA"
+                  data-setting-input="wide"
                   value={ua}
                   placeholder={`默认 ${defaultUserAgent}`}
-                  onValueChange={(v) => {
+                  variant="secondary"
+                  onChange={(event) => {
+                    const v = event.target.value
                     setUa(v)
                     setUaDebounce(v)
                   }}
                 />
               </SettingItem>
               <SettingItem
-                compatKey="legacy"
                 title="同步运行时配置到 Gist"
                 actions={
-                  <Button
-                    title="复制 Gist URL"
-                    isIconOnly
-                    size="sm"
-                    variant="light"
-                    onPress={async () => {
-                      try {
-                        const url = await getGistUrl()
-                        if (url !== '') {
-                          await navigator.clipboard.writeText(`${url}/raw/sparkle.yaml`)
+                  gistSyncEnabled && (
+                    <Button
+                      aria-label="复制 Gist URL"
+                      isIconOnly
+                      size="sm"
+                      variant="ghost"
+                      onPress={async () => {
+                        try {
+                          const url = await getGistUrl()
+                          if (url !== '') {
+                            await navigator.clipboard.writeText(`${url}/raw/sparkle.yaml`)
+                          }
+                        } catch (e) {
+                          alert(e)
                         }
-                      } catch (e) {
-                        alert(e)
-                      }
-                    }}
-                  >
-                    <BiCopy className="text-lg" />
-                  </Button>
+                      }}
+                    >
+                      <BiCopy className="text-lg" />
+                    </Button>
+                  )
                 }
+                {...settingItemProps}
               >
-                <Input
-                  type="password"
-                  size="sm"
-                  className="w-[60%]"
-                  value={githubToken}
-                  placeholder="GitHub Token"
-                  onValueChange={(v) => {
-                    patchAppConfig({ githubToken: v })
+                <Switch
+                  aria-label="同步运行时配置到 Gist"
+                  isSelected={gistSyncEnabled}
+                  onChange={(v) => {
+                    patchAppConfig({ gistSyncEnabled: v })
                   }}
-                />
+                >
+                  <Switch.Control>
+                    <Switch.Thumb />
+                  </Switch.Control>
+                </Switch>
               </SettingItem>
+              {gistSyncEnabled && (
+                <SettingItem title={null} {...settingItemProps}>
+                  <InputGroup data-setting-input="full" variant="secondary">
+                    <InputGroup.Input
+                      aria-label="GitHub Token"
+                      type={tokenVisible ? 'text' : 'password'}
+                      value={githubToken}
+                      placeholder="GitHub Token"
+                      onChange={(event) => {
+                        patchAppConfig({ githubToken: event.target.value })
+                      }}
+                    />
+                    <InputGroup.Suffix>
+                      <Button
+                        aria-label={tokenVisible ? '隐藏 GitHub Token' : '显示 GitHub Token'}
+                        isIconOnly
+                        size="sm"
+                        variant="ghost"
+                        onPress={() => setTokenVisible((visible) => !visible)}
+                      >
+                        {tokenVisible ? (
+                          <BiHide className="text-lg" />
+                        ) : (
+                          <BiShow className="text-lg" />
+                        )}
+                      </Button>
+                    </InputGroup.Suffix>
+                  </InputGroup>
+                </SettingItem>
+              )}
             </Modal.Body>
             <Modal.CloseTrigger className="app-nodrag" />
           </Modal.Dialog>

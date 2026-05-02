@@ -80,7 +80,8 @@ async function updateGist(token: string, id: string, content: string): Promise<v
 }
 
 export async function getGistUrl(): Promise<string> {
-  const { githubToken } = await getAppConfig()
+  const { githubToken, gistSyncEnabled = Boolean(githubToken) } = await getAppConfig()
+  if (!gistSyncEnabled) return ''
   if (!githubToken) return ''
   const gists = await listGists(githubToken)
   const gist = gists.find((gist) => gist.description === 'Auto Synced Sparkle Runtime Config')
@@ -96,7 +97,8 @@ export async function getGistUrl(): Promise<string> {
 }
 
 export async function uploadRuntimeConfig(): Promise<void> {
-  const { githubToken } = await getAppConfig()
+  const { githubToken, gistSyncEnabled = Boolean(githubToken) } = await getAppConfig()
+  if (!gistSyncEnabled) return
   if (!githubToken) return
   const gists = await listGists(githubToken)
   const gist = gists.find((gist) => gist.description === 'Auto Synced Sparkle Runtime Config')
