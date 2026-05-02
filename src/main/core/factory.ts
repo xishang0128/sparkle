@@ -16,7 +16,7 @@ import {
   overridePath
 } from '../utils/dirs'
 import { parseYaml, stringifyYaml } from '../utils/yaml'
-import { copyFile, mkdir, writeFile } from 'fs/promises'
+import { copyFile, mkdir, readdir, writeFile } from 'fs/promises'
 import { deepMerge } from '../utils/merge'
 import vm from 'vm'
 import { existsSync, writeFileSync } from 'fs'
@@ -287,23 +287,24 @@ function cleanProxyConfigs(profile: MihomoConfig): void {
 }
 
 async function prepareProfileWorkDir(current: string | undefined): Promise<void> {
-  if (!existsSync(mihomoProfileWorkDir(current))) {
-    await mkdir(mihomoProfileWorkDir(current), { recursive: true })
+  const targetDir = mihomoProfileWorkDir(current)
+  const sourceDir = mihomoWorkDir()
+  if (!existsSync(targetDir)) {
+    await mkdir(targetDir, { recursive: true })
   }
   const copy = async (file: string): Promise<void> => {
-    const targetPath = path.join(mihomoProfileWorkDir(current), file)
-    const sourcePath = path.join(mihomoWorkDir(), file)
+    const targetPath = path.join(targetDir, file)
+    const sourcePath = path.join(sourceDir, file)
     if (!existsSync(targetPath) && existsSync(sourcePath)) {
       await copyFile(sourcePath, targetPath)
     }
   }
-  await Promise.all([
-    copy('country.mmdb'),
-    copy('geoip.metadb'),
-    copy('geoip.dat'),
-    copy('geosite.dat'),
-    copy('ASN.mmdb')
-  ])
+  const files = await readdir(sourceDir, { withFileTypes: true })
+  await Promise.all(
+    files
+      .filter((file) => file.isFile() && /(?:db|dat)$/i.test(file.name))
+      .map((file) => copy(file.name))
+  )
 }
 
 async function overrideProfile(

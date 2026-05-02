@@ -32,6 +32,18 @@ export function subStoreDir(): string {
   return path.join(dataDir(), 'substore')
 }
 
+export function subStoreFrontendDir(): string {
+  return path.join(subStoreDir(), 'sub-store-frontend')
+}
+
+export function subStoreBackendPath(): string {
+  return path.join(subStoreDir(), 'sub-store.bundle.js')
+}
+
+export function subStoreTempDir(): string {
+  return path.join(subStoreDir(), 'temp')
+}
+
 export function exeDir(): string {
   return path.dirname(exePath())
 }

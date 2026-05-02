@@ -11,7 +11,9 @@ import {
   profilePath,
   profilesDir,
   resourcesFilesDir,
+  subStoreBackendPath,
   subStoreDir,
+  subStoreFrontendDir,
   themesDir
 } from './dirs'
 import {
@@ -91,7 +93,15 @@ async function initConfig(): Promise<void> {
 }
 
 async function initFiles(): Promise<void> {
-  const copy = async (file: string): Promise<void> => {
+  const copy = async (file: string, customTargetPath?: string): Promise<void> => {
+    if (customTargetPath) {
+      const sourcePath = path.join(resourcesFilesDir(), file)
+      if (!existsSync(customTargetPath) && existsSync(sourcePath)) {
+        await cp(sourcePath, customTargetPath, { recursive: true })
+      }
+      return
+    }
+
     const targetPath = path.join(mihomoWorkDir(), file)
     const testTargetPath = path.join(mihomoTestDir(), file)
     const sourcePath = path.join(resourcesFilesDir(), file)
@@ -108,8 +118,8 @@ async function initFiles(): Promise<void> {
     copy('geoip.dat'),
     copy('geosite.dat'),
     copy('ASN.mmdb'),
-    copy('sub-store.bundle.js'),
-    copy('sub-store-frontend')
+    copy('sub-store.bundle.js', subStoreBackendPath()),
+    copy('sub-store-frontend', subStoreFrontendDir())
   ])
 }
 
