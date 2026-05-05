@@ -7,15 +7,31 @@ interface Props {
   mutateProxies: () => void
   onProxyDelay: (proxy: string, group?: ControllerMixedGroup) => Promise<ControllerProxiesDelay>
   proxyDisplayLayout: 'hidden' | 'single' | 'double'
+  showGroupSelectedProxy: boolean
   proxy: ControllerProxiesDetail | ControllerGroupDetail
   group: ControllerMixedGroup
   onSelect: (group: string, proxy: string) => void
   selected: boolean
 }
 
+const isGroup = (
+  proxy: ControllerProxiesDetail | ControllerGroupDetail
+): proxy is ControllerGroupDetail => {
+  return 'now' in proxy && typeof (proxy as ControllerGroupDetail).now === 'string'
+}
+
 const ProxyItem: React.FC<Props> = (props) => {
-  const { mutateProxies, proxyDisplayLayout, group, proxy, selected, onSelect, onProxyDelay } =
-    props
+  const {
+    mutateProxies,
+    proxyDisplayLayout,
+    showGroupSelectedProxy,
+    group,
+    proxy,
+    selected,
+    onSelect,
+    onProxyDelay
+  } = props
+  const shouldShowGroupSelectedProxy = showGroupSelectedProxy && isGroup(proxy) && Boolean(proxy.now)
 
   const delay = useMemo(() => {
     if (proxy.history.length > 0) {
@@ -72,6 +88,14 @@ const ProxyItem: React.FC<Props> = (props) => {
                 </div>
                 <div className="text-[12px] text-foreground-500 leading-none mt-0.5">
                   <span>{proxy.type}</span>
+                  {shouldShowGroupSelectedProxy && (
+                    <>
+                      <span className="mx-1">→</span>
+                      <span className="flag-emoji" title={proxy.now}>
+                        {proxy.now}
+                      </span>
+                    </>
+                  )}
                 </div>
               </div>
               <div className="flex items-center justify-center gap-0.5 shrink-0">
@@ -106,7 +130,16 @@ const ProxyItem: React.FC<Props> = (props) => {
               <div className="text-ellipsis overflow-hidden whitespace-nowrap">
                 <div className="flag-emoji inline">{proxy.name}</div>
                 {proxyDisplayLayout === 'single' && (
-                  <div className="inline ml-2 text-foreground-500">{proxy.type}</div>
+                  <>
+                    <div className="inline ml-2 text-foreground-500" title={proxy.type}>
+                      {proxy.type}
+                    </div>
+                    {shouldShowGroupSelectedProxy && (
+                      <div className="inline ml-2 text-foreground-500 flag-emoji" title={proxy.now}>
+                        → {proxy.now}
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
               <div className="flex items-center gap-0.5 shrink-0">

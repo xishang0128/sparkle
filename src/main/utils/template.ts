@@ -52,6 +52,7 @@ export const defaultConfig: AppConfig = {
   disableGPU: process.platform === 'win32' && parseInt(os.release().split('.')[2], 10) <= 20000,
   proxyDisplayLayout: 'double',
   groupDisplayLayout: 'double',
+  showGroupSelectedProxy: true,
   autoLightweightMode: 'core',
   coreStartupMode: 'post-up',
   delayTestConcurrency: 50,

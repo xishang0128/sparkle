@@ -24,6 +24,7 @@ const ProxySettingModal: React.FC<Props> = (props) => {
     proxyDisplayOrder = 'default',
     groupDisplayLayout = 'single',
     proxyDisplayLayout = 'double',
+    showGroupSelectedProxy = true,
     autoCloseConnection = true,
     closeMode = 'all',
     delayTestUrl,
@@ -150,6 +151,19 @@ const ProxySettingModal: React.FC<Props> = (props) => {
                     })
                   }}
                 />
+              </SettingItem>
+              <SettingItem title="显示二级分组选中节点" {...settingItemProps} divider>
+                <Switch
+                  aria-label="显示二级分组选中节点"
+                  isSelected={showGroupSelectedProxy}
+                  onChange={(v) => {
+                    patchAppConfig({ showGroupSelectedProxy: v })
+                  }}
+                >
+                  <Switch.Control>
+                    <Switch.Thumb />
+                  </Switch.Control>
+                </Switch>
               </SettingItem>
               <SettingItem title="切换节点时断开连接" {...settingItemProps} divider>
                 <Switch
