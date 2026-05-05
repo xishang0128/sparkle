@@ -35,7 +35,8 @@ nsis:
   allowToChangeInstallationDirectory: true
   oneClick: false
   perMachine: true
-  createDesktopShortcut: true
+  createDesktopShortcut: false
+  include: build/installer.nsh
 mac:
   target:
     - pkg

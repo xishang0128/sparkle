@@ -98,6 +98,10 @@
 !macroend
 
 !macro customInstall
+  ${ifNot} ${isUpdated}
+    CreateShortcut "$DESKTOP\${PRODUCT_FILENAME}.lnk" "$INSTDIR\${PRODUCT_FILENAME}.exe"
+  ${endIf}
+
   ${If} $sparkleServiceWasRunning == "true"
     StrCpy $R1 "$INSTDIR\resources\files\sparkle-service.exe"
     ${If} ${FileExists} "$R1"
