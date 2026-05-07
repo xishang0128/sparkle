@@ -1,17 +1,67 @@
 #!/bin/sh
 
-APP_PATH="/Applications/Sparkle.app"
+set -eu
 
-chown root:admin "$APP_PATH/Contents/Resources/sidecar/mihomo"
-chown root:admin "$APP_PATH/Contents/Resources/sidecar/mihomo-alpha"
-chmod +s "$APP_PATH/Contents/Resources/sidecar/mihomo"
-chmod +s "$APP_PATH/Contents/Resources/sidecar/mihomo-alpha"
+fail() {
+  echo "Sparkle postinstall: $*" >&2
+  exit 1
+}
 
-/usr/bin/codesign --force --deep --sign - "$APP_PATH"
+find_app_path() {
+  INSTALL_TARGET="${1:-}"
+
+  if [ -n "$INSTALL_TARGET" ] && [ -d "$INSTALL_TARGET/Contents" ]; then
+    printf '%s\n' "$INSTALL_TARGET"
+    return 0
+  fi
+
+  if [ -n "$INSTALL_TARGET" ] && [ -d "$INSTALL_TARGET/Sparkle.app/Contents" ]; then
+    printf '%s\n' "$INSTALL_TARGET/Sparkle.app"
+    return 0
+  fi
+
+  if [ -d "/Applications/Sparkle.app/Contents" ]; then
+    printf '%s\n' "/Applications/Sparkle.app"
+    return 0
+  fi
+
+  return 1
+}
+
+APP_PATH="$(find_app_path "${2:-}")" || fail "could not find installed Sparkle.app"
+SERVICE_BIN="$APP_PATH/Contents/Resources/files/sparkle-service"
+SERVICE_STATE_FILE="/tmp/sparkle-service-was-running"
+
+apply_sidecar_permissions() {
+  for BIN in "$APP_PATH/Contents/Resources/sidecar/mihomo" \
+             "$APP_PATH/Contents/Resources/sidecar/mihomo-alpha"; do
+    [ -e "$BIN" ] || fail "missing sidecar binary: $BIN"
+    chown root:admin "$BIN" || fail "failed to chown $BIN"
+    chmod +s "$BIN" || fail "failed to set setuid bit on $BIN"
+  done
+}
+
+sign_app_bundle() {
+  [ -e "$APP_PATH/Contents/MacOS/Sparkle" ] || fail "missing app executable"
+
+  # Do not preserve hardened-runtime flags for the ad-hoc postinstall signature:
+  # ad-hoc + runtime can make dyld reject Electron Framework at launch.
+  /usr/bin/codesign --force --deep --sign - "$APP_PATH" || fail "codesign failed"
+}
+
+verify_postinstall_signature() {
+  SIGN_INFO="$(/usr/bin/codesign -dv --verbose=4 "$APP_PATH" 2>&1 || true)"
+  TEAM_ID="$(printf '%s\n' "$SIGN_INFO" | sed -n 's/^TeamIdentifier=//p' | head -n 1)"
+  FLAGS="$(printf '%s\n' "$SIGN_INFO" | sed -n 's/.*flags=[^)]*(\([^)]*\)).*/\1/p' | head -n 1)"
+
+  if [ "$TEAM_ID" = "not set" ] && printf '%s' "$FLAGS" | grep -q 'runtime'; then
+    fail "ad-hoc signature still has hardened runtime; Electron Framework may fail library validation"
+  fi
+
+  /usr/bin/codesign --verify --deep --strict "$APP_PATH" || fail "codesign verification failed"
+}
 
 restore_sparkle_service_if_was_running() {
-  SERVICE_BIN="$APP_PATH/Contents/Resources/files/sparkle-service"
-  SERVICE_STATE_FILE="/tmp/sparkle-service-was-running"
 
   if [ ! -f "$SERVICE_STATE_FILE" ]; then
     return
@@ -23,6 +73,9 @@ restore_sparkle_service_if_was_running() {
   fi
 }
 
+apply_sidecar_permissions
+sign_app_bundle
+verify_postinstall_signature
 restore_sparkle_service_if_was_running
 
 exit 0
