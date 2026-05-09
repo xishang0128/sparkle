@@ -2,6 +2,7 @@ import { getControledMihomoConfig } from './controledMihomo'
 import { mihomoProfileWorkDir, mihomoWorkDir, profileConfigPath, profilePath } from '../utils/dirs'
 import { addProfileUpdater, delProfileUpdater } from '../core/profileUpdater'
 import { readFile, writeFile, rm, mkdir } from 'fs/promises'
+import { convertFileToString } from '@uruhalushia/rule-converter-napi'
 import { restartCore } from '../core/manager'
 import { getAppConfig } from './app'
 import { existsSync } from 'fs'
@@ -447,6 +448,29 @@ export async function getFileStr(path: string): Promise<string> {
   const { diffWorkDir = false } = await getAppConfig()
   const { current } = await getProfileConfig()
   return await readFile(resolveEditableFilePath(path, current, diffWorkDir), 'utf-8')
+}
+
+export async function getFilePreviewStr(path: string, format?: string): Promise<string> {
+  const { diffWorkDir = false } = await getAppConfig()
+  const { current } = await getProfileConfig()
+  const target = resolveEditableFilePath(path, current, diffWorkDir)
+  if (format !== 'MrsRule') {
+    return await readFile(target, 'utf-8')
+  }
+
+  return await convertMrsRuleToText(target)
+}
+
+async function convertMrsRuleToText(path: string): Promise<string> {
+  const result = convertFileToString(path, {
+    outputTarget: 'mihomo',
+    outputFormat: 'text',
+    outputBehavior: 'auto'
+  })
+  if (!result.outputs.length) {
+    return ''
+  }
+  return result.outputs.map((output) => output.text).join('\n')
 }
 
 export async function setFileStr(path: string, content: string): Promise<void> {

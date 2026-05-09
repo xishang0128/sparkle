@@ -25,7 +25,7 @@ const ProxyProvider: React.FC = () => {
     path: '',
     type: '',
     title: '',
-    privderType: ''
+    providerType: ''
   })
   const [qrCode, setQrCode] = useState<{ name: string; url: string } | null>(null)
   useEffect(() => {
@@ -118,9 +118,9 @@ const ProxyProvider: React.FC = () => {
           path={showDetails.path}
           type={showDetails.type}
           title={showDetails.title}
-          privderType={showDetails.privderType}
+          providerType={showDetails.providerType}
           onClose={() =>
-            setShowDetails({ show: false, path: '', type: '', title: '', privderType: '' })
+            setShowDetails({ show: false, path: '', type: '', title: '', providerType: '' })
           }
         />
       )}
@@ -168,7 +168,7 @@ const ProxyProvider: React.FC = () => {
                 onPress={() => {
                   setShowDetails({
                     show: false,
-                    privderType: 'proxy-providers',
+                    providerType: 'proxy-providers',
                     path: provider.name,
                     type: provider.vehicleType,
                     title: provider.name

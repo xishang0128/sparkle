@@ -90,6 +90,17 @@
   overflow: hidden;
 }
 
+.button,
+button[data-slot='base'] {
+  border-radius: var(--radius-xl, 0.5rem) !important;
+}
+
+.button--sm,
+.button--icon-only,
+.close-button {
+  border-radius: var(--radius-lg, 0.375rem) !important;
+}
+
 .setting-item--center {
   align-items: center;
 }

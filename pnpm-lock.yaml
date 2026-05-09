@@ -40,6 +40,9 @@ importers:
       '@types/crypto-js':
         specifier: ^4.2.2
         version: 4.2.2
+      '@uruhalushia/rule-converter-napi':
+        specifier: ^0.1.3
+        version: 0.1.3
       adm-zip:
         specifier: ^0.5.17
         version: 0.5.17
@@ -2827,6 +2830,82 @@ packages:
 
   '@ungap/structured-clone@1.3.0':
     resolution: {integrity: sha512-WmoN8qaIAo7WTYWbAZuG8PYEhn5fkz7dZrqTBZ7dtt//lL2Gwms1IcnQ5yHqjDfX8Ft5j4YzDM23f87zBfDe9g==}
+
+  '@uruhalushia/rule-converter-napi-darwin-arm64@0.1.3':
+    resolution: {integrity: sha512-47mJ0XVL4gaP4O7IySX5aMMFc8cCvp8JRCw8o6OtcR3h4ns3rsMnQ1R0W9ouqAf3FanzjCU3Blr5G0kkP85f6g==}
+    engines: {node: '>=16'}
+    cpu: [arm64]
+    os: [darwin]
+
+  '@uruhalushia/rule-converter-napi-darwin-x64@0.1.3':
+    resolution: {integrity: sha512-aekipWI8v3kog7+t1Lvi/3+XyBZqCHK5XhEDq9iLpQpOAYkE2BXbsnleTA08dwj+pc97ZwSu9k9hgv7Ls9RRMw==}
+    engines: {node: '>=16'}
+    cpu: [x64]
+    os: [darwin]
+
+  '@uruhalushia/rule-converter-napi-linux-arm64-gnu@0.1.3':
+    resolution: {integrity: sha512-bV7boF7bgpqbcHtd+fHbPE4ct3rO5SAMO58OKafaEP0xBBvrA9Z6egJ7DEWdj6bvSriIqpX1AvoNadcWD2f7ZA==}
+    engines: {node: '>=16'}
+    cpu: [arm64]
+    os: [linux]
+
+  '@uruhalushia/rule-converter-napi-linux-arm64-musl@0.1.3':
+    resolution: {integrity: sha512-i0Qy4lZnDsuAFevcMNZilNNBk60TWzdDzQqaUTPgvVPe6cTxxxH7xda7fsBEnmMasatodKMpnhqdcxEJwVO6fw==}
+    engines: {node: '>=16'}
+    cpu: [arm64]
+    os: [linux]
+
+  '@uruhalushia/rule-converter-napi-linux-loong64-gnu@0.1.3':
+    resolution: {integrity: sha512-iuvUNDkrbDBmt0mk7ajUnb4dlXtLM69JJee6F0dUx7IEQWDBPlU2tqUDH4rF8KHkSgurITBtY/hst+MShwcFxg==}
+    engines: {node: '>=16'}
+    cpu: [loong64]
+    os: [linux]
+
+  '@uruhalushia/rule-converter-napi-linux-loong64-musl@0.1.3':
+    resolution: {integrity: sha512-jGyYggLl410FAhbH0zgLjXo8h8sDi+DsuddXnmncgj0aUUW4knhi1/kslQid3rSuReaoeMP7KVenpKpN+J/2Ng==}
+    engines: {node: '>=16'}
+    cpu: [loong64]
+    os: [linux]
+
+  '@uruhalushia/rule-converter-napi-linux-riscv64-gnu@0.1.3':
+    resolution: {integrity: sha512-D4q2Lxx/TyIE5vhGedWmuhK5BPck3aWcdbFcL4WIOqbRxyDK1AeV/hlCKf16D3tUN1mySTRazJWxyRu7UdMRtA==}
+    engines: {node: '>=16'}
+    cpu: [riscv64]
+    os: [linux]
+
+  '@uruhalushia/rule-converter-napi-linux-riscv64-musl@0.1.3':
+    resolution: {integrity: sha512-sfnwuARxmAYxunGb9VxG4V4M4jT6A09/OCXlObA/McwP9d6Lk8VmcTqoc0ULLJkT8DBYvnazHVeAbVw4IUTRFw==}
+    engines: {node: '>=16'}
+    cpu: [riscv64]
+    os: [linux]
+
+  '@uruhalushia/rule-converter-napi-linux-x64-gnu@0.1.3':
+    resolution: {integrity: sha512-lZWFWCNc6nqswfpMZ8pgkZAsj4L/y++T7HR92vzGROechvoNgE2M6gCVU+l/kmUdleppuyKeT/yS57ckADlWaw==}
+    engines: {node: '>=16'}
+    cpu: [x64]
+    os: [linux]
+
+  '@uruhalushia/rule-converter-napi-linux-x64-musl@0.1.3':
+    resolution: {integrity: sha512-98nZMB8xB3vT1gGZSI8fnP03weKP4VP12SIWWDUdQ8LVjmqjYY4PTK0DpMMXCWHqkCbhhImVQKXyIWO1LO4ZOA==}
+    engines: {node: '>=16'}
+    cpu: [x64]
+    os: [linux]
+
+  '@uruhalushia/rule-converter-napi-win32-arm64-msvc@0.1.3':
+    resolution: {integrity: sha512-jyGEUCltTX/OxCqdQiIosy55A8O1vsYhcvIRcFm481eBONVE1XMVWfaKHLnWGDvmEjHEnV78YRpCbpjwLBlviQ==}
+    engines: {node: '>=16'}
+    cpu: [arm64]
+    os: [win32]
+
+  '@uruhalushia/rule-converter-napi-win32-x64-msvc@0.1.3':
+    resolution: {integrity: sha512-9Wxqe1cdVzJfaM8U1Jcp6WdnR1qLTy3sU7fpwotDrRD0mEMf42gUDlRrRLWlGKiYPmVwLkmuVMKF5hCYMkVgAg==}
+    engines: {node: '>=16'}
+    cpu: [x64]
+    os: [win32]
+
+  '@uruhalushia/rule-converter-napi@0.1.3':
+    resolution: {integrity: sha512-cAFdZyoqL5+8p05zkGLWR4MVQSPEMijobduLk4qPL+ZXnGejDzha+coj2FSLfnBR+VVfeCG9OErEoBA43A0bvQ==}
+    engines: {node: '>=16'}
 
   '@vitejs/plugin-react@6.0.1':
     resolution: {integrity: sha512-l9X/E3cDb+xY3SWzlG1MOGt2usfEHGMNIaegaUGFsLkb3RCn/k8/TOXBcab+OndDI4TBtktT8/9BwwW8Vi9KUQ==}
@@ -9633,6 +9712,57 @@ snapshots:
       eslint-visitor-keys: 5.0.1
 
   '@ungap/structured-clone@1.3.0': {}
+
+  '@uruhalushia/rule-converter-napi-darwin-arm64@0.1.3':
+    optional: true
+
+  '@uruhalushia/rule-converter-napi-darwin-x64@0.1.3':
+    optional: true
+
+  '@uruhalushia/rule-converter-napi-linux-arm64-gnu@0.1.3':
+    optional: true
+
+  '@uruhalushia/rule-converter-napi-linux-arm64-musl@0.1.3':
+    optional: true
+
+  '@uruhalushia/rule-converter-napi-linux-loong64-gnu@0.1.3':
+    optional: true
+
+  '@uruhalushia/rule-converter-napi-linux-loong64-musl@0.1.3':
+    optional: true
+
+  '@uruhalushia/rule-converter-napi-linux-riscv64-gnu@0.1.3':
+    optional: true
+
+  '@uruhalushia/rule-converter-napi-linux-riscv64-musl@0.1.3':
+    optional: true
+
+  '@uruhalushia/rule-converter-napi-linux-x64-gnu@0.1.3':
+    optional: true
+
+  '@uruhalushia/rule-converter-napi-linux-x64-musl@0.1.3':
+    optional: true
+
+  '@uruhalushia/rule-converter-napi-win32-arm64-msvc@0.1.3':
+    optional: true
+
+  '@uruhalushia/rule-converter-napi-win32-x64-msvc@0.1.3':
+    optional: true
+
+  '@uruhalushia/rule-converter-napi@0.1.3':
+    optionalDependencies:
+      '@uruhalushia/rule-converter-napi-darwin-arm64': 0.1.3
+      '@uruhalushia/rule-converter-napi-darwin-x64': 0.1.3
+      '@uruhalushia/rule-converter-napi-linux-arm64-gnu': 0.1.3
+      '@uruhalushia/rule-converter-napi-linux-arm64-musl': 0.1.3
+      '@uruhalushia/rule-converter-napi-linux-loong64-gnu': 0.1.3
+      '@uruhalushia/rule-converter-napi-linux-loong64-musl': 0.1.3
+      '@uruhalushia/rule-converter-napi-linux-riscv64-gnu': 0.1.3
+      '@uruhalushia/rule-converter-napi-linux-riscv64-musl': 0.1.3
+      '@uruhalushia/rule-converter-napi-linux-x64-gnu': 0.1.3
+      '@uruhalushia/rule-converter-napi-linux-x64-musl': 0.1.3
+      '@uruhalushia/rule-converter-napi-win32-arm64-msvc': 0.1.3
+      '@uruhalushia/rule-converter-napi-win32-x64-msvc': 0.1.3
 
   '@vitejs/plugin-react@6.0.1(vite@8.0.11(@types/node@25.6.0)(esbuild@0.27.4)(jiti@2.7.0)(tsx@4.21.0)(yaml@2.8.4))':
     dependencies:

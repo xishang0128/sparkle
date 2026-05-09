@@ -6,6 +6,7 @@ export {
   getProfileItem,
   getProfileConfig,
   getFileStr,
+  getFilePreviewStr,
   setFileStr,
   saveFileStrWithElevation,
   setProfileConfig,

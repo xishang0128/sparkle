@@ -18,6 +18,15 @@ import { useNavigate } from 'react-router-dom'
 import ConfirmModal from '../base/base-confirm'
 import { notify } from '@renderer/utils/notification'
 
+async function handleCreateHeapSnapshot(): Promise<void> {
+  try {
+    const snapshotPath = await createHeapSnapshot()
+    notify(`堆快照已创建\n${snapshotPath}`, { variant: 'success' })
+  } catch (e) {
+    notify(`创建堆快照失败\n${e}`, { variant: 'danger' })
+  }
+}
+
 const Actions: React.FC = () => {
   const navigate = useNavigate()
   const [newVersion, setNewVersion] = useState('')
@@ -176,7 +185,7 @@ const Actions: React.FC = () => {
           }
           divider
         >
-          <Button size="sm" onPress={createHeapSnapshot}>
+          <Button size="sm" onPress={handleCreateHeapSnapshot}>
             创建堆快照
           </Button>
         </SettingItem>
