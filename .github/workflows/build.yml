@@ -133,7 +133,21 @@ jobs:
           npm_config_target_arch: ${{ matrix.arch }}
         shell: bash
         run: |
-          SKIP_PREPARE=1 pnpm install
+          case "${{ matrix.os }}-${{ matrix.arch }}" in
+            windows-latest-x64) PNPM_TARGET_FLAGS="--os=current --os=win32 --cpu=current --cpu=x64"; RULE_CONVERTER_NATIVE_PACKAGE="@uruhalushia/rule-converter-napi-win32-x64-msvc" ;;
+            windows-latest-arm64) PNPM_TARGET_FLAGS="--os=current --os=win32 --cpu=current --cpu=arm64"; RULE_CONVERTER_NATIVE_PACKAGE="@uruhalushia/rule-converter-napi-win32-arm64-msvc" ;;
+            ubuntu-latest-x64) PNPM_TARGET_FLAGS="--os=current --os=linux --cpu=current --cpu=x64 --libc=current --libc=glibc"; RULE_CONVERTER_NATIVE_PACKAGE="@uruhalushia/rule-converter-napi-linux-x64-gnu" ;;
+            ubuntu-latest-arm64) PNPM_TARGET_FLAGS="--os=current --os=linux --cpu=current --cpu=arm64 --libc=current --libc=glibc"; RULE_CONVERTER_NATIVE_PACKAGE="@uruhalushia/rule-converter-napi-linux-arm64-gnu" ;;
+            ubuntu-latest-loong64) PNPM_TARGET_FLAGS="--os=current --os=linux --cpu=current --cpu=loong64 --libc=current --libc=glibc"; RULE_CONVERTER_NATIVE_PACKAGE="@uruhalushia/rule-converter-napi-linux-loong64-gnu" ;;
+            macos-latest-x64) PNPM_TARGET_FLAGS="--os=current --os=darwin --cpu=current --cpu=x64"; RULE_CONVERTER_NATIVE_PACKAGE="@uruhalushia/rule-converter-napi-darwin-x64" ;;
+            macos-latest-arm64) PNPM_TARGET_FLAGS="--os=current --os=darwin --cpu=current --cpu=arm64"; RULE_CONVERTER_NATIVE_PACKAGE="@uruhalushia/rule-converter-napi-darwin-arm64" ;;
+            *) echo "Unsupported rule-converter target: ${{ matrix.os }}-${{ matrix.arch }}" && exit 1 ;;
+          esac
+          SKIP_PREPARE=1 pnpm install $PNPM_TARGET_FLAGS
+
+          pnpm exec node -e "const fs=require('node:fs');const path=require('node:path');const target=process.argv[1].trim();const keep=target.split('/').pop();const base=path.dirname(path.dirname(require.resolve('@uruhalushia/rule-converter-napi/package.json')));for(const name of fs.readdirSync(base)){if(name.startsWith('rule-converter-napi-')&&name!==keep)fs.rmSync(path.join(base,name),{recursive:true,force:true});}const store=path.join(process.cwd(),'node_modules','.pnpm');for(const name of fs.readdirSync(store)){if(name.startsWith('@uruhalushia+rule-converter-napi-')&&!name.startsWith('@uruhalushia+'+keep+'@'))fs.rmSync(path.join(store,name),{recursive:true,force:true});}" "$RULE_CONVERTER_NATIVE_PACKAGE"
+          pnpm exec node -e "require('node:module').createRequire(require.resolve('@uruhalushia/rule-converter-napi')).resolve(process.argv[1].trim() + '/package.json')" "$RULE_CONVERTER_NATIVE_PACKAGE" \
+            || (echo "Missing $RULE_CONVERTER_NATIVE_PACKAGE. pnpm must install cross-platform optional native dependencies." && exit 1)
           pnpm prepare --${{ matrix.arch }}
 
       - name: Build
