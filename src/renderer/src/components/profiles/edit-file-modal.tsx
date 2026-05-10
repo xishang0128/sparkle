@@ -1,4 +1,5 @@
 import { Button, Label, Modal, Switch } from '@heroui-v3/react'
+import { Spinner } from '@heroui/react'
 import React, { useEffect, useState } from 'react'
 import { BaseEditor } from '../base/base-editor-lazy'
 import { getProfileStr, setProfileStr } from '@renderer/utils/ipc'
@@ -17,6 +18,7 @@ const EditFileModal: React.FC<Props> = (props) => {
   useAppConfig()
   const [currData, setCurrData] = useState('')
   const [originalData, setOriginalData] = useState('')
+  const [isLoading, setIsLoading] = useState(true)
   const [isDiff, setIsDiff] = useState(false)
   const [sideBySide, setSideBySide] = useState(false)
   const [isConfirmOpen, setIsConfirmOpen] = useState(false)
@@ -33,9 +35,13 @@ const EditFileModal: React.FC<Props> = (props) => {
   }
 
   const getContent = async (): Promise<void> => {
-    const data = await getProfileStr(id)
-    setCurrData(data)
-    setOriginalData(data)
+    try {
+      const data = await getProfileStr(id)
+      setCurrData(data)
+      setOriginalData(data)
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   useEffect(() => {
@@ -84,13 +90,19 @@ const EditFileModal: React.FC<Props> = (props) => {
               </div>
             </Modal.Header>
             <Modal.Body className="h-full">
-              <BaseEditor
-                language="yaml"
-                value={currData}
-                originalValue={isDiff ? originalData : undefined}
-                onChange={(value) => setCurrData(value)}
-                diffRenderSideBySide={sideBySide}
-              />
+              {isLoading ? (
+                <div className="flex h-full items-center justify-center">
+                  <Spinner size="lg" />
+                </div>
+              ) : (
+                <BaseEditor
+                  language="yaml"
+                  value={currData}
+                  originalValue={isDiff ? originalData : undefined}
+                  onChange={(value) => setCurrData(value)}
+                  diffRenderSideBySide={sideBySide}
+                />
+              )}
             </Modal.Body>
             <Modal.Footer className="flex justify-between pt-0 pb-0">
               <div className="flex items-center space-x-2">

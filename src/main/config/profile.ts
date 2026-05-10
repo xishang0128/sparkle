@@ -2,7 +2,7 @@ import { getControledMihomoConfig } from './controledMihomo'
 import { mihomoProfileWorkDir, mihomoWorkDir, profileConfigPath, profilePath } from '../utils/dirs'
 import { addProfileUpdater, delProfileUpdater } from '../core/profileUpdater'
 import { readFile, writeFile, rm, mkdir } from 'fs/promises'
-import { convertFileToString } from '@uruhalushia/rule-converter-napi'
+import { fileToStr } from '@uruhalushia/rule-converter-napi'
 import { restartCore } from '../core/manager'
 import { getAppConfig } from './app'
 import { existsSync } from 'fs'
@@ -462,15 +462,19 @@ export async function getFilePreviewStr(path: string, format?: string): Promise<
 }
 
 async function convertMrsRuleToText(path: string): Promise<string> {
-  const result = convertFileToString(path, {
+  const result = fileToStr(path, {
     outputTarget: 'mihomo',
     outputFormat: 'text',
     outputBehavior: 'auto'
   })
-  if (!result.outputs.length) {
+  let text = ''
+  for (const output of Object.values(result.outputs)) {
+    text += text ? `\n${output}` : output
+  }
+  if (!text) {
     return ''
   }
-  return result.outputs.map((output) => output.text).join('\n')
+  return text
 }
 
 export async function setFileStr(path: string, content: string): Promise<void> {

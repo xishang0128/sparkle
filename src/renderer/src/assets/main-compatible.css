@@ -409,6 +409,30 @@ button[data-slot='base'] {
   --tw-ring-color: var(--focus);
 }
 
+.text-viewer-search.input {
+  --focus: var(--accent, hsl(var(--heroui-primary)));
+  --color-field-border-focus: var(--focus);
+  --tw-ring-inset: inset;
+  --tw-ring-offset-width: 0px;
+  --tw-ring-color: var(--focus);
+  height: calc(var(--spacing) * 8);
+  min-height: calc(var(--spacing) * 8);
+  border-width: 1px;
+  border-color: var(--border);
+  border-radius: var(--radius-lg, var(--radius));
+  padding-block: 0;
+  font-size: var(--text-sm);
+  line-height: calc(var(--spacing) * 8);
+}
+
+.text-viewer-search.input:focus,
+.text-viewer-search.input[data-focused='true'],
+.text-viewer-search.input[data-focus-visible='true'] {
+  border-color: var(--focus) !important;
+  outline: none !important;
+  box-shadow: 0 0 0 1px var(--focus) inset !important;
+}
+
 .setting-item .input[data-setting-input='url'] {
   width: calc(var(--spacing) * 90);
 }

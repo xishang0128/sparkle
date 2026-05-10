@@ -16,8 +16,6 @@ import { MdEditDocument } from 'react-icons/md'
 import dayjs from 'dayjs'
 import { notify } from '@renderer/utils/notification'
 
-const LARGE_RULE_PREVIEW_THRESHOLD = 10000
-
 const RuleProvider: React.FC = () => {
   const [showDetails, setShowDetails] = useState({
     show: false,
@@ -108,25 +106,6 @@ const RuleProvider: React.FC = () => {
     })
   }
 
-  const onOpenProviderDetails = (provider: ControllerRuleProviderDetail): void => {
-    if (provider.ruleCount <= LARGE_RULE_PREVIEW_THRESHOLD) {
-      openProviderDetails(provider)
-      return
-    }
-
-    notify('规则数量较多，已取消自动打开', {
-      actionProps: {
-        children: '继续打开',
-        onPress: () => openProviderDetails(provider),
-        variant: 'secondary'
-      },
-      body: `${provider.name} 包含 ${provider.ruleCount} 条规则，完整预览可能占用较多内存并导致界面卡顿。`,
-      forceToast: true,
-      timeout: 12000,
-      variant: 'warning'
-    })
-  }
-
   if (!providers.length) {
     return null
   }
@@ -183,7 +162,7 @@ const RuleProvider: React.FC = () => {
                   isIconOnly
                   className="ml-2"
                   size="sm"
-                  onPress={() => onOpenProviderDetails(provider)}
+                  onPress={() => openProviderDetails(provider)}
                 >
                   {provider.vehicleType == 'File' ? (
                     <MdEditDocument className={`text-lg`} />

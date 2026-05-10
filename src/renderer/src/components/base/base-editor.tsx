@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { useMemo, useRef } from 'react'
 import * as monaco from 'monaco-editor'
 import MonacoEditor, { MonacoDiffEditor } from 'react-monaco-editor'
 import { configureMonacoYaml } from 'monaco-yaml'
@@ -10,6 +10,10 @@ import React from 'react'
 import { useAppConfig } from '@renderer/hooks/use-app-config'
 type Language = 'yaml' | 'javascript' | 'css' | 'json' | 'text'
 
+const LONG_LINE_LIMIT = 1000
+const LARGE_CONTENT_LIMIT = 2 * 1024 * 1024
+const LARGE_LINE_COUNT_LIMIT = 20000
+
 interface Props {
   value: string
   originalValue?: string
@@ -20,6 +24,44 @@ interface Props {
 }
 
 let initialized = false
+
+function getContentStats(...contents: Array<string | undefined>): {
+  hasLongLine: boolean
+  isLargeContent: boolean
+} {
+  let totalLength = 0
+  let lineCount = 1
+  let currentLineLength = 0
+  let hasLongLine = false
+
+  for (const content of contents) {
+    if (!content) continue
+    totalLength += content.length
+
+    for (let index = 0; index < content.length; index++) {
+      if (content.charCodeAt(index) === 10) {
+        lineCount++
+        currentLineLength = 0
+      } else {
+        currentLineLength++
+        if (currentLineLength > LONG_LINE_LIMIT) {
+          hasLongLine = true
+        }
+      }
+    }
+  }
+
+  return {
+    hasLongLine,
+    isLargeContent: totalLength > LARGE_CONTENT_LIMIT || lineCount > LARGE_LINE_COUNT_LIMIT
+  }
+}
+
+function createEditorUri(prefix: string, language: Language): monaco.Uri {
+  const extension = language === 'yaml' ? 'clash.yaml' : language
+  return monaco.Uri.parse(`${prefix}-${nanoid()}.${extension}`)
+}
+
 const monacoInitialization = (): void => {
   if (initialized) return
 
@@ -100,9 +142,16 @@ export const BaseEditor: React.FC<Props> = (props) => {
   } = props
   const { appConfig: { disableAnimation = false } = {} } = useAppConfig()
 
-  const hasLongLine = value.split('\n').some((line) => line.length > 1000) || value === ''
+  const { hasLongLine, isLargeContent } = useMemo(
+    () => getContentStats(value, originalValue),
+    [originalValue, value]
+  )
+  const modelLanguage = isLargeContent ? 'text' : language
   const editorRef = useRef<monaco.editor.IStandaloneCodeEditor>(undefined)
   const diffEditorRef = useRef<monaco.editor.IStandaloneDiffEditor>(undefined)
+  const editorUriRef = useRef<monaco.Uri>(createEditorUri('model', modelLanguage))
+  const originalUriRef = useRef<monaco.Uri>(createEditorUri('original', modelLanguage))
+  const modifiedUriRef = useRef<monaco.Uri>(createEditorUri('modified', modelLanguage))
 
   const editorWillMount = (): void => {
     monacoInitialization()
@@ -110,41 +159,40 @@ export const BaseEditor: React.FC<Props> = (props) => {
 
   const editorDidMount = (editor: monaco.editor.IStandaloneCodeEditor): void => {
     editorRef.current = editor
-
-    const uri = monaco.Uri.parse(`${nanoid()}.${language === 'yaml' ? 'clash' : ''}.${language}`)
-    const model = monaco.editor.createModel(value, language, uri)
-    editorRef.current.setModel(model)
   }
+
+  const editorWillUnmount = (editor: monaco.editor.IStandaloneCodeEditor): void => {
+    editor.getModel()?.dispose()
+  }
+
   const diffEditorDidMount = (editor: monaco.editor.IStandaloneDiffEditor): void => {
     diffEditorRef.current = editor
-
-    const originalUri = monaco.Uri.parse(
-      `original-${nanoid()}.${language === 'yaml' ? 'clash' : ''}.${language}`
-    )
-    const modifiedUri = monaco.Uri.parse(
-      `modified-${nanoid()}.${language === 'yaml' ? 'clash' : ''}.${language}`
-    )
-    const originalModel = monaco.editor.createModel(originalValue || '', language, originalUri)
-    const modifiedModel = monaco.editor.createModel(value, language, modifiedUri)
-    diffEditorRef.current.setModel({
-      original: originalModel,
-      modified: modifiedModel
-    })
   }
 
   const options = {
     tabSize: ['yaml', 'javascript', 'json'].includes(language) ? 2 : 4, // 根据语言类型设置缩进大小
     minimap: {
-      enabled: document.documentElement.clientWidth >= 1500 // 超过一定宽度显示 minimap 滚动条
+      enabled: !isLargeContent && document.documentElement.clientWidth >= 1500 // 超过一定宽度显示 minimap 滚动条
     },
     mouseWheelZoom: true, // 按住 Ctrl 滚轮调节缩放比例
     readOnly: readOnly, // 只读模式
-    renderValidationDecorations: 'on' as 'off' | 'on' | 'editable', // 只读模式下显示校验信息
-    quickSuggestions: {
-      strings: true, // 字符串类型的建议
-      comments: true, // 注释类型的建议
-      other: true // 其他类型的建议
-    },
+    largeFileOptimizations: true,
+    renderValidationDecorations: (isLargeContent ? 'off' : 'on') as 'off' | 'on' | 'editable', // 只读模式下显示校验信息
+    quickSuggestions: isLargeContent
+      ? false
+      : {
+          strings: true, // 字符串类型的建议
+          comments: true, // 注释类型的建议
+          other: true // 其他类型的建议
+        },
+    suggestOnTriggerCharacters: !isLargeContent,
+    acceptSuggestionOnCommitCharacter: !isLargeContent,
+    selectionHighlight: !isLargeContent,
+    occurrencesHighlight: (isLargeContent ? 'off' : 'singleFile') as 'off' | 'singleFile',
+    codeLens: !isLargeContent,
+    colorDecorators: !isLargeContent,
+    links: !isLargeContent,
+    matchBrackets: (isLargeContent ? 'never' : 'always') as 'never' | 'always',
     fontFamily: `Maple Mono NF CN,Fira Code, JetBrains Mono, Roboto Mono, "Source Code Pro", Consolas, Menlo, Monaco, monospace, "Courier New", "Apple Color Emoji", "Noto Color Emoji"`,
     fontLigatures: true, // 连字符
     smoothScrolling: !disableAnimation, // 禁用动画时关闭平滑滚动
@@ -152,7 +200,7 @@ export const BaseEditor: React.FC<Props> = (props) => {
     renderSideBySide: diffRenderSideBySide, // 侧边显示
     useInlineViewWhenSpaceIsLimited: false, // 侧边显示时不要自动退回内联模式
     glyphMargin: false, // 禁用字形边距
-    folding: true, // 启用代码折叠
+    folding: !isLargeContent, // 启用代码折叠
     scrollBeyondLastLine: false, // 禁止滚动超过最后一行
     automaticLayout: true, // 自动布局
     wordWrap: (hasLongLine ? 'off' : 'on') as 'on' | 'off', // 超长行时关闭自动换行
@@ -173,7 +221,7 @@ export const BaseEditor: React.FC<Props> = (props) => {
       showIcons: !disableAnimation // 禁用建议图标以减少渲染
     },
     hover: {
-      enabled: !disableAnimation, // 禁用悬停提示
+      enabled: !disableAnimation && !isLargeContent, // 禁用悬停提示
       delay: disableAnimation ? 0 : 300
     }
   }
@@ -181,9 +229,11 @@ export const BaseEditor: React.FC<Props> = (props) => {
   if (originalValue !== undefined) {
     return (
       <MonacoDiffEditor
-        language={language}
+        language={modelLanguage}
         original={originalValue}
         value={value}
+        originalUri={() => originalUriRef.current}
+        modifiedUri={() => modifiedUriRef.current}
         height="100%"
         theme={trueTheme?.includes('light') ? 'vs' : 'vs-dark'}
         options={options}
@@ -197,14 +247,15 @@ export const BaseEditor: React.FC<Props> = (props) => {
 
   return (
     <MonacoEditor
-      language={language}
+      language={modelLanguage}
       value={value}
+      uri={() => editorUriRef.current}
       height="100%"
       theme={trueTheme?.includes('light') ? 'vs' : 'vs-dark'}
       options={options}
       editorWillMount={editorWillMount}
       editorDidMount={editorDidMount}
-      editorWillUnmount={(): void => {}}
+      editorWillUnmount={editorWillUnmount}
       onChange={onChange}
     />
   )

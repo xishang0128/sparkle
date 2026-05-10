@@ -2,6 +2,7 @@ import { Button, Modal } from '@heroui-v3/react'
 import { Spinner } from '@heroui/react'
 import React, { useEffect, useState } from 'react'
 import { BaseEditor } from '../base/base-editor-lazy'
+import { TextViewer } from '../base/text-viewer'
 import {
   getFilePreviewStr,
   getFileStr,
@@ -13,6 +14,7 @@ import ConfirmModal from '../base/base-confirm'
 import { notify } from '@renderer/utils/notification'
 type Language = 'yaml' | 'javascript' | 'css' | 'json' | 'text'
 const FILE_PERMISSION_ELEVATION_REQUIRED = 'FILE_PERMISSION_ELEVATION_REQUIRED'
+const TEXT_VIEWER_LINE_LIMIT = 20000
 
 interface Props {
   onClose: () => void
@@ -49,6 +51,19 @@ function getViewerContent(fileContent: string, providerType: string, title: stri
   }
 }
 
+function hasManyLines(value: string, limit: number): boolean {
+  let lines = 1
+  for (let index = 0; index < value.length; index++) {
+    if (value.charCodeAt(index) === 10) {
+      lines++
+      if (lines > limit) {
+        return true
+      }
+    }
+  }
+  return false
+}
+
 const Viewer: React.FC<Props> = (props) => {
   const { type, path, title, format, providerType, onClose } = props
   const [currData, setCurrData] = useState('')
@@ -57,6 +72,7 @@ const Viewer: React.FC<Props> = (props) => {
   const [isLoading, setIsLoading] = useState(true)
   const language = type === 'Inline' ? 'yaml' : getDefaultLanguage(format)
   const editorLanguage = format === 'MrsRule' ? 'text' : language
+  const useTextViewer = type !== 'File' && hasManyLines(currData, TEXT_VIEWER_LINE_LIMIT)
 
   const save = async (elevated = false): Promise<void> => {
     setIsSaving(true)
@@ -154,12 +170,16 @@ const Viewer: React.FC<Props> = (props) => {
                   <Spinner size="lg" />
                 </div>
               ) : (
-                <BaseEditor
-                  language={editorLanguage}
-                  value={currData}
-                  readOnly={type !== 'File'}
-                  onChange={(value) => setCurrData(value)}
-                />
+                useTextViewer ? (
+                  <TextViewer value={currData} />
+                ) : (
+                  <BaseEditor
+                    language={editorLanguage}
+                    value={currData}
+                    readOnly={type !== 'File'}
+                    onChange={(value) => setCurrData(value)}
+                  />
+                )
               )}
             </Modal.Body>
             {type === 'File' && !isLoading && (
