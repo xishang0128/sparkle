@@ -123,9 +123,9 @@ jobs:
         run: |
           export ELECTRON_MIRROR="https://github.com/darkyzhou/electron-loong64/releases/download/"
           export electron_use_remote_checksums=1
-          SKIP_PREPARE=1 pnpm install electron@39.2.7 -D
-          pnpm remove electron-builder
-          SKIP_PREPARE=1 pnpm install @loongdotjs/electron-builder@26.8.2-3 -D
+          SKIP_PREPARE=1 pnpm install electron@39.2.7 -D --ignore-scripts
+          pnpm remove electron-builder --config.ignore-scripts=true
+          SKIP_PREPARE=1 pnpm install @loongdotjs/electron-builder@26.8.2-3 -D --ignore-scripts
 
       - name: Install Dependencies and Prepare
         env:
@@ -144,9 +144,16 @@ jobs:
             *) echo "Unsupported rule-converter target: ${{ matrix.os }}-${{ matrix.arch }}" && exit 1 ;;
           esac
           SKIP_PREPARE=1 pnpm install $PNPM_TARGET_FLAGS
+          verify_rule_converter_native() {
+            node -e "require('node:module').createRequire(require.resolve('@uruhalushia/rule-converter-napi')).resolve(process.argv[1].trim() + '/package.json')" "$RULE_CONVERTER_NATIVE_PACKAGE"
+          }
+          if ! verify_rule_converter_native; then
+            RULE_CONVERTER_VERSION=$(node -p "require('./node_modules/@uruhalushia/rule-converter-napi/package.json').version")
+            SKIP_PREPARE=1 pnpm add "$RULE_CONVERTER_NATIVE_PACKAGE@$RULE_CONVERTER_VERSION" -D --ignore-scripts $PNPM_TARGET_FLAGS
+          fi
 
           pnpm exec node -e "const fs=require('node:fs');const path=require('node:path');const target=process.argv[1].trim();const keep=target.split('/').pop();const base=path.dirname(path.dirname(require.resolve('@uruhalushia/rule-converter-napi/package.json')));for(const name of fs.readdirSync(base)){if(name.startsWith('rule-converter-napi-')&&name!==keep)fs.rmSync(path.join(base,name),{recursive:true,force:true});}const store=path.join(process.cwd(),'node_modules','.pnpm');for(const name of fs.readdirSync(store)){if(name.startsWith('@uruhalushia+rule-converter-napi-')&&!name.startsWith('@uruhalushia+'+keep+'@'))fs.rmSync(path.join(store,name),{recursive:true,force:true});}" "$RULE_CONVERTER_NATIVE_PACKAGE"
-          pnpm exec node -e "require('node:module').createRequire(require.resolve('@uruhalushia/rule-converter-napi')).resolve(process.argv[1].trim() + '/package.json')" "$RULE_CONVERTER_NATIVE_PACKAGE" \
+          verify_rule_converter_native \
             || (echo "Missing $RULE_CONVERTER_NATIVE_PACKAGE. pnpm must install cross-platform optional native dependencies." && exit 1)
           pnpm prepare --${{ matrix.arch }}
 

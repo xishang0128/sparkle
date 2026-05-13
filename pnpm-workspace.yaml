@@ -1,6 +1,6 @@
 allowBuilds:
   '@heroui/shared-utils': true
-  electron: true
+  electron: false
   electron-winstaller: true
   esbuild: true
   koffi: true
