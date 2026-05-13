@@ -31,6 +31,7 @@ interface IHost {
 interface AppConfig {
   updateChannel: 'stable' | 'beta'
   notificationMode?: AppNotificationMode
+  showUpdateButtonAfterNotification?: boolean
   core: 'mihomo' | 'mihomo-alpha' | 'system'
   systemCorePath?: string
   corePermissionMode?: 'elevated' | 'service'

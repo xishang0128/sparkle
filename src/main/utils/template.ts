@@ -4,6 +4,7 @@ export const defaultConfig: AppConfig = {
   core: 'mihomo',
   updateChannel: 'stable',
   notificationMode: 'system',
+  showUpdateButtonAfterNotification: true,
   silentStart: false,
   appTheme: 'system',
   useWindowFrame: false,

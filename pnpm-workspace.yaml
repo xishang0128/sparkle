@@ -1,0 +1,15 @@
+allowBuilds:
+  '@heroui/shared-utils': true
+  electron: true
+  electron-winstaller: true
+  esbuild: true
+  koffi: true
+  meta-json-schema: true
+overrides:
+  typescript-eslint: ^8.59.2
+patchedDependencies:
+  vite-plugin-monaco-editor@1.1.0: patches/vite-plugin-monaco-editor@1.1.0.patch
+publicHoistPattern:
+  - '*@heroui/*'
+shamefullyHoist: true
+virtualStoreDirMaxLength: 80

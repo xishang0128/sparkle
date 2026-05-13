@@ -9,6 +9,7 @@ export interface AppNotificationPayload {
   variant?: AppNotificationVariant
   actionProps?: ButtonProps
   timeout?: number
+  onClose?: () => void
 }
 
 interface AppNotificationOptions extends Omit<AppNotificationPayload, 'title'> {
@@ -25,6 +26,7 @@ export function showToastNotification(payload: AppNotificationPayload): void {
   toast(title, {
     actionProps: payload.actionProps,
     description: body,
+    onClose: payload.onClose,
     timeout: payload.timeout,
     variant: payload.variant ?? 'default'
   })
@@ -49,7 +51,8 @@ async function showNotification(
     // fall back to the current system notification behavior
   }
 
-  new window.Notification(payload.title, { body: payload.body })
+  const notification = new window.Notification(payload.title, { body: payload.body })
+  notification.onclose = payload.onClose ?? null
 }
 
 function normalizeToastPayload(payload: AppNotificationPayload): { title: string; body?: string } {

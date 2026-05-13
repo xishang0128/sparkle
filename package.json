@@ -14,12 +14,13 @@
     "typecheck:node": "tsc --noEmit -p tsconfig.node.json --composite false",
     "typecheck:web": "tsc --noEmit -p tsconfig.web.json --composite false",
     "typecheck": "pnpm run typecheck:node && pnpm run typecheck:web",
+    "ensure:electron": "node scripts/install-electron.ts",
     "prepare": "node scripts/prepare.ts",
     "updater": "node scripts/updater.ts",
     "checksum": "node scripts/checksum.ts",
     "telegram": "node scripts/telegram.ts",
-    "dev": "electron-vite dev",
-    "postinstall": "electron-builder install-app-deps",
+    "dev": "pnpm run ensure:electron && electron-vite dev",
+    "postinstall": "pnpm run ensure:electron && electron-builder install-app-deps",
     "build:win": "electron-vite build && electron-builder --publish never --win",
     "build:mac": "electron-vite build && electron-builder --publish never --mac",
     "build:linux": "electron-vite build && electron-builder --publish never --linux"
@@ -44,7 +45,10 @@
     "iconv-lite": "^0.7.2",
     "is-cidr": "^7.0.0",
     "is-ip": "^5.0.1",
+    "js-yaml": "^4.1.1",
     "koffi": "^2.16.2",
+    "monaco-editor": "^0.52.2",
+    "plist": "^3.1.0",
     "qrcode.react": "^4.2.0",
     "webdav": "^5.10.0",
     "ws": "^8.20.0",
@@ -63,6 +67,7 @@
     "@types/express": "^5.0.6",
     "@types/js-yaml": "^4.0.9",
     "@types/node": "^25.6.2",
+    "@types/plist": "^3.0.5",
     "@types/pubsub-js": "^1.8.6",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
@@ -105,16 +110,5 @@
     "vite": "^8.0.11",
     "vite-plugin-monaco-editor": "1.1.0"
   },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "electron"
-    ],
-    "patchedDependencies": {
-      "vite-plugin-monaco-editor@1.1.0": "patches/vite-plugin-monaco-editor@1.1.0.patch"
-    },
-    "overrides": {
-      "typescript-eslint": "^8.59.2"
-    }
-  },
-  "packageManager": "pnpm@10.15.0"
+  "packageManager": "pnpm@11.1.1"
 }
