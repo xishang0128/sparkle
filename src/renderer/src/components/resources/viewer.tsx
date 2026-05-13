@@ -169,17 +169,15 @@ const Viewer: React.FC<Props> = (props) => {
                 <div className="flex h-full items-center justify-center">
                   <Spinner size="lg" />
                 </div>
+              ) : useTextViewer ? (
+                <TextViewer value={currData} />
               ) : (
-                useTextViewer ? (
-                  <TextViewer value={currData} />
-                ) : (
-                  <BaseEditor
-                    language={editorLanguage}
-                    value={currData}
-                    readOnly={type !== 'File'}
-                    onChange={(value) => setCurrData(value)}
-                  />
-                )
+                <BaseEditor
+                  language={editorLanguage}
+                  value={currData}
+                  readOnly={type !== 'File'}
+                  onChange={(value) => setCurrData(value)}
+                />
               )}
             </Modal.Body>
             {type === 'File' && !isLoading && (

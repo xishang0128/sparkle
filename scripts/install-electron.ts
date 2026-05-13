@@ -21,7 +21,8 @@ const { downloadArtifact } = electronRequire('@electron/get') as {
   }) => Promise<string>
 }
 
-const platform = process.env.ELECTRON_INSTALL_PLATFORM || process.env.npm_config_platform || os.platform()
+const platform =
+  process.env.ELECTRON_INSTALL_PLATFORM || process.env.npm_config_platform || os.platform()
 const arch = process.env.ELECTRON_INSTALL_ARCH || process.env.npm_config_arch || os.arch()
 const distPath = process.env.ELECTRON_OVERRIDE_DIST_PATH || path.join(electronDir, 'dist')
 const platformPath = getPlatformPath(platform)
@@ -45,9 +46,15 @@ function getPlatformPath(targetPlatform: string): string {
 
 function isInstalled(): boolean {
   try {
-    const installedVersion = fs.readFileSync(path.join(distPath, 'version'), 'utf-8').replace(/^v/, '')
+    const installedVersion = fs
+      .readFileSync(path.join(distPath, 'version'), 'utf-8')
+      .replace(/^v/, '')
     const installedPath = fs.readFileSync(pathFile, 'utf-8')
-    return installedVersion === version && installedPath === platformPath && fs.existsSync(path.join(distPath, platformPath))
+    return (
+      installedVersion === version &&
+      installedPath === platformPath &&
+      fs.existsSync(path.join(distPath, platformPath))
+    )
   } catch {
     return false
   }
@@ -65,7 +72,8 @@ async function main(): Promise<void> {
     force: process.env.force_no_cache === 'true',
     cacheRoot: process.env.electron_config_cache,
     checksums:
-      process.env.electron_use_remote_checksums || process.env.npm_config_electron_use_remote_checksums
+      process.env.electron_use_remote_checksums ||
+      process.env.npm_config_electron_use_remote_checksums
         ? undefined
         : electronRequire('./checksums.json'),
     platform,

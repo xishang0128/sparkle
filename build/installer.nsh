@@ -1,7 +1,19 @@
 !ifndef BUILD_UNINSTALLER
+!include FileFunc.nsh
+!insertmacro DriveSpace
+
+!define SPARKLE_MIN_TEMP_SPACE_MB 1024
 
 !macro customHeader
   Var sparkleServiceWasRunning
+!macroend
+
+!macro EnsureTempSpace
+  ${DriveSpace} "$TEMP" "/D=F /S=M" $R0
+  ${If} $R0 < ${SPARKLE_MIN_TEMP_SPACE_MB}
+    MessageBox MB_ICONSTOP "Not enough space in the temp directory. Free at least ${SPARKLE_MIN_TEMP_SPACE_MB} MB on the temp drive or set TEMP/TMP to another drive, then run the installer again."
+    Abort
+  ${EndIf}
 !macroend
 
 !macro ServiceOutputContains NEEDLE RESULT
@@ -93,6 +105,7 @@
 !macroend
 
 !macro customInit
+  !insertmacro EnsureTempSpace
   StrCpy $sparkleServiceWasRunning "false"
   !insertmacro StopSparkleServiceIfRunning
 !macroend
