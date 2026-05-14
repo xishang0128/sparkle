@@ -94,6 +94,7 @@ let serviceCoreStreamsActive = false
 let serviceCoreStreamsStarting: Promise<void> | null = null
 let lastServiceCoreEventKey = ''
 let serviceCoreStartupActive = false
+let serviceCoreManaged = false
 let serviceCoreReconnectResumePromise: Promise<void> | null = null
 let serviceUnavailableModeFallbackPromise: Promise<void> | null = null
 const serviceConnectionRetryInterval = 500
@@ -372,6 +373,7 @@ export async function startCore(detached = false): Promise<Promise<void>[]> {
       if (!serviceCoreRunning) {
         await startServiceCore(serviceProfile)
       }
+      serviceCoreManaged = true
     } catch (error) {
       if (isServiceUnavailableError(error)) {
         const probe = await waitForServiceCoreConnection(error)
@@ -382,6 +384,7 @@ export async function startCore(detached = false): Promise<Promise<void>[]> {
         if (!probe.running) {
           await startServiceCore(serviceProfile)
         }
+        serviceCoreManaged = true
       } else {
         throw error
       }
@@ -533,12 +536,14 @@ export async function stopCore(force = false): Promise<void> {
   }
 
   const { corePermissionMode = 'elevated' } = await getAppConfig()
-  if (corePermissionMode === 'service') {
+  const shouldStopServiceCore = serviceCoreManaged || corePermissionMode === 'service'
+  if (shouldStopServiceCore) {
     try {
       await stopServiceCore()
     } catch (error) {
       await appendAppLog(`[Manager]: stop service core failed, ${error}\n`)
     } finally {
+      serviceCoreManaged = false
       stopServiceCoreEventStream()
       releaseServiceCoreEventHandler()
     }
@@ -618,6 +623,7 @@ async function handleServiceCoreEvent(event: ServiceCoreEvent): Promise<void> {
 
   switch (event.type) {
     case 'started':
+      serviceCoreManaged = true
       await getAxios(true).catch(() => {})
       mainWindow?.webContents.send('core-started', event)
       mainWindow?.webContents.send('groupsUpdated')
@@ -629,6 +635,7 @@ async function handleServiceCoreEvent(event: ServiceCoreEvent): Promise<void> {
       break
     case 'takeover':
     case 'ready':
+      serviceCoreManaged = true
       await getAxios(true).catch(() => {})
       mainWindow?.webContents.send('core-started', event)
       mainWindow?.webContents.send('groupsUpdated')
@@ -646,11 +653,15 @@ async function handleServiceCoreEvent(event: ServiceCoreEvent): Promise<void> {
       serviceCoreStreamsActive = false
       setMihomoLogSource('out')
       mainWindow?.webContents.send('core-stopped', event)
+      if (event.type === 'failed' || event.type === 'restart_failed') {
+        serviceCoreManaged = false
+      }
       if (event.type === 'restart_failed') {
         mainWindow?.webContents.reload()
       }
       break
     case 'stopped':
+      serviceCoreManaged = false
       serviceCoreStreamsActive = false
       mainWindow?.webContents.send('core-stopped', event)
       break
