@@ -104,7 +104,12 @@ const directCoreLogLineLimit = 16 * 1024
 
 type CoreLogNotification = AppNotificationPayload & {
   key: string
+  name?: string
   variant?: AppNotificationVariant
+}
+
+interface CoreLogAction {
+  closeName: string
 }
 
 interface CoreLogNotificationSource {
@@ -114,14 +119,25 @@ interface CoreLogNotificationSource {
 }
 
 interface CoreLogNotificationRule {
-  match: (source: CoreLogNotificationSource) => CoreLogNotification | undefined
+  match: (source: CoreLogNotificationSource) => CoreLogNotification | CoreLogAction | undefined
 }
 
 const notifiedCoreLogKeys = new Set<string>()
+const tailscaleAuthNotificationKeysByName = new Map<string, Set<string>>()
 let directCoreLogLineBuffer = ''
 const coreLogNotificationRules: CoreLogNotificationRule[] = [
   {
     match: (source) => {
+      const doneName =
+        source.message === 'tailscale_auth_done'
+          ? source.data?.name
+          : source.text
+            ? parseTailscaleAuthDoneLog(source.text)
+            : undefined
+      if (doneName) {
+        return { closeName: doneName }
+      }
+
       const auth =
         source.message === 'tailscale_auth'
           ? source.data
@@ -135,6 +151,7 @@ const coreLogNotificationRules: CoreLogNotificationRule[] = [
 
       return {
         key: `${tailscaleAuthNotificationKeyPrefix}${url}`,
+        name,
         id: `${tailscaleAuthNotificationKeyPrefix}${url}`,
         title: `${name} 需要 Tailscale 认证`,
         body: '点击打开认证链接',
@@ -168,6 +185,19 @@ function parseTailscaleAuthLog(line: string): { name: string; url: string } | un
   }
 
   return { name, url }
+}
+
+function parseTailscaleAuthDoneLog(line: string): string | undefined {
+  const prefix = '[Tailscale]('
+  const marker = ') AuthLoop: state is Starting; done'
+  const prefixIndex = line.indexOf(prefix)
+  if (prefixIndex < 0) return undefined
+
+  const rest = line.slice(prefixIndex + prefix.length)
+  const markerIndex = rest.indexOf(marker)
+  if (markerIndex <= 0) return undefined
+
+  return rest.slice(0, markerIndex) || undefined
 }
 
 function findTailscaleAuthUrlEnd(url: string): number {
@@ -728,11 +758,23 @@ async function handleServiceCoreEvent(event: ServiceCoreEvent): Promise<void> {
 
 function notifyCoreLog(source: CoreLogNotificationSource): void {
   for (const rule of coreLogNotificationRules) {
-    const notification = rule.match(source)
-    if (!notification || notifiedCoreLogKeys.has(notification.key)) continue
+    const result = rule.match(source)
+    if (!result) continue
+    if ('closeName' in result) {
+      clearTailscaleAuthNotifications(result.closeName)
+      continue
+    }
+
+    const notification = result
+    if (notifiedCoreLogKeys.has(notification.key)) continue
 
     notifiedCoreLogKeys.add(notification.key)
-    const { key: _key, ...payload } = notification
+    if (notification.name) {
+      const keys = tailscaleAuthNotificationKeysByName.get(notification.name) ?? new Set<string>()
+      keys.add(notification.key)
+      tailscaleAuthNotificationKeysByName.set(notification.name, keys)
+    }
+    const { key: _key, name: _name, ...payload } = notification
     void showNotification(payload)
   }
 }
@@ -763,12 +805,26 @@ function flushDirectCoreLogNotifications(): void {
   directCoreLogLineBuffer = ''
 }
 
-function clearTailscaleAuthNotifications(): void {
-  for (const key of notifiedCoreLogKeys) {
-    if (!key.startsWith(tailscaleAuthNotificationKeyPrefix)) continue
+function clearTailscaleAuthNotifications(name?: string): void {
+  const indexedKeys = name ? tailscaleAuthNotificationKeysByName.get(name) : undefined
+  const keys =
+    indexedKeys ??
+    new Set(
+      Array.from(notifiedCoreLogKeys).filter((key) =>
+        key.startsWith(tailscaleAuthNotificationKeyPrefix)
+      ),
+    )
+  if (keys.size === 0) return
 
+  for (const key of keys) {
     notifiedCoreLogKeys.delete(key)
     dismissNotification(key)
+  }
+
+  if (name) {
+    tailscaleAuthNotificationKeysByName.delete(name)
+  } else {
+    tailscaleAuthNotificationKeysByName.clear()
   }
 }
 
