@@ -1,6 +1,6 @@
 import { Toast } from '@heroui-v3/react'
 import { useEffect } from 'react'
-import { showToastNotification } from '@renderer/utils/notification'
+import { dismissToastNotification, showToastNotification } from '@renderer/utils/notification'
 
 const maxVisibleAppNotifications = 10
 
@@ -12,11 +12,16 @@ const AppNotificationProvider: React.FC = () => {
     ): void => {
       showToastNotification(payload)
     }
+    const handleNotificationDismiss = (_event: Electron.IpcRendererEvent, id: string): void => {
+      dismissToastNotification(id)
+    }
 
     window.electron.ipcRenderer.on('app-notification', handleNotification)
+    window.electron.ipcRenderer.on('app-notification-dismiss', handleNotificationDismiss)
     window.electron.ipcRenderer.send('app-notification-ready')
     return (): void => {
       window.electron.ipcRenderer.removeAllListeners('app-notification')
+      window.electron.ipcRenderer.removeAllListeners('app-notification-dismiss')
     }
   }, [])
 

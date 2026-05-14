@@ -4,6 +4,7 @@ import { getAppConfig } from './ipc'
 type AppNotificationVariant = 'default' | 'accent' | 'success' | 'warning' | 'danger'
 
 export interface AppNotificationPayload {
+  id?: string
   title: string
   body?: string
   persistent?: boolean
@@ -13,6 +14,8 @@ export interface AppNotificationPayload {
   timeout?: number
   onClose?: () => void
 }
+
+const toastKeys = new Map<string, string>()
 
 interface AppNotificationOptions extends Omit<AppNotificationPayload, 'title'> {
   forceToast?: boolean
@@ -25,7 +28,16 @@ export function notify(title: unknown, options: AppNotificationOptions = {}): vo
 
 export function showToastNotification(payload: AppNotificationPayload): void {
   const { title, body } = normalizeToastPayload(payload)
-  toast(title, {
+  if (payload.id) {
+    const previousKey = toastKeys.get(payload.id)
+    if (previousKey) {
+      toast.close(previousKey)
+      toastKeys.delete(payload.id)
+    }
+  }
+
+  let key = ''
+  key = toast(title, {
     actionProps:
       payload.actionProps ??
       (payload.url
@@ -35,10 +47,26 @@ export function showToastNotification(payload: AppNotificationPayload): void {
           }
         : undefined),
     description: body,
-    onClose: payload.onClose,
+    onClose: () => {
+      if (payload.id && toastKeys.get(payload.id) === key) {
+        toastKeys.delete(payload.id)
+      }
+      payload.onClose?.()
+    },
     timeout: payload.persistent ? 0 : payload.timeout,
     variant: payload.variant ?? 'default'
   })
+  if (payload.id) {
+    toastKeys.set(payload.id, key)
+  }
+}
+
+export function dismissToastNotification(id: string): void {
+  const key = toastKeys.get(id)
+  if (!key) return
+
+  toast.close(key)
+  toastKeys.delete(id)
 }
 
 async function showNotification(

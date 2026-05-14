@@ -53,6 +53,7 @@ import {
 } from '../service/fallback'
 import { appendAppLog, createLogWritable, setMihomoLogSource } from '../utils/log'
 import {
+  dismissNotification,
   showNotification,
   type AppNotificationPayload,
   type AppNotificationVariant
@@ -98,28 +99,43 @@ let serviceCoreManaged = false
 let serviceCoreReconnectResumePromise: Promise<void> | null = null
 let serviceUnavailableModeFallbackPromise: Promise<void> | null = null
 const serviceConnectionRetryInterval = 500
+const tailscaleAuthNotificationKeyPrefix = 'tailscale-auth:'
+const directCoreLogLineLimit = 16 * 1024
 
 type CoreLogNotification = AppNotificationPayload & {
   key: string
   variant?: AppNotificationVariant
 }
 
+interface CoreLogNotificationSource {
+  message?: string
+  data?: Record<string, string>
+  text?: string
+}
+
 interface CoreLogNotificationRule {
-  match: (event: ServiceCoreEvent) => CoreLogNotification | undefined
+  match: (source: CoreLogNotificationSource) => CoreLogNotification | undefined
 }
 
 const notifiedCoreLogKeys = new Set<string>()
+let directCoreLogLineBuffer = ''
 const coreLogNotificationRules: CoreLogNotificationRule[] = [
   {
-    match: (event) => {
-      if (event.message !== 'tailscale_auth') return undefined
+    match: (source) => {
+      const auth =
+        source.message === 'tailscale_auth'
+          ? source.data
+          : source.text
+            ? parseTailscaleAuthLog(source.text)
+            : undefined
 
-      const name = event.data?.name
-      const url = event.data?.url
+      const name = auth?.name
+      const url = auth?.url
       if (!name || !url) return undefined
 
       return {
-        key: `tailscale-auth:${url}`,
+        key: `${tailscaleAuthNotificationKeyPrefix}${url}`,
+        id: `${tailscaleAuthNotificationKeyPrefix}${url}`,
         title: `${name} 需要 Tailscale 认证`,
         body: '点击打开认证链接',
         persistent: true,
@@ -129,6 +145,51 @@ const coreLogNotificationRules: CoreLogNotificationRule[] = [
     }
   }
 ]
+
+function parseTailscaleAuthLog(line: string): { name: string; url: string } | undefined {
+  const prefix = '[Tailscale]('
+  const marker = ') To start this tsnet server, restart with TS_AUTHKEY set, or go to: '
+  const prefixIndex = line.indexOf(prefix)
+  if (prefixIndex < 0) return undefined
+
+  const rest = line.slice(prefixIndex + prefix.length)
+  const markerIndex = rest.indexOf(marker)
+  if (markerIndex <= 0) return undefined
+
+  const name = rest.slice(0, markerIndex)
+  let url = rest.slice(markerIndex + marker.length).trim()
+  const urlEnd = findTailscaleAuthUrlEnd(url)
+  if (urlEnd >= 0) {
+    url = url.slice(0, urlEnd)
+  }
+
+  if (
+    !name ||
+    !url.includes('/register/') ||
+    (!url.startsWith('http://') && !url.startsWith('https://'))
+  ) {
+    return undefined
+  }
+
+  return { name, url }
+}
+
+function findTailscaleAuthUrlEnd(url: string): number {
+  for (let index = 0; index < url.length; index++) {
+    const code = url.charCodeAt(index)
+    if (
+      code <= 32 ||
+      url[index] === '"' ||
+      url[index] === "'" ||
+      url[index] === '<' ||
+      url[index] === '>'
+    ) {
+      return index
+    }
+  }
+
+  return -1
+}
 
 function delay(ms: number): Promise<void> {
   return new Promise((resolve) => {
@@ -399,6 +460,7 @@ export async function startCore(detached = false): Promise<Promise<void>[]> {
   const providerTracker = createProviderInitializationTracker(await getRuntimeConfig())
   const stdout = createLogWritable('core', 'info')
   const stderr = createLogWritable('core', 'error')
+  directCoreLogLineBuffer = ''
 
   child = spawn(corePath, spawnArgs, {
     detached: detached,
@@ -420,6 +482,7 @@ export async function startCore(detached = false): Promise<Promise<void>[]> {
     })
   }
   child.on('close', async (code, signal) => {
+    flushDirectCoreLogNotifications()
     await appendAppLog(`[Manager]: Core closed, code: ${code}, signal: ${signal}\n`)
     if (retry) {
       await appendAppLog(`[Manager]: Try Restart Core\n`)
@@ -431,6 +494,8 @@ export async function startCore(detached = false): Promise<Promise<void>[]> {
   })
   child.stdout?.pipe(stdout)
   child.stderr?.pipe(stderr)
+  child.stdout?.on('data', handleDirectCoreLogData)
+  child.stderr?.on('data', handleDirectCoreLogData)
 
   const handleCoreOutput = async (
     str: string,
@@ -603,9 +668,6 @@ function releaseServiceCoreEventHandler(): void {
 }
 
 async function handleServiceCoreEvent(event: ServiceCoreEvent): Promise<void> {
-  console.log(
-    `[Manager]: Service core event: ${event.type}, time: ${event.time}, running: ${event.running}, pid: ${event.pid}, old_pid: ${event.old_pid}, message: ${event.message}, error: ${event.error}, data: ${JSON.stringify(event.data)}`
-  )
   if (event.type === 'log') {
     notifyCoreLog(event)
     return
@@ -668,14 +730,49 @@ async function handleServiceCoreEvent(event: ServiceCoreEvent): Promise<void> {
   }
 }
 
-function notifyCoreLog(event: ServiceCoreEvent): void {
+function notifyCoreLog(source: CoreLogNotificationSource): void {
   for (const rule of coreLogNotificationRules) {
-    const notification = rule.match(event)
+    const notification = rule.match(source)
     if (!notification || notifiedCoreLogKeys.has(notification.key)) continue
 
     notifiedCoreLogKeys.add(notification.key)
     const { key: _key, ...payload } = notification
     void showNotification(payload)
+  }
+}
+
+function handleDirectCoreLogData(data: Buffer | string): void {
+  const text = data.toString().replaceAll('\r\n', '\n')
+  const combined = directCoreLogLineBuffer + text
+  const lines = combined.split('\n')
+
+  if (combined.endsWith('\n')) {
+    directCoreLogLineBuffer = ''
+  } else {
+    directCoreLogLineBuffer = lines.pop() ?? ''
+    if (directCoreLogLineBuffer.length > directCoreLogLineLimit) {
+      directCoreLogLineBuffer = directCoreLogLineBuffer.slice(-directCoreLogLineLimit)
+    }
+  }
+
+  for (const line of lines) {
+    notifyCoreLog({ text: line })
+  }
+}
+
+function flushDirectCoreLogNotifications(): void {
+  if (!directCoreLogLineBuffer) return
+
+  notifyCoreLog({ text: directCoreLogLineBuffer })
+  directCoreLogLineBuffer = ''
+}
+
+function clearTailscaleAuthNotifications(): void {
+  for (const key of notifiedCoreLogKeys) {
+    if (!key.startsWith(tailscaleAuthNotificationKeyPrefix)) continue
+
+    notifiedCoreLogKeys.delete(key)
+    dismissNotification(key)
   }
 }
 
@@ -867,6 +964,7 @@ async function fallbackUnavailableServiceModes(reason: unknown): Promise<void> {
 
 export async function restartCore(): Promise<void> {
   try {
+    clearTailscaleAuthNotifications()
     await stopCore()
     const promises = await startCore()
     await Promise.all(promises)
