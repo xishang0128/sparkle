@@ -1,4 +1,4 @@
-import { BrowserWindow, Notification, ipcMain } from 'electron'
+import { BrowserWindow, Notification, ipcMain, shell } from 'electron'
 import { getAppConfig } from '../config/app'
 
 export type AppNotificationVariant = 'default' | 'accent' | 'success' | 'warning' | 'danger'
@@ -7,6 +7,8 @@ type AppNotificationMode = 'system' | 'toast'
 export interface AppNotificationPayload {
   title: string
   body?: string
+  persistent?: boolean
+  url?: string
   variant?: AppNotificationVariant
 }
 
@@ -41,7 +43,17 @@ export async function showNotification(payload: AppNotificationPayload): Promise
     return
   }
 
-  new Notification({ title: notification.title, body: notification.body }).show()
+  const systemNotification = new Notification({
+    title: notification.title,
+    body: notification.body,
+    timeoutType: notification.persistent ? 'never' : 'default'
+  })
+  if (notification.url) {
+    systemNotification.on('click', () => {
+      void shell.openExternal(notification.url!)
+    })
+  }
+  systemNotification.show()
 }
 
 function getVisibleMainRendererWindow(): BrowserWindow | undefined {
@@ -74,7 +86,9 @@ function normalizeNotificationPayload(payload: AppNotificationPayload): AppNotif
   return {
     ...payload,
     title: formatNotificationText(payload.title),
-    body: payload.body ? formatNotificationText(payload.body) : undefined
+    body: payload.body ? formatNotificationText(payload.body) : undefined,
+    persistent: payload.persistent,
+    url: payload.url ? formatNotificationText(payload.url) : undefined
   }
 }
 

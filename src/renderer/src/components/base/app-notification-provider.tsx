@@ -2,6 +2,8 @@ import { Toast } from '@heroui-v3/react'
 import { useEffect } from 'react'
 import { showToastNotification } from '@renderer/utils/notification'
 
+const maxVisibleAppNotifications = 10
+
 const AppNotificationProvider: React.FC = () => {
   useEffect(() => {
     const handleNotification = (
@@ -18,7 +20,13 @@ const AppNotificationProvider: React.FC = () => {
     }
   }, [])
 
-  return <Toast.Provider className="app-nodrag top-14 right-4" placement="top end" />
+  return (
+    <Toast.Provider
+      className="app-nodrag top-14 right-4"
+      maxVisibleToasts={maxVisibleAppNotifications}
+      placement="top end"
+    />
+  )
 }
 
 export default AppNotificationProvider

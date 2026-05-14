@@ -9,6 +9,8 @@ type AppNotificationVariant = 'default' | 'accent' | 'success' | 'warning' | 'da
 interface AppNotificationPayload {
   title: string
   body?: string
+  persistent?: boolean
+  url?: string
   variant?: AppNotificationVariant
 }
 
