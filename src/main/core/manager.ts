@@ -163,11 +163,7 @@ function parseTailscaleAuthLog(line: string): { name: string; url: string } | un
     url = url.slice(0, urlEnd)
   }
 
-  if (
-    !name ||
-    !url.includes('/register/') ||
-    (!url.startsWith('http://') && !url.startsWith('https://'))
-  ) {
+  if (!name || (!url.startsWith('http://') && !url.startsWith('https://'))) {
     return undefined
   }
 
