@@ -7,8 +7,6 @@
 .dark,
 [data-theme='dark'] {
   --radius: 0.375rem;
-  --radius-xs: 0.125rem;
-  --radius-sm: 0.25rem;
   --radius-md: 0.3125rem;
   --radius-lg: 0.375rem;
   --radius-xl: 0.5rem;
@@ -60,11 +58,6 @@
   margin-block-end: 0;
 }
 
-.toast__title,
-.toast__description {
-  white-space: pre-line;
-}
-
 .toast {
   min-height: 4rem;
   align-items: center;
@@ -75,8 +68,13 @@
   justify-content: center;
 }
 
-.toast__title {
+.toast__title,
+.toast__description {
+  white-space: pre-line;
   overflow: hidden;
+}
+
+.toast__title {
   text-overflow: ellipsis;
 }
 
@@ -87,18 +85,44 @@
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
-  overflow: hidden;
+  line-clamp: 2;
 }
 
-.button,
-button[data-slot='base'] {
-  border-radius: var(--radius-xl, 0.5rem) !important;
+.button {
+  border-radius: 12px;
 }
 
 .button--sm,
 .button--icon-only,
 .close-button {
-  border-radius: var(--radius-lg, 0.375rem) !important;
+  border-radius: 8px;
+}
+
+.switch__control,
+.switch__thumb {
+  border-radius: 9999px !important;
+}
+
+.switch__thumb {
+  --thumb-size: 1rem;
+  width: var(--thumb-size);
+}
+
+.switch--sm .switch__thumb {
+  --thumb-size: 0.75rem;
+}
+
+.switch--lg .switch__thumb {
+  --thumb-size: 1.25rem;
+}
+
+.switch[aria-checked='true'] .switch__thumb,
+.switch[data-selected='true'] .switch__thumb,
+.switch[aria-checked='true'] .switch--sm .switch__thumb,
+.switch[data-selected='true'] .switch--sm .switch__thumb,
+.switch[aria-checked='true'] .switch--lg .switch__thumb,
+.switch[data-selected='true'] .switch--lg .switch__thumb {
+  margin-inline-start: calc(100% - var(--thumb-size) - 0.125rem);
 }
 
 .setting-item--center {
@@ -151,45 +175,38 @@ button[data-slot='base'] {
   min-width: 0;
 }
 
-.setting-item--compact .setting-item__content {
-  min-width: 0;
-}
-
 .setting-item--content-end .setting-item__content {
   display: flex;
   justify-content: end;
 }
 
-.setting-item:has(.input[data-setting-input='full']),
-.setting-item:has(.input-group[data-setting-input='full']) {
+.setting-item:has([data-setting-input='full']) {
   grid-template-columns: minmax(0, 1fr);
 }
 
-.setting-item:has(.input[data-setting-input='full']) .setting-item__title-wrap,
-.setting-item:has(.input-group[data-setting-input='full']) .setting-item__title-wrap {
+.setting-item:has([data-setting-input='full']) .setting-item__title-wrap {
   display: none;
 }
 
-.setting-item:has(.input[data-setting-input='full']) .setting-item__content,
-.setting-item:has(.input-group[data-setting-input='full']) .setting-item__content {
+.setting-item:has([data-setting-input='full']) .setting-item__content {
   display: block;
   width: 100%;
 }
 
 .setting-item .tabs,
-.tray-icon-crop-modal .tabs {
-  --segment: var(--accent, hsl(var(--heroui-primary)));
-  --segment-foreground: var(--accent-foreground, hsl(var(--heroui-primary-foreground, 0 0% 100%)));
-  --color-segment: var(--segment);
-  --color-segment-foreground: var(--segment-foreground);
+.tray-icon-crop-modal .tabs,
+.connection-detail-modal .tabs {
+  --segment: var(--accent);
+  --segment-foreground: var(--accent-foreground);
 }
 
 .setting-item .tabs__list,
-.tray-icon-crop-modal .tabs__list {
+.tray-icon-crop-modal .tabs__list,
+.connection-detail-modal .tabs__list {
   width: fit-content;
   gap: calc(var(--spacing) * 0.5);
   overflow: hidden;
-  border-radius: var(--radius-lg, var(--radius));
+  border-radius: var(--radius-lg);
 }
 
 .tray-icon-crop-modal .tabs__list {
@@ -199,11 +216,12 @@ button[data-slot='base'] {
 }
 
 .setting-item .tabs__tab,
-.tray-icon-crop-modal .tabs__tab {
+.tray-icon-crop-modal .tabs__tab,
+.connection-detail-modal .tabs__tab {
   height: calc(var(--spacing) * 7);
   width: fit-content;
   min-width: fit-content;
-  border-radius: var(--radius-md, calc(var(--radius) * 0.75));
+  border-radius: var(--radius-md);
   padding-inline: calc(var(--spacing) * 3);
   font-size: var(--text-xs);
   line-height: var(--text-xs--line-height);
@@ -219,19 +237,7 @@ button[data-slot='base'] {
 }
 
 .tray-icon-crop-modal .input {
-  --focus: var(--accent, hsl(var(--heroui-primary)));
-  --color-field-border-focus: var(--focus);
-  --tw-ring-inset: inset;
-  --tw-ring-offset-width: 0px;
-  --tw-ring-color: var(--focus);
-  border-width: 1px;
   border-color: var(--border);
-}
-
-.tray-icon-crop-modal .input:focus,
-.tray-icon-crop-modal .input[data-focused='true'],
-.tray-icon-crop-modal .input[data-focus-visible='true'] {
-  border-color: var(--focus);
 }
 
 .tray-icon-crop-modal .slider {
@@ -241,7 +247,7 @@ button[data-slot='base'] {
 .tray-icon-crop-modal .slider__track {
   height: calc(var(--spacing) * 1.5) !important;
   border-inline-width: 0 !important;
-  border-radius: var(--radius-full, 9999px);
+  border-radius: 9999px;
   background-color: color-mix(in oklab, var(--muted) 18%, transparent);
 }
 
@@ -254,8 +260,8 @@ button[data-slot='base'] {
   width: calc(var(--spacing) * 3) !important;
   height: calc(var(--spacing) * 3) !important;
   transform: translateY(-50%);
-  border: 2px solid var(--accent, hsl(var(--heroui-primary)));
-  background-color: var(--field-background, white);
+  border: 2px solid var(--accent);
+  background-color: var(--field-background);
   box-shadow:
     0 1px 2px rgb(0 0 0 / 16%),
     0 0 0 1px rgb(0 0 0 / 4%);
@@ -265,18 +271,20 @@ button[data-slot='base'] {
 .tray-icon-crop-modal .slider__thumb[data-focus-visible='true'] {
   box-shadow:
     0 1px 2px rgb(0 0 0 / 16%),
-    0 0 0 3px color-mix(in oklab, var(--accent, hsl(var(--heroui-primary))) 24%, transparent);
+    0 0 0 3px color-mix(in oklab, var(--accent) 24%, transparent);
 }
 
 .setting-item .tabs__tab[data-selected='true'],
-.tray-icon-crop-modal .tabs__tab[data-selected='true'] {
+.tray-icon-crop-modal .tabs__tab[data-selected='true'],
+.connection-detail-modal .tabs__tab[data-selected='true'] {
   color: var(--accent-foreground);
 }
 
 .setting-item .tabs__indicator,
-.tray-icon-crop-modal .tabs__indicator {
-  border-radius: var(--radius-md, calc(var(--radius) * 0.75));
-  background-color: var(--accent, hsl(var(--heroui-primary)));
+.tray-icon-crop-modal .tabs__indicator,
+.connection-detail-modal .tabs__indicator {
+  border-radius: var(--radius-md);
+  background-color: var(--accent);
   box-shadow: none;
 }
 
@@ -287,9 +295,8 @@ button[data-slot='base'] {
 .setting-item .select__trigger,
 .setting-item .input,
 .setting-item .input-group {
-  min-height: calc(var(--spacing) * 8);
   height: calc(var(--spacing) * 8);
-  border-radius: var(--radius-lg, var(--radius));
+  border-radius: var(--radius-lg);
   font-size: var(--text-sm);
   line-height: var(--text-sm--line-height);
 }
@@ -305,7 +312,7 @@ button[data-slot='base'] {
 }
 
 .select__popover {
-  border-radius: var(--radius-lg, var(--radius));
+  border-radius: var(--radius-lg);
   box-shadow:
     0 4px 12px rgb(0 0 0 / 8%),
     0 1px 3px rgb(0 0 0 / 6%);
@@ -313,7 +320,7 @@ button[data-slot='base'] {
 
 .select__popover .list-box,
 .setting-item .list-box {
-  border-radius: var(--radius-lg, var(--radius));
+  border-radius: var(--radius-lg);
 }
 
 .select__popover .list-box {
@@ -328,7 +335,7 @@ button[data-slot='base'] {
 .select__popover .list-box-item,
 .setting-item .list-box-item {
   min-height: calc(var(--spacing) * 8);
-  border-radius: var(--radius-md, calc(var(--radius) * 0.75));
+  border-radius: var(--radius-md);
   padding-block: calc(var(--spacing) * 1.5);
   padding-inline: calc(var(--spacing) * 2.5);
   font-size: var(--text-sm);
@@ -341,13 +348,28 @@ button[data-slot='base'] {
 }
 
 .setting-item .input,
-.setting-item .input-group {
-  --focus: var(--accent, hsl(var(--heroui-primary)));
+.setting-item .input-group,
+.tray-icon-crop-modal .input,
+.text-viewer-search.input {
   --color-field-border-focus: var(--focus);
   --tw-ring-inset: inset;
-  --tw-ring-offset-width: 0px;
-  --tw-ring-color: var(--focus);
   border-width: 1px;
+}
+
+input[type='number']::-webkit-inner-spin-button,
+input[type='number']::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  appearance: none;
+  margin: 0;
+}
+
+input[type='number'] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+.setting-item .input,
+.setting-item .input-group {
   max-width: 100%;
   width: calc(var(--spacing) * 37.5);
 }
@@ -390,36 +412,10 @@ button[data-slot='base'] {
   transform: none;
 }
 
-.setting-item .input-group__suffix .button:hover,
-.setting-item .input-group__suffix .button[data-hovered='true'],
-.setting-item .input-group__suffix .button:active,
-.setting-item .input-group__suffix .button[data-pressed='true'] {
-  background-color: transparent;
-  transform: none;
-}
-
-.setting-item .input:focus,
-.setting-item .input[data-focused='true'],
-.setting-item .input[data-focus-visible='true'],
-.setting-item .input-group:focus-within,
-.setting-item .input-group[data-focus-within='true'] {
-  border-color: var(--focus);
-  --tw-ring-inset: inset;
-  --tw-ring-offset-width: 0px;
-  --tw-ring-color: var(--focus);
-}
-
 .text-viewer-search.input {
-  --focus: var(--accent, hsl(var(--heroui-primary)));
-  --color-field-border-focus: var(--focus);
-  --tw-ring-inset: inset;
-  --tw-ring-offset-width: 0px;
-  --tw-ring-color: var(--focus);
   height: calc(var(--spacing) * 8);
-  min-height: calc(var(--spacing) * 8);
-  border-width: 1px;
   border-color: var(--border);
-  border-radius: var(--radius-lg, var(--radius));
+  border-radius: var(--radius-lg);
   padding-block: 0;
   font-size: var(--text-sm);
   line-height: calc(var(--spacing) * 8);
@@ -437,13 +433,8 @@ button[data-slot='base'] {
   width: calc(var(--spacing) * 90);
 }
 
-.setting-item .input[data-setting-input='number'],
-.setting-item .input-group[data-setting-input='number'] {
+.setting-item .input[data-setting-input='number'] {
   width: calc(var(--spacing) * 32);
-}
-
-.setting-item .input-group[data-setting-input='number'] {
-  width: calc(var(--spacing) * 37.5);
 }
 
 .setting-item .input[data-setting-input='wide'] {
@@ -466,15 +457,6 @@ button[data-slot='base'] {
 .setting-item .input[data-setting-input='full'],
 .setting-item .input-group[data-setting-input='full'] {
   width: 100%;
-}
-
-.setting-item .switch {
-  --switch-control-bg-checked: var(--accent, hsl(var(--heroui-primary)));
-  --switch-control-bg-checked-hover: color-mix(
-    in oklab,
-    var(--switch-control-bg-checked) 90%,
-    var(--accent-foreground, white) 10%
-  );
 }
 
 .setting-item .switch__control {
@@ -504,6 +486,5 @@ button[data-slot='base'] {
 .setting-item__inline-controls > .button {
   height: calc(var(--spacing) * 8);
   min-width: fit-content;
-  border-radius: var(--radius-lg, var(--radius));
   padding-inline: calc(var(--spacing) * 3);
 }

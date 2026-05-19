@@ -441,7 +441,7 @@ const ConnectionDetailModal = ({ connection, onClose }: Props) => {
         className="top-12 h-[calc(100%-48px)]"
       >
         <Modal.Container scroll="inside">
-          <Modal.Dialog className="w-[min(700px,calc(100%-24px))] max-w-none flag-emoji">
+          <Modal.Dialog className="connection-detail-modal w-[min(700px,calc(100%-24px))] max-w-none pb-2 flag-emoji">
             <Modal.Header className="app-drag pb-0">
               <Modal.Heading>连接详情</Modal.Heading>
             </Modal.Header>
@@ -479,10 +479,7 @@ const ConnectionDetailModal = ({ connection, onClose }: Props) => {
               </Modal.Body>
               <Modal.Footer className="app-nodrag mt-0! justify-start px-0! pt-0! pb-0!">
                 <Tabs.ListContainer>
-                  <Tabs.List
-                    aria-label="连接详情视图切换"
-                    className="w-fit gap-0.5 rounded-lg bg-primary/10 p-px *:h-5 *:min-w-fit *:rounded-md *:px-1.5 *:text-[11px] *:font-medium *:whitespace-nowrap *:text-foreground-500 *:transition-colors *:hover:opacity-100 *:hover:text-foreground-700 *:data-[hovered=true]:opacity-100 *:data-[hovered=true]:text-foreground-700 *:data-[selected=true]:text-foreground **:data-[slot=tabs-indicator]:rounded-md **:data-[slot=tabs-indicator]:bg-primary/18 **:data-[slot=tabs-indicator]:shadow-none"
-                  >
+                  <Tabs.List aria-label="连接详情视图切换">
                     <Tabs.Tab id="detail">
                       详情
                       <Tabs.Indicator />

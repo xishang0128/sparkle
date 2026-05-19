@@ -131,7 +131,6 @@ const EditInfoModal: React.FC<Props> = (props) => {
                   '文件类型',
                   <Select
                     aria-label="文件类型"
-                    data-setting-input="edit-modal"
                     value={values.ext}
                     variant="secondary"
                     onChange={(value) => {
