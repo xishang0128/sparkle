@@ -458,7 +458,7 @@ const App: React.FC = () => {
             className={`app-drag sticky top-0 z-40 ${disableAnimation ? 'bg-background/95 backdrop-blur-sm' : 'bg-transparent backdrop-blur'} h-12.25`}
           >
             <div
-              className={`flex justify-between p-2 ${!useWindowFrame && platform === 'darwin' ? 'ml-15' : ''}`}
+              className={`flex justify-between p-2 ${!useWindowFrame && platform === 'darwin' ? 'ml-16.5' : ''}`}
             >
               <div className="flex ml-1">
                 <h3 className="text-lg font-bold leading-8">Sparkle</h3>
