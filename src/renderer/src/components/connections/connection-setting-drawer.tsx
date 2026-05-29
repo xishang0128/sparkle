@@ -1,9 +1,10 @@
-import { Button, Drawer, InputGroup, Switch } from '@heroui-v3/react'
+import { Button, Drawer, InputGroup, ListBox, Select, Switch } from '@heroui-v3/react'
 import React, { useEffect, useRef, useState } from 'react'
 import SettingItem from '../base/base-setting-item'
 import { settingItemProps } from '../base/base-controls'
 import { useAppConfig } from '@renderer/hooks/use-app-config'
 import { restartMihomoConnections } from '@renderer/utils/ipc'
+import { HiSortAscending, HiSortDescending } from 'react-icons/hi'
 
 interface Props {
   onClose: () => void
@@ -16,7 +17,14 @@ const ConnectionSettingDrawer: React.FC<Props> = (props) => {
   const { onClose, reopenSignal } = props
   const { appConfig, patchAppConfig } = useAppConfig()
 
-  const { displayIcon = true, displayAppName = true, connectionInterval = 500 } = appConfig || {}
+  const {
+    displayIcon = true,
+    displayAppName = true,
+    connectionInterval = 500,
+    connectionGroupByProcess = false,
+    connectionGroupSort = 'name',
+    connectionGroupDirection = 'asc'
+  } = appConfig || {}
   const [intervalInput, setIntervalInput] = useState(connectionInterval)
   const [isOpen, setIsOpen] = useState(true)
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -89,6 +97,96 @@ const ConnectionSettingDrawer: React.FC<Props> = (props) => {
                   </Switch.Control>
                 </Switch>
               </SettingItem>
+              <SettingItem title="进程归类" {...settingItemProps} divider>
+                <Switch
+                  aria-label="进程归类"
+                  isSelected={connectionGroupByProcess}
+                  onChange={(v) => {
+                    patchAppConfig({ connectionGroupByProcess: v })
+                  }}
+                >
+                  <Switch.Control>
+                    <Switch.Thumb />
+                  </Switch.Control>
+                </Switch>
+              </SettingItem>
+              {connectionGroupByProcess && (
+                <SettingItem title="归类排序" {...settingItemProps} divider>
+                  <div className="flex items-center justify-end gap-2">
+                    <Select
+                      aria-label="归类排序字段"
+                      className="w-24"
+                      variant="secondary"
+                      value={connectionGroupSort}
+                      onChange={(value) => {
+                        if (Array.isArray(value) || value == null) return
+                        if (value === connectionGroupSort) return
+                        patchAppConfig({
+                          connectionGroupSort: value as
+                            | 'name'
+                            | 'count'
+                            | 'upload'
+                            | 'download'
+                            | 'uploadSpeed'
+                            | 'downloadSpeed'
+                        })
+                      }}
+                    >
+                      <Select.Trigger className="h-8 min-h-8 py-0">
+                        <Select.Value />
+                        <Select.Indicator />
+                      </Select.Trigger>
+                      <Select.Popover>
+                        <ListBox>
+                          <ListBox.Item id="name" textValue="名称">
+                            名称
+                            <ListBox.ItemIndicator />
+                          </ListBox.Item>
+                          <ListBox.Item id="count" textValue="连接数">
+                            连接数
+                            <ListBox.ItemIndicator />
+                          </ListBox.Item>
+                          <ListBox.Item id="upload" textValue="上传量">
+                            上传量
+                            <ListBox.ItemIndicator />
+                          </ListBox.Item>
+                          <ListBox.Item id="download" textValue="下载量">
+                            下载量
+                            <ListBox.ItemIndicator />
+                          </ListBox.Item>
+                          <ListBox.Item id="uploadSpeed" textValue="上传速度">
+                            上传速度
+                            <ListBox.ItemIndicator />
+                          </ListBox.Item>
+                          <ListBox.Item id="downloadSpeed" textValue="下载速度">
+                            下载速度
+                            <ListBox.ItemIndicator />
+                          </ListBox.Item>
+                        </ListBox>
+                      </Select.Popover>
+                    </Select>
+                    <Button
+                      size="sm"
+                      isIconOnly
+                      variant="secondary"
+                      className="h-8 w-8 shrink-0"
+                      aria-label={connectionGroupDirection === 'asc' ? '升序' : '降序'}
+                      onPress={() => {
+                        patchAppConfig({
+                          connectionGroupDirection:
+                            connectionGroupDirection === 'asc' ? 'desc' : 'asc'
+                        })
+                      }}
+                    >
+                      {connectionGroupDirection === 'asc' ? (
+                        <HiSortAscending className="text-lg" />
+                      ) : (
+                        <HiSortDescending className="text-lg" />
+                      )}
+                    </Button>
+                  </div>
+                </SettingItem>
+              )}
               <SettingItem title="刷新间隔" {...settingItemProps}>
                 <div className="setting-item__inline-controls">
                   {intervalInput !== connectionInterval && (

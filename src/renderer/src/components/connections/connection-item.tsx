@@ -11,6 +11,7 @@ interface Props {
   displayIcon?: boolean
   iconUrl: string
   displayName?: string
+  hideProcess?: boolean
   selected: ControllerConnectionDetail | undefined
   setSelected: React.Dispatch<React.SetStateAction<ControllerConnectionDetail | undefined>>
   setIsDetailModalOpen: React.Dispatch<React.SetStateAction<boolean>>
@@ -23,6 +24,7 @@ const ConnectionItemComponent: React.FC<Props> = ({
   displayIcon,
   iconUrl,
   displayName,
+  hideProcess,
   close,
   setSelected,
   setIsDetailModalOpen
@@ -102,7 +104,7 @@ const ConnectionItemComponent: React.FC<Props> = ({
             <CardHeader className="pb-0 gap-1 flex items-center pr-12 relative">
               <div className="ml-2 flex-1 text-ellipsis whitespace-nowrap overflow-hidden text-left">
                 <span style={{ textAlign: 'left' }}>
-                  {processName} → {destination}
+                  {hideProcess ? destination : `${processName} → ${destination}`}
                 </span>
               </div>
               <small className="ml-2 whitespace-nowrap text-foreground-500">{timeAgo}</small>
@@ -164,6 +166,7 @@ const ConnectionItem = memo(ConnectionItemComponent, (prevProps, nextProps) => {
     prevProps.iconUrl === nextProps.iconUrl &&
     prevProps.displayIcon === nextProps.displayIcon &&
     prevProps.displayName === nextProps.displayName &&
+    prevProps.hideProcess === nextProps.hideProcess &&
     prevProps.selected?.id === nextProps.selected?.id
   )
 })

@@ -53,6 +53,9 @@ interface AppConfig {
   proxyCols: 'auto' | '1' | '2' | '3' | '4'
   connectionDirection: 'asc' | 'desc'
   connectionOrderBy: 'time' | 'upload' | 'download' | 'uploadSpeed' | 'downloadSpeed' | 'process'
+  connectionGroupByProcess?: boolean
+  connectionGroupSort?: 'name' | 'count' | 'upload' | 'download' | 'uploadSpeed' | 'downloadSpeed'
+  connectionGroupDirection?: 'asc' | 'desc'
   connectionInterval?: number
   spinFloatingIcon?: boolean
   disableTray?: boolean

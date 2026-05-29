@@ -15,9 +15,14 @@ import {
 } from '@heroui/react'
 import { calcTraffic } from '@renderer/utils/calc'
 import ConnectionItem from '@renderer/components/connections/connection-item'
-import { Virtuoso } from 'react-virtuoso'
+import { Virtuoso, GroupedVirtuoso } from 'react-virtuoso'
 import ConnectionDetailModal from '@renderer/components/connections/connection-detail-modal'
 import ConnectionSettingDrawer from '@renderer/components/connections/connection-setting-drawer'
+import ConnectionGroupHeader from '@renderer/components/connections/connection-group-header'
+import {
+  buildConnectionGroups,
+  type ConnectionGroup
+} from '@renderer/components/connections/connection-groups'
 import { CgClose, CgTrash } from 'react-icons/cg'
 import { useAppConfig } from '@renderer/hooks/use-app-config'
 import { includesIgnoreCase } from '@renderer/utils/includes'
@@ -48,7 +53,10 @@ const Connections: React.FC = () => {
     connectionOrderBy = 'time',
     connectionInterval = 500,
     displayIcon = true,
-    displayAppName = true
+    displayAppName = true,
+    connectionGroupByProcess = false,
+    connectionGroupSort = 'name',
+    connectionGroupDirection = 'asc'
   } = appConfig || {}
   const [connectionsInfo, setConnectionsInfo] = useState<ControllerConnections>()
   const [allConnections, setAllConnections] =
@@ -68,6 +76,8 @@ const Connections: React.FC = () => {
   const [paused, setPaused] = useState(false)
   const pausedRef = useRef(paused)
   const [deletedIds, setDeletedIds] = useState<Set<string>>(new Set())
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set())
+  const [expandedContent, setExpandedContent] = useState<Set<string>>(new Set())
 
   const iconRequestQueue = useRef(new Set<string>())
   const processingIcons = useRef(new Set<string>())
@@ -176,6 +186,55 @@ const Connections: React.FC = () => {
     tab
   ])
 
+  const grouped = connectionGroupByProcess
+
+  const connectionGroups = useMemo<ConnectionGroup[]>(() => {
+    if (!grouped) return []
+    return buildConnectionGroups(
+      filteredConnections,
+      connectionGroupSort,
+      connectionGroupDirection === 'asc'
+    )
+  }, [grouped, filteredConnections, connectionGroupSort, connectionGroupDirection])
+
+  const { groupCounts, flatMembers, flatMemberLocalIndex } = useMemo(() => {
+    const counts: number[] = []
+    const members: ControllerConnectionDetail[] = []
+    const localIndex: number[] = []
+    for (const group of connectionGroups) {
+      if (expandedContent.has(group.key)) {
+        counts.push(group.connections.length)
+        group.connections.forEach((conn, idx) => {
+          members.push(conn)
+          localIndex.push(idx)
+        })
+      } else {
+        counts.push(0)
+      }
+    }
+    return { groupCounts: counts, flatMembers: members, flatMemberLocalIndex: localIndex }
+  }, [connectionGroups, expandedContent])
+
+  useEffect(() => {
+    if (!grouped) {
+      setExpandedGroups((prev) => (prev.size === 0 ? prev : new Set()))
+      setExpandedContent((prev) => (prev.size === 0 ? prev : new Set()))
+      return
+    }
+    const liveKeys = new Set(connectionGroups.map((g) => g.key))
+    const prune = (prev: Set<string>): Set<string> => {
+      let changed = false
+      const next = new Set<string>()
+      for (const key of prev) {
+        if (liveKeys.has(key)) next.add(key)
+        else changed = true
+      }
+      return changed ? next : prev
+    }
+    setExpandedGroups(prune)
+    setExpandedContent(prune)
+  }, [grouped, connectionGroups])
+
   allConnectionsRef.current = allConnections
   activeConnectionsRef.current = activeConnections
   deletedIdsRef.current = deletedIds
@@ -217,6 +276,43 @@ const Connections: React.FC = () => {
     },
     [tab, trashClosedConnection]
   )
+
+  const toggleGroup = useCallback((key: string, currentlyOpen: boolean): void => {
+    if (currentlyOpen) {
+      setExpandedContent((prev) => {
+        if (!prev.has(key)) return prev
+        const next = new Set(prev)
+        next.delete(key)
+        return next
+      })
+      setExpandedGroups((prev) => {
+        const next = new Set(prev)
+        next.delete(key)
+        return next
+      })
+    } else {
+      setExpandedGroups((prev) => {
+        const next = new Set(prev)
+        next.add(key)
+        return next
+      })
+      setTimeout(() => {
+        setExpandedContent((prev) => {
+          if (prev.has(key)) return prev
+          const next = new Set(prev)
+          next.add(key)
+          return next
+        })
+      }, 0)
+    }
+  }, [])
+
+  const closeGroup = useCallback((key: string): void => {
+    const group = connectionGroupsRef.current.find((g) => g.key === key)
+    if (!group) return
+    const close = closeConnectionRef.current
+    group.connections.forEach((conn) => close(conn.id))
+  }, [])
 
   useEffect(() => {
     const handleConnections = (_e: unknown, info: ControllerConnections): void => {
@@ -644,6 +740,7 @@ const Connections: React.FC = () => {
 
   const renderConnectionItem = useCallback(
     (i: number, connection: ControllerConnectionDetail) => {
+      if (!connection) return <div style={{ minHeight: 80 }} />
       const path = connection.metadata.processPath || ''
       const iconUrl = (displayIcon && findProcessMode !== 'off' && iconMap[path]) || ''
       const itemKey = i === 0 ? `${connection.id}-${firstItemRefreshTrigger}` : connection.id
@@ -678,6 +775,99 @@ const Connections: React.FC = () => {
       displayAppName
     ]
   )
+
+  const flatMembersRef = useRef(flatMembers)
+  flatMembersRef.current = flatMembers
+  const flatMemberLocalIndexRef = useRef(flatMemberLocalIndex)
+  flatMemberLocalIndexRef.current = flatMemberLocalIndex
+  const connectionGroupsRef = useRef(connectionGroups)
+  connectionGroupsRef.current = connectionGroups
+  const expandedGroupsRef = useRef(expandedGroups)
+  expandedGroupsRef.current = expandedGroups
+  const selectedRef = useRef(selected)
+  selectedRef.current = selected
+  const iconMapRefStable = useRef(iconMap)
+  iconMapRefStable.current = iconMap
+  const appNameCacheRefStable = useRef(appNameCache)
+  appNameCacheRefStable.current = appNameCache
+  const closeConnectionRef = useRef(closeConnection)
+  closeConnectionRef.current = closeConnection
+  const displayIconRef = useRef(displayIcon)
+  displayIconRef.current = displayIcon
+  const displayAppNameRef = useRef(displayAppName)
+  displayAppNameRef.current = displayAppName
+  const findProcessModeRef = useRef(findProcessMode)
+  findProcessModeRef.current = findProcessMode
+  const tabRef = useRef(tab)
+  tabRef.current = tab
+
+  const toggleGroupRef = useRef(toggleGroup)
+  toggleGroupRef.current = toggleGroup
+  const toggleGroupStable = useCallback((key: string, currentlyOpen: boolean) => {
+    toggleGroupRef.current(key, currentlyOpen)
+  }, [])
+  const closeGroupRef = useRef(closeGroup)
+  closeGroupRef.current = closeGroup
+  const closeGroupStable = useCallback((key: string) => {
+    closeGroupRef.current(key)
+  }, [])
+
+  const renderGroupMember = useCallback((i: number) => {
+    const connection = flatMembersRef.current[i]
+    if (!connection) return <div style={{ minHeight: 80 }} />
+    const path = connection.metadata.processPath || ''
+    const displayName =
+      displayAppNameRef.current && path ? appNameCacheRefStable.current[path] : undefined
+    const localIndex = flatMemberLocalIndexRef.current[i] ?? 0
+
+    return (
+      <div className="pl-6" style={{ animation: 'proxy-row-in 0.15s ease both' }}>
+        <ConnectionItem
+          setSelected={setSelected}
+          setIsDetailModalOpen={setIsDetailModalOpen}
+          selected={selectedRef.current}
+          iconUrl=""
+          displayIcon={false}
+          displayName={displayName}
+          hideProcess
+          close={closeConnectionRef.current}
+          index={localIndex}
+          key={connection.id}
+          info={connection}
+        />
+      </div>
+    )
+  }, [])
+
+  const renderGroupHeader = useCallback((index: number) => {
+    const group = connectionGroupsRef.current[index]
+    if (!group) return <div>Never See This</div>
+    const path = group.processPath || ''
+    const showIcon = displayIconRef.current && findProcessModeRef.current !== 'off'
+    const iconUrl = (showIcon && iconMapRefStable.current[path]) || ''
+    const displayName =
+      displayAppNameRef.current && path ? appNameCacheRefStable.current[path] : undefined
+
+    return (
+      <ConnectionGroupHeader
+        groupKey={group.key}
+        label={group.label}
+        count={group.count}
+        upload={group.upload}
+        download={group.download}
+        uploadSpeed={group.uploadSpeed}
+        downloadSpeed={group.downloadSpeed}
+        expanded={expandedGroupsRef.current.has(group.key)}
+        isLast={index === connectionGroupsRef.current.length - 1}
+        isClosed={tabRef.current === 'closed'}
+        displayIcon={showIcon}
+        iconUrl={iconUrl}
+        displayName={displayName}
+        onToggle={toggleGroupStable}
+        onCloseAll={closeGroupStable}
+      />
+    )
+  }, [toggleGroupStable, closeGroupStable])
 
   return (
     <BasePage
@@ -902,7 +1092,28 @@ const Connections: React.FC = () => {
         <Divider />
       </div>
       <div className="h-[calc(100vh-100px)] mt-px">
-        <Virtuoso data={filteredConnections} itemContent={renderConnectionItem} />
+        {grouped ? (
+          connectionGroups.length > 0 ? (
+            <GroupedVirtuoso
+              key="connections-grouped"
+              groupCounts={groupCounts}
+              groupContent={renderGroupHeader}
+              itemContent={renderGroupMember}
+              defaultItemHeight={80}
+              overscan={200}
+            />
+          ) : (
+            <div className="h-full flex items-center justify-center text-foreground-500">
+              {filter === '' ? '暂无连接' : '没有匹配的进程'}
+            </div>
+          )
+        ) : (
+          <Virtuoso
+            key="connections-flat"
+            data={filteredConnections}
+            itemContent={renderConnectionItem}
+          />
+        )}
       </div>
     </BasePage>
   )
