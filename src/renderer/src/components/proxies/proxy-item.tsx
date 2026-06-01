@@ -192,7 +192,7 @@ const ProxyItem: React.FC<Props> = (props) => {
                   <div className="text-ellipsis overflow-hidden whitespace-nowrap">
                     <div className="flag-emoji inline">{proxy.name}</div>
                   </div>
-                  <div className="text-[12px] text-foreground-500 leading-none mt-0.5 overflow-hidden whitespace-nowrap text-ellipsis">
+                  <div className="text-[12px] text-foreground-500 leading-snug mt-0.5 overflow-hidden whitespace-nowrap text-ellipsis">
                     <span>{proxy.type}</span>
                     {proxy.udp !== undefined && !shouldShowGroupSelectedProxy && (
                       <span className="ml-1 opacity-60"> UDP</span>
