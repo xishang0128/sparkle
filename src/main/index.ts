@@ -20,6 +20,7 @@ import {
   ensureWindowsElevatedStartup,
   useLinuxCustomRelaunch
 } from './sys/startup'
+import { installPrintScreenCompatibility } from './sys/printScreen'
 import { handleDeepLink } from './resolve/deepLink'
 import { initAppQuitLifecycle } from './resolve/appLifecycle'
 import { showNotification } from './utils/notification'
@@ -259,6 +260,7 @@ export async function createWindow(appConfig?: AppConfig): Promise<void> {
         ...(is.dev ? { webSecurity: false } : {})
       }
     })
+    installPrintScreenCompatibility(mainWindow)
     windowStateManager.attach(mainWindow)
     mainWindow.on('ready-to-show', async () => {
       const { silentStart = false } = await getAppConfig()

@@ -5,13 +5,13 @@ const execFilePromise = promisify(execFile)
 
 let isAdminCached: boolean | null = null
 
-async function isRunningAsAdmin(): Promise<boolean> {
+export async function isRunningAsAdmin(): Promise<boolean> {
   if (isAdminCached !== null) {
     return isAdminCached
   }
 
   try {
-    await execFilePromise('net', ['session'], { timeout: 2000 })
+    await execFilePromise('net', ['session'], { timeout: 2000, windowsHide: true })
     isAdminCached = true
     return true
   } catch {

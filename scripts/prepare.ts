@@ -7,6 +7,10 @@ import { execSync } from 'child_process'
 
 const cwd = process.cwd()
 const TEMP_DIR = path.join(cwd, 'node_modules/.temp')
+const PRTSCN_HOOK_FILE = 'prtscnhook.node'
+const PRTSCN_HOOK_SOURCE = path.join(cwd, 'src', 'main', 'sys', 'win32', 'prtscnhook.cpp')
+const PRTSCN_HELPER_FILE = 'prtscnhelper.exe'
+const PRTSCN_HELPER_SOURCE = path.join(cwd, 'src', 'main', 'sys', 'win32', 'prtscnhelper.cpp')
 let arch: string = process.arch
 const platform = process.platform
 if (process.argv.slice(2).length !== 0) {
@@ -310,6 +314,177 @@ const resolveRunner = () =>
     downloadURL: `https://github.com/xishang0128/sparkle-run/releases/download/${arch}/sparkle-run.exe`
   })
 
+function quoteCmdArg(value: string): string {
+  return `"${value.replace(/"/g, '""')}"`
+}
+
+function getVcTargetArch(): string {
+  switch (arch) {
+    case 'x64':
+      return 'x64'
+    case 'ia32':
+      return 'x86'
+    case 'arm64':
+      return 'x64_arm64'
+    default:
+      throw new Error(`unsupported windows helper architecture "${arch}"`)
+  }
+}
+
+function getVisualStudioVarsPath(): string {
+  const programFilesX86 = process.env['ProgramFiles(x86)']
+  if (!programFilesX86) {
+    throw new Error('ProgramFiles(x86) is unavailable')
+  }
+
+  const vswherePath = path.join(
+    programFilesX86,
+    'Microsoft Visual Studio',
+    'Installer',
+    'vswhere.exe'
+  )
+  if (!fs.existsSync(vswherePath)) {
+    throw new Error('vswhere.exe not found')
+  }
+
+  const installationPath = execSync(
+    `${quoteCmdArg(vswherePath)} -latest -products * -property installationPath`,
+    { encoding: 'utf8' }
+  ).trim()
+  const vcvarsPath = path.join(installationPath, 'VC', 'Auxiliary', 'Build', 'vcvarsall.bat')
+  if (!fs.existsSync(vcvarsPath)) {
+    throw new Error('vcvarsall.bat not found')
+  }
+
+  return vcvarsPath
+}
+
+function getPrtScnHookBuildArgs(targetPath: string): string[] {
+  return [
+    '/nologo',
+    '/O1',
+    '/GL',
+    '/GS-',
+    '/GR-',
+    '/EHs-c-',
+    '/DUNICODE',
+    '/D_UNICODE',
+    `/Fe:${targetPath}`,
+    `/Fo:${path.join(TEMP_DIR, 'prtscnhook.obj')}`,
+    PRTSCN_HOOK_SOURCE,
+    'user32.lib',
+    'kernel32.lib',
+    'advapi32.lib',
+    '/link',
+    '/DLL',
+    '/LTCG',
+    '/NOENTRY',
+    '/NOIMPLIB',
+    '/NODEFAULTLIB',
+    '/OPT:REF',
+    '/OPT:ICF'
+  ]
+}
+
+function getPrtScnHelperBuildArgs(targetPath: string): string[] {
+  return [
+    '/nologo',
+    '/O1',
+    '/GL',
+    '/GS-',
+    '/GR-',
+    '/EHs-c-',
+    '/DUNICODE',
+    '/D_UNICODE',
+    `/Fe:${targetPath}`,
+    `/Fo:${path.join(TEMP_DIR, 'prtscnhelper.obj')}`,
+    PRTSCN_HELPER_SOURCE,
+    'user32.lib',
+    'kernel32.lib',
+    'advapi32.lib',
+    '/link',
+    '/SUBSYSTEM:WINDOWS',
+    '/ENTRY:wWinMainCRTStartup',
+    '/LTCG',
+    '/NODEFAULTLIB',
+    '/OPT:REF',
+    '/OPT:ICF'
+  ]
+}
+
+function formatClArgForCmd(arg: string): string {
+  if (arg.startsWith('/Fe:') || arg.startsWith('/Fo:')) {
+    return `${arg.slice(0, 4)}${quoteCmdArg(arg.slice(4))}`
+  }
+
+  return /[\s&()]/.test(arg) ? quoteCmdArg(arg) : arg
+}
+
+function buildWithMsvc(args: string[]): void {
+  const clCommand = ['cl.exe', ...args.map(formatClArgForCmd)].join(' ')
+  try {
+    execSync(clCommand, { stdio: 'inherit' })
+    return
+  } catch (error) {
+    console.warn(`[WARN]: cl.exe failed in current shell: ${getErrorMessage(error)}`)
+  }
+
+  const vcvarsPath = getVisualStudioVarsPath()
+  const command = [
+    'call',
+    quoteCmdArg(vcvarsPath),
+    getVcTargetArch(),
+    '>nul',
+    '&&',
+    'cl.exe',
+    ...args.map(formatClArgForCmd)
+  ].join(' ')
+
+  execSync(command, { stdio: 'inherit' })
+}
+
+function buildPrtScnHook(targetPath: string): void {
+  buildWithMsvc(getPrtScnHookBuildArgs(targetPath))
+}
+
+function buildPrtScnHelper(targetPath: string): void {
+  buildWithMsvc(getPrtScnHelperBuildArgs(targetPath))
+}
+
+function removePrtScnHookBuildArtifact(targetPath: string, extension: string): void {
+  const artifactPath = path.join(
+    path.dirname(targetPath),
+    `${path.basename(targetPath, path.extname(targetPath))}${extension}`
+  )
+
+  if (fs.existsSync(artifactPath)) {
+    fs.rmSync(artifactPath)
+  }
+}
+
+async function resolvePrtScnHook() {
+  const targetDir = path.join(cwd, 'extra', 'files')
+  const hookPath = path.join(targetDir, PRTSCN_HOOK_FILE)
+  const helperPath = path.join(targetDir, PRTSCN_HELPER_FILE)
+
+  fs.mkdirSync(TEMP_DIR, { recursive: true })
+  fs.mkdirSync(targetDir, { recursive: true })
+  if (fs.existsSync(hookPath)) {
+    fs.rmSync(hookPath)
+  }
+  if (fs.existsSync(helperPath)) {
+    fs.rmSync(helperPath)
+  }
+
+  buildPrtScnHook(hookPath)
+  removePrtScnHookBuildArtifact(hookPath, '.exp')
+  removePrtScnHookBuildArtifact(hookPath, '.lib')
+  console.log(`[INFO]: ${PRTSCN_HOOK_FILE} finished`)
+
+  buildPrtScnHelper(helperPath)
+  console.log(`[INFO]: ${PRTSCN_HELPER_FILE} finished`)
+}
+
 const resolveMonitor = async () => {
   const tempDir = path.join(TEMP_DIR, 'TrafficMonitor')
   const tempZip = path.join(tempDir, `${arch}.zip`)
@@ -446,6 +621,12 @@ const tasks: Task[] = [
     name: 'runner',
     func: resolveRunner,
     retry: 5,
+    winOnly: true
+  },
+  {
+    name: 'prtScnHook',
+    func: resolvePrtScnHook,
+    retry: 1,
     winOnly: true
   },
   {

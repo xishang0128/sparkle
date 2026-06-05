@@ -144,6 +144,7 @@ interface AppConfig {
   displayIcon?: boolean
   displayAppName?: boolean
   disableGPU: boolean
+  disablePrintScreenCompatibility?: boolean
   disableAnimation?: boolean
 }
 
