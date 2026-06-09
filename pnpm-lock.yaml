@@ -39,8 +39,8 @@ importers:
         specifier: ^4.2.2
         version: 4.2.2
       '@uruhalushia/sparkle-native':
-        specifier: ^0.1.0
-        version: 0.1.0
+        specifier: ^0.1.1
+        version: 0.1.1
       adm-zip:
         specifier: ^0.5.17
         version: 0.5.17
@@ -2805,59 +2805,59 @@ packages:
     resolution: {integrity: sha512-WmoN8qaIAo7WTYWbAZuG8PYEhn5fkz7dZrqTBZ7dtt//lL2Gwms1IcnQ5yHqjDfX8Ft5j4YzDM23f87zBfDe9g==}
     deprecated: Potential CWE-502 - Update to 1.3.1 or higher
 
-  '@uruhalushia/sparkle-native-darwin-arm64@0.1.0':
-    resolution: {integrity: sha512-WVRkPBZxy/o1oScP2KXU9VST3aI1BdhdzDG7XTnuuCx7zbs9zwCWLMSJKiw+dpNoS6ND8VE0Go0pafWkExO4FA==}
+  '@uruhalushia/sparkle-native-darwin-arm64@0.1.1':
+    resolution: {integrity: sha512-BRj1UF42aHEqgov+tOjmTP6fC3XsJljaUXDSlaUNwC7Tr7je5uxGOfFD/HJ42PaNJvbW6dZ1V0hlkKKb5rCw4Q==}
     engines: {node: '>=16'}
     cpu: [arm64]
     os: [darwin]
 
-  '@uruhalushia/sparkle-native-darwin-x64@0.1.0':
-    resolution: {integrity: sha512-Tz6K7aOpFzBjBo0xLQJYxuf9EbhkmT7XzTfZ3bqlz8wJgQXjkoOFLmpys6ULZ/DxPyB7s8Nxs59COJZQLrll8A==}
+  '@uruhalushia/sparkle-native-darwin-x64@0.1.1':
+    resolution: {integrity: sha512-ZUT5knIQjE2/g6j3HtvzAhrYbmXOQxRdltjHPCPa6nOxY4fkSnWi+9Ct9GXrFXq+PoZlifkLgK78o3NYZTfSfw==}
     engines: {node: '>=16'}
     cpu: [x64]
     os: [darwin]
 
-  '@uruhalushia/sparkle-native-linux-arm64-gnu@0.1.0':
-    resolution: {integrity: sha512-p3Hqsn2i6PKtXwSmjDnjlWDXdFKwRoPbxJIvCq8t5dEp0agykRZENA4GZZrBO+TLB1EwGPeVVE8Lov+GXUV1Cw==}
+  '@uruhalushia/sparkle-native-linux-arm64-gnu@0.1.1':
+    resolution: {integrity: sha512-jRlgCLVGnKc3YA3j66FdzEYkg6n5b6DbfAi+Hf/aY4rFmRKNnV49tATeNi1RT6pmjUV/9mgRE/PfYxQ3mI21Yg==}
     engines: {node: '>=16'}
     cpu: [arm64]
     os: [linux]
     libc: [glibc]
 
-  '@uruhalushia/sparkle-native-linux-loong64-gnu@0.1.0':
-    resolution: {integrity: sha512-4fMnJ5/gaYmgTIoO/eCVHhNWw58PjOZhuWahNFT028yt/5kbfuEbq22Py/oFngZZ7B7d6HbdeF90aDAJ/ve3pQ==}
+  '@uruhalushia/sparkle-native-linux-loong64-gnu@0.1.1':
+    resolution: {integrity: sha512-NlNMJV1XtwGH9afboWxera2NK68E0auxW8epx51VZqRwv8VOQWzkkoWwbq8EqFyrQLT23tW/QsncZVMMNlnVBQ==}
     engines: {node: '>=16'}
     cpu: [loong64]
     os: [linux]
     libc: [glibc]
 
-  '@uruhalushia/sparkle-native-linux-x64-gnu@0.1.0':
-    resolution: {integrity: sha512-nKG0h7vf6hP5IEhUkAvcyZE3YoA/0WDYdPU+PEBW9FA3Td8BTPyKz24SC1h73/bd+toc+RVm8fJBwmKihZQb1A==}
+  '@uruhalushia/sparkle-native-linux-x64-gnu@0.1.1':
+    resolution: {integrity: sha512-25P+rxyoYNdZrFPpaIvNkrIgcF48+vK1MmRaXDl55Nal3TZ97fBCVTwBe1Eo7yn3UlCDMkbxtb9IfpJ8x408dA==}
     engines: {node: '>=16'}
     cpu: [x64]
     os: [linux]
     libc: [glibc]
 
-  '@uruhalushia/sparkle-native-win32-arm64-msvc@0.1.0':
-    resolution: {integrity: sha512-rhveQEQnwroPrL8KvQLEStFGcehI9bVuZy15sMs3v1RzuBT9cpcXucsCPxzJQs7p8qlLXTLijOFK0xLvMCRCrA==}
+  '@uruhalushia/sparkle-native-win32-arm64-msvc@0.1.1':
+    resolution: {integrity: sha512-hVeCe1oJIqduFdk2WXzfomGEP7iqlKaRa+4Zpats2rRtMf/eTswF8wVzAN4hUaz04Kw2PYEeEdMnxjWWYWkwmA==}
     engines: {node: '>=16'}
     cpu: [arm64]
     os: [win32]
 
-  '@uruhalushia/sparkle-native-win32-ia32-msvc@0.1.0':
-    resolution: {integrity: sha512-UOc4tEYTo+wIY7F3CnyjFdpcwYXAOuARPkf3y6AYmNz9navvzwW5ney0jHSKjIYyNRsym4LGuHH+O4SQHgkMoQ==}
+  '@uruhalushia/sparkle-native-win32-ia32-msvc@0.1.1':
+    resolution: {integrity: sha512-KOWmb6y0GZYzCcUcaqGlikLaqNwqQYVkf+JEvNl6wxO0yIJvIrM7hOd0/bOcPXzwSPnkYalLfZXDVTbY3FTl/w==}
     engines: {node: '>=16'}
     cpu: [ia32]
     os: [win32]
 
-  '@uruhalushia/sparkle-native-win32-x64-msvc@0.1.0':
-    resolution: {integrity: sha512-+koYsY8Bu1nLJ7Rc4SgGxYxeeTKKUyw+T65G42pP3U3atjMoWuGeuzODp9cbjWn6bulwaUAz/rfSM7kDsKaOkQ==}
+  '@uruhalushia/sparkle-native-win32-x64-msvc@0.1.1':
+    resolution: {integrity: sha512-Wgm5WWcT4ld+pRyjaoyNh7o9chR4lBJ0rQR+h7tWdKOk+DhxR1f/g5+X26EUwX2vx7gmKea6cJxA2cE1FUeWfQ==}
     engines: {node: '>=16'}
     cpu: [x64]
     os: [win32]
 
-  '@uruhalushia/sparkle-native@0.1.0':
-    resolution: {integrity: sha512-jxqgzNqqEe8vPSKQZ9Wvkx3BftrKeNV4nijWgrGHJbCN4HSFYzBkrnbPn3OTNN2IxWFbD/9ontnLgEAq/45G7A==}
+  '@uruhalushia/sparkle-native@0.1.1':
+    resolution: {integrity: sha512-ZoRp32+SmHe3nW/LJ1sASloZYZU/i1500qGqZa4aSZ0CtjglbwGrL9aw0KwUWK2rXYl/vCqI0F0ZI3IYuiQ49A==}
     engines: {node: '>=16'}
 
   '@vitejs/plugin-react@6.0.1':
@@ -9311,40 +9311,40 @@ snapshots:
 
   '@ungap/structured-clone@1.3.0': {}
 
-  '@uruhalushia/sparkle-native-darwin-arm64@0.1.0':
+  '@uruhalushia/sparkle-native-darwin-arm64@0.1.1':
     optional: true
 
-  '@uruhalushia/sparkle-native-darwin-x64@0.1.0':
+  '@uruhalushia/sparkle-native-darwin-x64@0.1.1':
     optional: true
 
-  '@uruhalushia/sparkle-native-linux-arm64-gnu@0.1.0':
+  '@uruhalushia/sparkle-native-linux-arm64-gnu@0.1.1':
     optional: true
 
-  '@uruhalushia/sparkle-native-linux-loong64-gnu@0.1.0':
+  '@uruhalushia/sparkle-native-linux-loong64-gnu@0.1.1':
     optional: true
 
-  '@uruhalushia/sparkle-native-linux-x64-gnu@0.1.0':
+  '@uruhalushia/sparkle-native-linux-x64-gnu@0.1.1':
     optional: true
 
-  '@uruhalushia/sparkle-native-win32-arm64-msvc@0.1.0':
+  '@uruhalushia/sparkle-native-win32-arm64-msvc@0.1.1':
     optional: true
 
-  '@uruhalushia/sparkle-native-win32-ia32-msvc@0.1.0':
+  '@uruhalushia/sparkle-native-win32-ia32-msvc@0.1.1':
     optional: true
 
-  '@uruhalushia/sparkle-native-win32-x64-msvc@0.1.0':
+  '@uruhalushia/sparkle-native-win32-x64-msvc@0.1.1':
     optional: true
 
-  '@uruhalushia/sparkle-native@0.1.0':
+  '@uruhalushia/sparkle-native@0.1.1':
     optionalDependencies:
-      '@uruhalushia/sparkle-native-darwin-arm64': 0.1.0
-      '@uruhalushia/sparkle-native-darwin-x64': 0.1.0
-      '@uruhalushia/sparkle-native-linux-arm64-gnu': 0.1.0
-      '@uruhalushia/sparkle-native-linux-loong64-gnu': 0.1.0
-      '@uruhalushia/sparkle-native-linux-x64-gnu': 0.1.0
-      '@uruhalushia/sparkle-native-win32-arm64-msvc': 0.1.0
-      '@uruhalushia/sparkle-native-win32-ia32-msvc': 0.1.0
-      '@uruhalushia/sparkle-native-win32-x64-msvc': 0.1.0
+      '@uruhalushia/sparkle-native-darwin-arm64': 0.1.1
+      '@uruhalushia/sparkle-native-darwin-x64': 0.1.1
+      '@uruhalushia/sparkle-native-linux-arm64-gnu': 0.1.1
+      '@uruhalushia/sparkle-native-linux-loong64-gnu': 0.1.1
+      '@uruhalushia/sparkle-native-linux-x64-gnu': 0.1.1
+      '@uruhalushia/sparkle-native-win32-arm64-msvc': 0.1.1
+      '@uruhalushia/sparkle-native-win32-ia32-msvc': 0.1.1
+      '@uruhalushia/sparkle-native-win32-x64-msvc': 0.1.1
 
   '@vitejs/plugin-react@6.0.1(vite@8.0.11(@types/node@25.6.2)(esbuild@0.27.4)(jiti@2.7.0)(tsx@4.21.0)(yaml@2.8.4))':
     dependencies:
