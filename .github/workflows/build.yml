@@ -134,13 +134,13 @@ jobs:
         shell: bash
         run: |
           case "${{ matrix.os }}-${{ matrix.arch }}" in
-            windows-latest-x64) PNPM_TARGET_FLAGS="--os=current --os=win32 --cpu=current --cpu=x64"; RULE_CONVERTER_NATIVE_PACKAGE="@uruhalushia/rule-converter-napi-win32-x64-msvc"; FILE_ICON_NATIVE_PACKAGE="@uruhalushia/file-icon-win32-x64-msvc" ;;
-            windows-latest-arm64) PNPM_TARGET_FLAGS="--os=current --os=win32 --cpu=current --cpu=arm64"; RULE_CONVERTER_NATIVE_PACKAGE="@uruhalushia/rule-converter-napi-win32-arm64-msvc"; FILE_ICON_NATIVE_PACKAGE="@uruhalushia/file-icon-win32-arm64-msvc" ;;
-            ubuntu-latest-x64) PNPM_TARGET_FLAGS="--os=current --os=linux --cpu=current --cpu=x64 --libc=current --libc=glibc"; RULE_CONVERTER_NATIVE_PACKAGE="@uruhalushia/rule-converter-napi-linux-x64-gnu"; FILE_ICON_NATIVE_PACKAGE="@uruhalushia/file-icon-linux-x64-gnu" ;;
-            ubuntu-latest-arm64) PNPM_TARGET_FLAGS="--os=current --os=linux --cpu=current --cpu=arm64 --libc=current --libc=glibc"; RULE_CONVERTER_NATIVE_PACKAGE="@uruhalushia/rule-converter-napi-linux-arm64-gnu"; FILE_ICON_NATIVE_PACKAGE="@uruhalushia/file-icon-linux-arm64-gnu" ;;
-            ubuntu-latest-loong64) PNPM_TARGET_FLAGS="--os=current --os=linux --cpu=current --cpu=loong64 --libc=current --libc=glibc"; RULE_CONVERTER_NATIVE_PACKAGE="@uruhalushia/rule-converter-napi-linux-loong64-gnu"; FILE_ICON_NATIVE_PACKAGE="@uruhalushia/file-icon-linux-loong64-gnu" ;;
-            macos-latest-x64) PNPM_TARGET_FLAGS="--os=current --os=darwin --cpu=current --cpu=x64"; RULE_CONVERTER_NATIVE_PACKAGE="@uruhalushia/rule-converter-napi-darwin-x64"; FILE_ICON_NATIVE_PACKAGE="@uruhalushia/file-icon-darwin-x64" ;;
-            macos-latest-arm64) PNPM_TARGET_FLAGS="--os=current --os=darwin --cpu=current --cpu=arm64"; RULE_CONVERTER_NATIVE_PACKAGE="@uruhalushia/rule-converter-napi-darwin-arm64"; FILE_ICON_NATIVE_PACKAGE="@uruhalushia/file-icon-darwin-arm64" ;;
+            windows-latest-x64) PNPM_TARGET_FLAGS="--os=current --os=win32 --cpu=current --cpu=x64"; SPARKLE_NATIVE_PACKAGE="@uruhalushia/sparkle-native-win32-x64-msvc" ;;
+            windows-latest-arm64) PNPM_TARGET_FLAGS="--os=current --os=win32 --cpu=current --cpu=arm64"; SPARKLE_NATIVE_PACKAGE="@uruhalushia/sparkle-native-win32-arm64-msvc" ;;
+            ubuntu-latest-x64) PNPM_TARGET_FLAGS="--os=current --os=linux --cpu=current --cpu=x64 --libc=current --libc=glibc"; SPARKLE_NATIVE_PACKAGE="@uruhalushia/sparkle-native-linux-x64-gnu" ;;
+            ubuntu-latest-arm64) PNPM_TARGET_FLAGS="--os=current --os=linux --cpu=current --cpu=arm64 --libc=current --libc=glibc"; SPARKLE_NATIVE_PACKAGE="@uruhalushia/sparkle-native-linux-arm64-gnu" ;;
+            ubuntu-latest-loong64) PNPM_TARGET_FLAGS="--os=current --os=linux --cpu=current --cpu=loong64 --libc=current --libc=glibc"; SPARKLE_NATIVE_PACKAGE="@uruhalushia/sparkle-native-linux-loong64-gnu" ;;
+            macos-latest-x64) PNPM_TARGET_FLAGS="--os=current --os=darwin --cpu=current --cpu=x64"; SPARKLE_NATIVE_PACKAGE="@uruhalushia/sparkle-native-darwin-x64" ;;
+            macos-latest-arm64) PNPM_TARGET_FLAGS="--os=current --os=darwin --cpu=current --cpu=arm64"; SPARKLE_NATIVE_PACKAGE="@uruhalushia/sparkle-native-darwin-arm64" ;;
             *) echo "Unsupported native target: ${{ matrix.os }}-${{ matrix.arch }}" && exit 1 ;;
           esac
           SKIP_PREPARE=1 pnpm install $PNPM_TARGET_FLAGS
@@ -161,14 +161,10 @@ jobs:
             node -e "const fs=require('node:fs');const path=require('node:path');const root=process.argv[1].trim();const prefix=process.argv[2].trim();const target=process.argv[3].trim();const keep=target.split('/').pop();const base=path.dirname(path.dirname(require.resolve(root + '/package.json')));for(const name of fs.readdirSync(base)){if(name.startsWith(prefix)&&name!==keep)fs.rmSync(path.join(base,name),{recursive:true,force:true});}const store=path.join(process.cwd(),'node_modules','.pnpm');const storePrefix=root.replace('/','+')+'-';for(const name of fs.readdirSync(store)){if(name.startsWith(storePrefix)&&!name.startsWith(root.replace('/','+')+'-'+keep.slice(prefix.length)+'@'))fs.rmSync(path.join(store,name),{recursive:true,force:true});}" "$1" "$2" "$3"
           }
 
-          ensure_native_package "@uruhalushia/rule-converter-napi" "$RULE_CONVERTER_NATIVE_PACKAGE"
-          ensure_native_package "@uruhalushia/file-icon" "$FILE_ICON_NATIVE_PACKAGE"
-          prune_native_packages "@uruhalushia/rule-converter-napi" "rule-converter-napi-" "$RULE_CONVERTER_NATIVE_PACKAGE"
-          prune_native_packages "@uruhalushia/file-icon" "file-icon-" "$FILE_ICON_NATIVE_PACKAGE"
-          verify_native_package "@uruhalushia/rule-converter-napi" "$RULE_CONVERTER_NATIVE_PACKAGE" \
-            || (echo "Missing $RULE_CONVERTER_NATIVE_PACKAGE. pnpm must install cross-platform optional native dependencies." && exit 1)
-          verify_native_package "@uruhalushia/file-icon" "$FILE_ICON_NATIVE_PACKAGE" \
-            || (echo "Missing $FILE_ICON_NATIVE_PACKAGE. pnpm must install cross-platform optional native dependencies." && exit 1)
+          ensure_native_package "@uruhalushia/sparkle-native" "$SPARKLE_NATIVE_PACKAGE"
+          prune_native_packages "@uruhalushia/sparkle-native" "sparkle-native-" "$SPARKLE_NATIVE_PACKAGE"
+          verify_native_package "@uruhalushia/sparkle-native" "$SPARKLE_NATIVE_PACKAGE" \
+            || (echo "Missing $SPARKLE_NATIVE_PACKAGE. pnpm must install cross-platform optional native dependencies." && exit 1)
           pnpm prepare --${{ matrix.arch }}
 
       - name: Build

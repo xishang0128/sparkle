@@ -6,6 +6,7 @@ import { getAppConfig, patchAppConfig } from '../config/app'
 import { execFile } from 'child_process'
 import { promisify } from 'util'
 import { loadServiceAuthSecret, saveServiceAuthSecret, type ServiceAuthSecret } from './auth-store'
+import { getCurrentUserSid } from '@uruhalushia/sparkle-native'
 
 let keyManager: KeyManager | null = null
 const execFilePromise = promisify(execFile)
@@ -205,17 +206,7 @@ function serviceCommandErrorMessage(error: unknown): string {
 
 async function getAuthorizedPrincipalArgs(): Promise<string[]> {
   if (process.platform === 'win32') {
-    const { stdout } = await execFilePromise(
-      'powershell.exe',
-      [
-        '-NoProfile',
-        '-Command',
-        '[System.Security.Principal.WindowsIdentity]::GetCurrent().User.Value'
-      ],
-      { timeout: 5000 }
-    )
-
-    const sid = stdout.trim()
+    const sid = getCurrentUserSid()
     if (!sid.startsWith('S-')) {
       throw new Error('读取当前用户 SID 失败')
     }

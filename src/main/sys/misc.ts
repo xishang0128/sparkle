@@ -1,8 +1,9 @@
-import { exec, execFile, execSync, spawn } from 'child_process'
+import { execFile, execSync, spawn } from 'child_process'
 import { app, dialog, nativeTheme, shell } from 'electron'
 import { readFile } from 'fs/promises'
 import path from 'path'
 import { promisify } from 'util'
+import { setupFirewallRules } from '@uruhalushia/sparkle-native'
 import {
   dataDir,
   exePath,
@@ -57,24 +58,12 @@ export async function openUWPTool(): Promise<void> {
 }
 
 export async function setupFirewall(): Promise<void> {
-  const execPromise = promisify(exec)
-  const removeCommand = `
-  $rules = @("mihomo", "mihomo-alpha", "Sparkle")
-  foreach ($rule in $rules) {
-    if (Get-NetFirewallRule -DisplayName $rule -ErrorAction SilentlyContinue) {
-      Remove-NetFirewallRule -DisplayName $rule -ErrorAction SilentlyContinue
-    }
-  }
-  `
-  const createCommand = `
-  New-NetFirewallRule -DisplayName "mihomo" -Direction Inbound -Action Allow -Program "${mihomoCorePath('mihomo')}" -Enabled True -Profile Any -ErrorAction SilentlyContinue
-  New-NetFirewallRule -DisplayName "mihomo-alpha" -Direction Inbound -Action Allow -Program "${mihomoCorePath('mihomo-alpha')}" -Enabled True -Profile Any -ErrorAction SilentlyContinue
-  New-NetFirewallRule -DisplayName "Sparkle" -Direction Inbound -Action Allow -Program "${exePath()}" -Enabled True -Profile Any -ErrorAction SilentlyContinue
-  `
-
   if (process.platform === 'win32') {
-    await execPromise(removeCommand, { shell: 'powershell' })
-    await execPromise(createCommand, { shell: 'powershell' })
+    setupFirewallRules([
+      { name: 'mihomo', applicationPath: mihomoCorePath('mihomo') },
+      { name: 'mihomo-alpha', applicationPath: mihomoCorePath('mihomo-alpha') },
+      { name: 'Sparkle', applicationPath: exePath() }
+    ])
   }
 }
 

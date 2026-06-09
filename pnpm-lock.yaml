@@ -38,12 +38,9 @@ importers:
       '@types/crypto-js':
         specifier: ^4.2.2
         version: 4.2.2
-      '@uruhalushia/file-icon':
-        specifier: ^0.1.2
-        version: 0.1.2
-      '@uruhalushia/rule-converter-napi':
-        specifier: ^0.2.0
-        version: 0.2.0
+      '@uruhalushia/sparkle-native':
+        specifier: ^0.1.0
+        version: 0.1.0
       adm-zip:
         specifier: ^0.5.17
         version: 0.5.17
@@ -2808,178 +2805,59 @@ packages:
     resolution: {integrity: sha512-WmoN8qaIAo7WTYWbAZuG8PYEhn5fkz7dZrqTBZ7dtt//lL2Gwms1IcnQ5yHqjDfX8Ft5j4YzDM23f87zBfDe9g==}
     deprecated: Potential CWE-502 - Update to 1.3.1 or higher
 
-  '@uruhalushia/file-icon-darwin-arm64@0.1.2':
-    resolution: {integrity: sha512-4OyfFZCwX69B8Y8RpOLEIcZeWszs11AmXmYQWnct+l9H1Vq1xri2NL+vqcVfZIkm5KzqjkprYucCzCpMIXDhaw==}
+  '@uruhalushia/sparkle-native-darwin-arm64@0.1.0':
+    resolution: {integrity: sha512-WVRkPBZxy/o1oScP2KXU9VST3aI1BdhdzDG7XTnuuCx7zbs9zwCWLMSJKiw+dpNoS6ND8VE0Go0pafWkExO4FA==}
     engines: {node: '>=16'}
     cpu: [arm64]
     os: [darwin]
 
-  '@uruhalushia/file-icon-darwin-x64@0.1.2':
-    resolution: {integrity: sha512-1+oLaveWtrWgx/WpJBnNibfyVJ9fEGPhXupcTFzcZkvFRL36S5bpHWZrLsVAxJH8pBjr3WjuWxsfiIT9C+3NSQ==}
+  '@uruhalushia/sparkle-native-darwin-x64@0.1.0':
+    resolution: {integrity: sha512-Tz6K7aOpFzBjBo0xLQJYxuf9EbhkmT7XzTfZ3bqlz8wJgQXjkoOFLmpys6ULZ/DxPyB7s8Nxs59COJZQLrll8A==}
     engines: {node: '>=16'}
     cpu: [x64]
     os: [darwin]
 
-  '@uruhalushia/file-icon-linux-arm64-gnu@0.1.2':
-    resolution: {integrity: sha512-gPpWIQmRY+nibn0B8emc/Qg46+pFLyP+RtikTkakyAE+cxH3CVuJySi0ToesWNXec3tUl7I24NgXidppTIltbQ==}
+  '@uruhalushia/sparkle-native-linux-arm64-gnu@0.1.0':
+    resolution: {integrity: sha512-p3Hqsn2i6PKtXwSmjDnjlWDXdFKwRoPbxJIvCq8t5dEp0agykRZENA4GZZrBO+TLB1EwGPeVVE8Lov+GXUV1Cw==}
     engines: {node: '>=16'}
     cpu: [arm64]
     os: [linux]
     libc: [glibc]
 
-  '@uruhalushia/file-icon-linux-arm64-musl@0.1.2':
-    resolution: {integrity: sha512-nQ0kzPdz/DiNvODro5wIE6KG0SZOgY8E/+zXY1FWwoYhMuynfmwOZ9CTnEpxr/jTRT+dnY2IQf/goO5YcDANrg==}
-    engines: {node: '>=16'}
-    cpu: [arm64]
-    os: [linux]
-    libc: [musl]
-
-  '@uruhalushia/file-icon-linux-loong64-gnu@0.1.2':
-    resolution: {integrity: sha512-6nuVpP361eMQjRa8qKneEzDHZY/sSK0PasyLkBd1Ng2osGZ00SkRqaUpFDc9JecsBn+EmorZNdUoDiB4cOHlhQ==}
+  '@uruhalushia/sparkle-native-linux-loong64-gnu@0.1.0':
+    resolution: {integrity: sha512-4fMnJ5/gaYmgTIoO/eCVHhNWw58PjOZhuWahNFT028yt/5kbfuEbq22Py/oFngZZ7B7d6HbdeF90aDAJ/ve3pQ==}
     engines: {node: '>=16'}
     cpu: [loong64]
     os: [linux]
     libc: [glibc]
 
-  '@uruhalushia/file-icon-linux-loong64-musl@0.1.2':
-    resolution: {integrity: sha512-+23CCgkkMESj4+jc98IrxJQsez0sHOE/PhW3mouAdsTAgJsenaXCpYT7ykNE3WIqLiebBVuyqWW6e/pCjUeEQQ==}
-    engines: {node: '>=16'}
-    cpu: [loong64]
-    os: [linux]
-    libc: [musl]
-
-  '@uruhalushia/file-icon-linux-riscv64-gnu@0.1.2':
-    resolution: {integrity: sha512-THa1rrYSg9Qut60tDe3wMkBTTvtXUFzEcZL4TqeMeyzzwRkE+eA5o8cHE3jbY8uiIpc/Xq3883SegLWkzfOs1Q==}
-    engines: {node: '>=16'}
-    cpu: [riscv64]
-    os: [linux]
-    libc: [glibc]
-
-  '@uruhalushia/file-icon-linux-riscv64-musl@0.1.2':
-    resolution: {integrity: sha512-N+QMy1LaEeInGRLa76XFCRTuNGKFLNUQ2/bePt73yEYEQMP7B9ECWMT8IsArW9to9ZnqFnOUJL/3RzYK5BSmQw==}
-    engines: {node: '>=16'}
-    cpu: [riscv64]
-    os: [linux]
-    libc: [musl]
-
-  '@uruhalushia/file-icon-linux-x64-gnu@0.1.2':
-    resolution: {integrity: sha512-mjGYtLHRUYHXUKT2joqaaTT5GhTL35v2uSTuSieubKgMzZKvXHl08xN9NMrQrBxVGCXxu66EbW8gJEnUU6KjLw==}
+  '@uruhalushia/sparkle-native-linux-x64-gnu@0.1.0':
+    resolution: {integrity: sha512-nKG0h7vf6hP5IEhUkAvcyZE3YoA/0WDYdPU+PEBW9FA3Td8BTPyKz24SC1h73/bd+toc+RVm8fJBwmKihZQb1A==}
     engines: {node: '>=16'}
     cpu: [x64]
     os: [linux]
     libc: [glibc]
 
-  '@uruhalushia/file-icon-linux-x64-musl@0.1.2':
-    resolution: {integrity: sha512-xA71rHhcJL6qDyWaK/f3B14ceaYedYt5rZWJV4A2TYyCJ9I7R6pzCJ875SBrg6a3I0szs7Sb0OBBapBSsMRRCw==}
-    engines: {node: '>=16'}
-    cpu: [x64]
-    os: [linux]
-    libc: [musl]
-
-  '@uruhalushia/file-icon-win32-arm64-msvc@0.1.2':
-    resolution: {integrity: sha512-IE0h4A2lzs+twXM2dReGzQE5qXMTFFZLBaFs4ZAodVPFpLOuFeqMtGG8HOOHNAGF2rohkBeEAt9HamXsGSCDAA==}
+  '@uruhalushia/sparkle-native-win32-arm64-msvc@0.1.0':
+    resolution: {integrity: sha512-rhveQEQnwroPrL8KvQLEStFGcehI9bVuZy15sMs3v1RzuBT9cpcXucsCPxzJQs7p8qlLXTLijOFK0xLvMCRCrA==}
     engines: {node: '>=16'}
     cpu: [arm64]
     os: [win32]
 
-  '@uruhalushia/file-icon-win32-ia32-msvc@0.1.2':
-    resolution: {integrity: sha512-edwaVJ/X5b7TT4mkvHUtFodlN9y22nepdRmH13uETOxgUzTvl1riIumO8BQVpfVEfsJWHgmFmOX9zUmej+xKgA==}
+  '@uruhalushia/sparkle-native-win32-ia32-msvc@0.1.0':
+    resolution: {integrity: sha512-UOc4tEYTo+wIY7F3CnyjFdpcwYXAOuARPkf3y6AYmNz9navvzwW5ney0jHSKjIYyNRsym4LGuHH+O4SQHgkMoQ==}
     engines: {node: '>=16'}
     cpu: [ia32]
     os: [win32]
 
-  '@uruhalushia/file-icon-win32-x64-msvc@0.1.2':
-    resolution: {integrity: sha512-0IW8/SyiuiD2oI5JZ6kWgBkVTzf0dnuFi/pwguZzaD3nEVKAyDQHXfLYIC2KuqYPByrTe71wu77B0FuhRxkqZQ==}
+  '@uruhalushia/sparkle-native-win32-x64-msvc@0.1.0':
+    resolution: {integrity: sha512-+koYsY8Bu1nLJ7Rc4SgGxYxeeTKKUyw+T65G42pP3U3atjMoWuGeuzODp9cbjWn6bulwaUAz/rfSM7kDsKaOkQ==}
     engines: {node: '>=16'}
     cpu: [x64]
     os: [win32]
 
-  '@uruhalushia/file-icon@0.1.2':
-    resolution: {integrity: sha512-U1dHhPCCU1aCMukkm8oNTEqKSybYSxLBqb+VNcMGKRBppgtHJ1SGeh+qS2j8JTVFzucWw/j7tdr/H3AwefFuuQ==}
-    engines: {node: '>=16'}
-
-  '@uruhalushia/rule-converter-napi-darwin-arm64@0.2.0':
-    resolution: {integrity: sha512-EN/nYW8J9NmtRseek8xfYk8YaPyQFhW7T2oQRE/jT6uXJTJgrSNPTu22rT6/Y8xqcTyNWdS5Et0sLtTeC3pNQQ==}
-    engines: {node: '>=16'}
-    cpu: [arm64]
-    os: [darwin]
-
-  '@uruhalushia/rule-converter-napi-darwin-x64@0.2.0':
-    resolution: {integrity: sha512-jjmKsccA8bA5fBgEUG2Ry9gQII6TmRKPCbcDlNNcJgxwXoCLlW6zEgJM7hzArNYrl+FxLdP//Lh05hPdF80sGQ==}
-    engines: {node: '>=16'}
-    cpu: [x64]
-    os: [darwin]
-
-  '@uruhalushia/rule-converter-napi-linux-arm64-gnu@0.2.0':
-    resolution: {integrity: sha512-eae/U8BuKeq/P4m68s42ILJO66nood3zE0m9Jy+HcZmlTQZjOapGgQv0WtYZbGHqeuAy7F8syfg5xP2F0FSJ2Q==}
-    engines: {node: '>=16'}
-    cpu: [arm64]
-    os: [linux]
-    libc: [glibc]
-
-  '@uruhalushia/rule-converter-napi-linux-arm64-musl@0.2.0':
-    resolution: {integrity: sha512-O7f/zuRnjRAt1z/tkjY164NoiArpbI1iO7gWeTr6YtuUvpK5/Yj6bvmNRqVV80GgkCQcDHftfGSALt6zEClmbQ==}
-    engines: {node: '>=16'}
-    cpu: [arm64]
-    os: [linux]
-    libc: [musl]
-
-  '@uruhalushia/rule-converter-napi-linux-loong64-gnu@0.2.0':
-    resolution: {integrity: sha512-p2JiRWfhGYMPRzcE2FF2AqvI//On6Z9BfDv3hh9yychJJ6MWHIzFDm5wqkPBerrEUA242JSm9m2FxN4KwyCP0Q==}
-    engines: {node: '>=16'}
-    cpu: [loong64]
-    os: [linux]
-    libc: [glibc]
-
-  '@uruhalushia/rule-converter-napi-linux-loong64-musl@0.2.0':
-    resolution: {integrity: sha512-7+qVQSpCozDdp950oNXLnZWGGkyZXlDs/6adqSVSteOlw1iGo5cGaeyrz8sB4ZxjkmXT0y4EC5jLoTLgkdEGmw==}
-    engines: {node: '>=16'}
-    cpu: [loong64]
-    os: [linux]
-    libc: [musl]
-
-  '@uruhalushia/rule-converter-napi-linux-riscv64-gnu@0.2.0':
-    resolution: {integrity: sha512-VZCXwfOpA7/dIQow5QRYMd65947HBaIiAoYeFBEzL8XDcLVXYzOji8X5fFbhCW+8E63O+2CzQcnZQsQt5fa03Q==}
-    engines: {node: '>=16'}
-    cpu: [riscv64]
-    os: [linux]
-    libc: [glibc]
-
-  '@uruhalushia/rule-converter-napi-linux-riscv64-musl@0.2.0':
-    resolution: {integrity: sha512-ajgFxZ8FAlwtrDO5hCCJZ2l9OydMzDTHRv9clXaWkZw85fUHXgzr1i5eUa5Wy8h5klC/MMl638SXAN/IWU9nIw==}
-    engines: {node: '>=16'}
-    cpu: [riscv64]
-    os: [linux]
-    libc: [musl]
-
-  '@uruhalushia/rule-converter-napi-linux-x64-gnu@0.2.0':
-    resolution: {integrity: sha512-rGkuHIt392mpLdA+DUnMHWjwpDbvdHlwTIr7dC6asp0099ABRd9WxVHihjF5nF18CqDAyqn16iovukYM///ZJg==}
-    engines: {node: '>=16'}
-    cpu: [x64]
-    os: [linux]
-    libc: [glibc]
-
-  '@uruhalushia/rule-converter-napi-linux-x64-musl@0.2.0':
-    resolution: {integrity: sha512-dMakBYvAGuM8Jt7OQJqOtNHvRDPZiHlVWUFjDRQHaEWrLZxXH8MjYTaxmS5vSCSbDE+zKUartgQy1C4V5YzQAw==}
-    engines: {node: '>=16'}
-    cpu: [x64]
-    os: [linux]
-    libc: [musl]
-
-  '@uruhalushia/rule-converter-napi-win32-arm64-msvc@0.2.0':
-    resolution: {integrity: sha512-pPcCJnTHwCtEfldSyRh9mJPwGMD/ZIkmMYoUfCBiQqfMZweWoXx+iDRFuSJKYOP1fCOpUpAuFQxGZV/3M/vybA==}
-    engines: {node: '>=16'}
-    cpu: [arm64]
-    os: [win32]
-
-  '@uruhalushia/rule-converter-napi-win32-x64-msvc@0.2.0':
-    resolution: {integrity: sha512-vssB1Lb+lacT0IGJZq/y1ldmVgB3+v7IiW4bbrGDdljxIhuuYTAqq0CFdpgYBoLEx3Sgf1DSQsQr79QXGOeHKw==}
-    engines: {node: '>=16'}
-    cpu: [x64]
-    os: [win32]
-
-  '@uruhalushia/rule-converter-napi@0.2.0':
-    resolution: {integrity: sha512-nM7zYquvD5ytibVRQDsm0m/qySY0GP+lRi/o5x7WkrEHhYqRi9ZI1w0nYVXV3Dd36Ff6QvD+cuiGlLAZVF/cyg==}
+  '@uruhalushia/sparkle-native@0.1.0':
+    resolution: {integrity: sha512-jxqgzNqqEe8vPSKQZ9Wvkx3BftrKeNV4nijWgrGHJbCN4HSFYzBkrnbPn3OTNN2IxWFbD/9ontnLgEAq/45G7A==}
     engines: {node: '>=16'}
 
   '@vitejs/plugin-react@6.0.1':
@@ -9433,111 +9311,40 @@ snapshots:
 
   '@ungap/structured-clone@1.3.0': {}
 
-  '@uruhalushia/file-icon-darwin-arm64@0.1.2':
+  '@uruhalushia/sparkle-native-darwin-arm64@0.1.0':
     optional: true
 
-  '@uruhalushia/file-icon-darwin-x64@0.1.2':
+  '@uruhalushia/sparkle-native-darwin-x64@0.1.0':
     optional: true
 
-  '@uruhalushia/file-icon-linux-arm64-gnu@0.1.2':
+  '@uruhalushia/sparkle-native-linux-arm64-gnu@0.1.0':
     optional: true
 
-  '@uruhalushia/file-icon-linux-arm64-musl@0.1.2':
+  '@uruhalushia/sparkle-native-linux-loong64-gnu@0.1.0':
     optional: true
 
-  '@uruhalushia/file-icon-linux-loong64-gnu@0.1.2':
+  '@uruhalushia/sparkle-native-linux-x64-gnu@0.1.0':
     optional: true
 
-  '@uruhalushia/file-icon-linux-loong64-musl@0.1.2':
+  '@uruhalushia/sparkle-native-win32-arm64-msvc@0.1.0':
     optional: true
 
-  '@uruhalushia/file-icon-linux-riscv64-gnu@0.1.2':
+  '@uruhalushia/sparkle-native-win32-ia32-msvc@0.1.0':
     optional: true
 
-  '@uruhalushia/file-icon-linux-riscv64-musl@0.1.2':
+  '@uruhalushia/sparkle-native-win32-x64-msvc@0.1.0':
     optional: true
 
-  '@uruhalushia/file-icon-linux-x64-gnu@0.1.2':
-    optional: true
-
-  '@uruhalushia/file-icon-linux-x64-musl@0.1.2':
-    optional: true
-
-  '@uruhalushia/file-icon-win32-arm64-msvc@0.1.2':
-    optional: true
-
-  '@uruhalushia/file-icon-win32-ia32-msvc@0.1.2':
-    optional: true
-
-  '@uruhalushia/file-icon-win32-x64-msvc@0.1.2':
-    optional: true
-
-  '@uruhalushia/file-icon@0.1.2':
+  '@uruhalushia/sparkle-native@0.1.0':
     optionalDependencies:
-      '@uruhalushia/file-icon-darwin-arm64': 0.1.2
-      '@uruhalushia/file-icon-darwin-x64': 0.1.2
-      '@uruhalushia/file-icon-linux-arm64-gnu': 0.1.2
-      '@uruhalushia/file-icon-linux-arm64-musl': 0.1.2
-      '@uruhalushia/file-icon-linux-loong64-gnu': 0.1.2
-      '@uruhalushia/file-icon-linux-loong64-musl': 0.1.2
-      '@uruhalushia/file-icon-linux-riscv64-gnu': 0.1.2
-      '@uruhalushia/file-icon-linux-riscv64-musl': 0.1.2
-      '@uruhalushia/file-icon-linux-x64-gnu': 0.1.2
-      '@uruhalushia/file-icon-linux-x64-musl': 0.1.2
-      '@uruhalushia/file-icon-win32-arm64-msvc': 0.1.2
-      '@uruhalushia/file-icon-win32-ia32-msvc': 0.1.2
-      '@uruhalushia/file-icon-win32-x64-msvc': 0.1.2
-
-  '@uruhalushia/rule-converter-napi-darwin-arm64@0.2.0':
-    optional: true
-
-  '@uruhalushia/rule-converter-napi-darwin-x64@0.2.0':
-    optional: true
-
-  '@uruhalushia/rule-converter-napi-linux-arm64-gnu@0.2.0':
-    optional: true
-
-  '@uruhalushia/rule-converter-napi-linux-arm64-musl@0.2.0':
-    optional: true
-
-  '@uruhalushia/rule-converter-napi-linux-loong64-gnu@0.2.0':
-    optional: true
-
-  '@uruhalushia/rule-converter-napi-linux-loong64-musl@0.2.0':
-    optional: true
-
-  '@uruhalushia/rule-converter-napi-linux-riscv64-gnu@0.2.0':
-    optional: true
-
-  '@uruhalushia/rule-converter-napi-linux-riscv64-musl@0.2.0':
-    optional: true
-
-  '@uruhalushia/rule-converter-napi-linux-x64-gnu@0.2.0':
-    optional: true
-
-  '@uruhalushia/rule-converter-napi-linux-x64-musl@0.2.0':
-    optional: true
-
-  '@uruhalushia/rule-converter-napi-win32-arm64-msvc@0.2.0':
-    optional: true
-
-  '@uruhalushia/rule-converter-napi-win32-x64-msvc@0.2.0':
-    optional: true
-
-  '@uruhalushia/rule-converter-napi@0.2.0':
-    optionalDependencies:
-      '@uruhalushia/rule-converter-napi-darwin-arm64': 0.2.0
-      '@uruhalushia/rule-converter-napi-darwin-x64': 0.2.0
-      '@uruhalushia/rule-converter-napi-linux-arm64-gnu': 0.2.0
-      '@uruhalushia/rule-converter-napi-linux-arm64-musl': 0.2.0
-      '@uruhalushia/rule-converter-napi-linux-loong64-gnu': 0.2.0
-      '@uruhalushia/rule-converter-napi-linux-loong64-musl': 0.2.0
-      '@uruhalushia/rule-converter-napi-linux-riscv64-gnu': 0.2.0
-      '@uruhalushia/rule-converter-napi-linux-riscv64-musl': 0.2.0
-      '@uruhalushia/rule-converter-napi-linux-x64-gnu': 0.2.0
-      '@uruhalushia/rule-converter-napi-linux-x64-musl': 0.2.0
-      '@uruhalushia/rule-converter-napi-win32-arm64-msvc': 0.2.0
-      '@uruhalushia/rule-converter-napi-win32-x64-msvc': 0.2.0
+      '@uruhalushia/sparkle-native-darwin-arm64': 0.1.0
+      '@uruhalushia/sparkle-native-darwin-x64': 0.1.0
+      '@uruhalushia/sparkle-native-linux-arm64-gnu': 0.1.0
+      '@uruhalushia/sparkle-native-linux-loong64-gnu': 0.1.0
+      '@uruhalushia/sparkle-native-linux-x64-gnu': 0.1.0
+      '@uruhalushia/sparkle-native-win32-arm64-msvc': 0.1.0
+      '@uruhalushia/sparkle-native-win32-ia32-msvc': 0.1.0
+      '@uruhalushia/sparkle-native-win32-x64-msvc': 0.1.0
 
   '@vitejs/plugin-react@6.0.1(vite@8.0.11(@types/node@25.6.2)(esbuild@0.27.4)(jiti@2.7.0)(tsx@4.21.0)(yaml@2.8.4))':
     dependencies:

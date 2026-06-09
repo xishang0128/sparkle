@@ -1,5 +1,9 @@
 import { execFile } from 'child_process'
 import { promisify } from 'util'
+import {
+  isRunningAsAdmin as nativeIsRunningAsAdmin,
+  runElevated
+} from '@uruhalushia/sparkle-native'
 
 const execFilePromise = promisify(execFile)
 
@@ -11,13 +15,11 @@ async function isRunningAsAdmin(): Promise<boolean> {
   }
 
   try {
-    await execFilePromise('net', ['session'], { timeout: 2000 })
-    isAdminCached = true
-    return true
+    isAdminCached = nativeIsRunningAsAdmin()
   } catch {
     isAdminCached = false
-    return false
   }
+  return isAdminCached
 }
 
 function shellQuote(arg: string): string {
@@ -34,24 +36,10 @@ export async function execWithElevation(command: string, args: string[]): Promis
       if (await isRunningAsAdmin()) {
         await execFilePromise(command, args, { timeout: 30000 })
       } else {
-        const escapedCommand = command.replace(/'/g, "''")
-        const psArgs = args
-          .map((arg) => {
-            const escaped = arg.replace(/'/g, "''")
-            return `'${escaped}'`
-          })
-          .join(',')
-        await execFilePromise(
-          'powershell.exe',
-          [
-            '-NoProfile',
-            '-ExecutionPolicy',
-            'Bypass',
-            '-Command',
-            `& { $p = Start-Process -FilePath '${escapedCommand}' -ArgumentList @(${psArgs}) -Verb RunAs -WindowStyle Hidden -PassThru -Wait; exit $p.ExitCode }`
-          ],
-          { timeout: 30000 }
-        )
+        const exitCode = runElevated(command, args)
+        if (exitCode !== 0) {
+          throw new Error(`exit code ${exitCode}`)
+        }
       }
     } catch (error) {
       throw new Error(
