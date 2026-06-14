@@ -1,11 +1,39 @@
 import axios from 'axios'
 import { getAppConfig, getControledMihomoConfig } from '../config'
 import { getRuntimeConfigStr } from '../core/factory'
+import { encryptAgeText } from '../utils/age'
 
 interface GistInfo {
   id: string
   description: string
   html_url: string
+}
+
+const GIST_DESCRIPTION = 'Auto Synced Sparkle Runtime Config'
+const GIST_FILE_NAME = 'sparkle.yaml'
+const GIST_ENCRYPTED_FILE_NAME = 'sparkle.yaml.age'
+
+function getGistFileName(encrypted: boolean): string {
+  return encrypted ? GIST_ENCRYPTED_FILE_NAME : GIST_FILE_NAME
+}
+
+function getStaleGistFileName(encrypted: boolean): string {
+  return encrypted ? GIST_FILE_NAME : GIST_ENCRYPTED_FILE_NAME
+}
+
+async function getGistUploadContent(): Promise<{ content: string; encrypted: boolean; fileName: string }> {
+  const {
+    gistEncrypted = false,
+    gistAgeRecipient = ''
+  } = await getAppConfig()
+  const config = await getRuntimeConfigStr()
+  const content = gistEncrypted ? await encryptAgeText(config, gistAgeRecipient) : config
+
+  return {
+    content,
+    encrypted: gistEncrypted,
+    fileName: getGistFileName(gistEncrypted)
+  }
 }
 
 async function listGists(token: string): Promise<GistInfo[]> {
@@ -28,14 +56,14 @@ async function listGists(token: string): Promise<GistInfo[]> {
   return res.data as GistInfo[]
 }
 
-async function createGist(token: string, content: string): Promise<void> {
+async function createGist(token: string, fileName: string, content: string): Promise<void> {
   const { 'mixed-port': port = 7890 } = await getControledMihomoConfig()
   return await axios.post(
     'https://api.github.com/gists',
     {
-      description: 'Auto Synced Sparkle Runtime Config',
+      description: GIST_DESCRIPTION,
       public: false,
-      files: { 'sparkle.yaml': { content } }
+      files: { [fileName]: { content } }
     },
     {
       headers: {
@@ -54,13 +82,22 @@ async function createGist(token: string, content: string): Promise<void> {
   )
 }
 
-async function updateGist(token: string, id: string, content: string): Promise<void> {
+async function updateGist(
+  token: string,
+  id: string,
+  fileName: string,
+  content: string,
+  encrypted: boolean
+): Promise<void> {
   const { 'mixed-port': port = 7890 } = await getControledMihomoConfig()
   return await axios.patch(
     `https://api.github.com/gists/${id}`,
     {
-      description: 'Auto Synced Sparkle Runtime Config',
-      files: { 'sparkle.yaml': { content } }
+      description: GIST_DESCRIPTION,
+      files: {
+        [fileName]: { content },
+        [getStaleGistFileName(encrypted)]: null
+      }
     },
     {
       headers: {
@@ -84,13 +121,13 @@ export async function getGistUrl(): Promise<string> {
   if (!gistSyncEnabled) return ''
   if (!githubToken) return ''
   const gists = await listGists(githubToken)
-  const gist = gists.find((gist) => gist.description === 'Auto Synced Sparkle Runtime Config')
+  const gist = gists.find((gist) => gist.description === GIST_DESCRIPTION)
   if (gist) {
     return gist.html_url
   } else {
     await uploadRuntimeConfig()
     const gists = await listGists(githubToken)
-    const gist = gists.find((gist) => gist.description === 'Auto Synced Sparkle Runtime Config')
+    const gist = gists.find((gist) => gist.description === GIST_DESCRIPTION)
     if (!gist) throw new Error('Gist not found')
     return gist.html_url
   }
@@ -101,11 +138,11 @@ export async function uploadRuntimeConfig(): Promise<void> {
   if (!gistSyncEnabled) return
   if (!githubToken) return
   const gists = await listGists(githubToken)
-  const gist = gists.find((gist) => gist.description === 'Auto Synced Sparkle Runtime Config')
-  const config = await getRuntimeConfigStr()
+  const gist = gists.find((gist) => gist.description === GIST_DESCRIPTION)
+  const { content, encrypted, fileName } = await getGistUploadContent()
   if (gist) {
-    await updateGist(githubToken, gist.id, config)
+    await updateGist(githubToken, gist.id, fileName, content, encrypted)
   } else {
-    await createGist(githubToken, config)
+    await createGist(githubToken, fileName, content)
   }
 }

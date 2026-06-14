@@ -180,15 +180,12 @@
   justify-content: end;
 }
 
-.setting-item:has([data-setting-input='full']) {
+.setting-item--titleless:has([data-setting-input='full']) {
   grid-template-columns: minmax(0, 1fr);
+  height: auto;
 }
 
-.setting-item:has([data-setting-input='full']) .setting-item__title-wrap {
-  display: none;
-}
-
-.setting-item:has([data-setting-input='full']) .setting-item__content {
+.setting-item--titleless:has([data-setting-input='full']) .setting-item__content {
   display: block;
   width: 100%;
 }
@@ -442,8 +439,10 @@ input[type='number'] {
 }
 
 .setting-item .input[data-setting-input='edit-modal'],
+.setting-item .input-group[data-setting-input='edit-modal'],
 .setting-item .select[data-setting-input='edit-modal'] {
   width: 100%;
+  min-width: 0;
 }
 
 .setting-item .input[data-setting-input='edit-modal-name'] {

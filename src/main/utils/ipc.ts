@@ -142,6 +142,7 @@ import { getAppName } from '@uruhalushia/sparkle-native'
 import { showNotification } from './notification'
 import { getUserAgent } from './userAgent'
 import { appendAppLog, clearCachedMihomoLogs, getCachedMihomoLogs } from './log'
+import { ageIdentityToRecipient, generateAgeKeyPair } from './age'
 
 function ipcErrorWrapper<T>( // eslint-disable-next-line @typescript-eslint/no-explicit-any
   fn: (...args: any[]) => T | Promise<T> // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -389,6 +390,10 @@ export function registerIpcMainHandlers(): void {
     return v8.writeHeapSnapshot(path.join(logDir(), `${Date.now()}.heapsnapshot`))
   })
   ipcMain.handle('getUserAgent', () => ipcErrorWrapper(getUserAgent)())
+  ipcMain.handle('generateAgeKeyPair', () => ipcErrorWrapper(generateAgeKeyPair)())
+  ipcMain.handle('ageIdentityToRecipient', (_e, identity) =>
+    ipcErrorWrapper(ageIdentityToRecipient)(identity)
+  )
   ipcMain.handle('getAppName', (_e, appPath) => ipcErrorWrapper(getAppName)(appPath))
   ipcMain.handle('getImageDataURL', (_e, url) => ipcErrorWrapper(getImageDataURL)(url))
   ipcMain.handle('getIconDataURL', (_e, appPath) => ipcErrorWrapper(getIconDataURL)(appPath))

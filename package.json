@@ -36,6 +36,7 @@
     "@types/crypto-js": "^4.2.2",
     "@uruhalushia/sparkle-native": "^0.1.1",
     "adm-zip": "^0.5.17",
+    "age-encryption": "^0.3.0",
     "axios": "^1.16.0",
     "crypto-js": "^4.2.0",
     "dayjs": "^1.11.20",

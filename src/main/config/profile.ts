@@ -19,6 +19,7 @@ import { dirname, isAbsolute, join, relative, resolve } from 'path'
 import { deepMerge } from '../utils/merge'
 import { getUserAgent } from '../utils/userAgent'
 import { execWithElevation } from '../utils/elevation'
+import { decryptAgeText, encryptAgeText, isAgeEncryptedText } from '../utils/age'
 
 let profileConfig: ProfileConfig // profile.yaml
 const FILE_PERMISSION_ELEVATION_REQUIRED = 'FILE_PERMISSION_ELEVATION_REQUIRED'
@@ -68,9 +69,28 @@ export async function updateProfileItem(item: ProfileItem): Promise<void> {
   if (index === -1) {
     throw new Error('Profile not found')
   }
+
+  const oldItem = config.items[index]
+  const shouldRewriteProfile =
+    oldItem.ageRecipient !== item.ageRecipient || oldItem.ageIdentity !== item.ageIdentity
+  let profileContent: string | undefined
+
+  if (shouldRewriteProfile && existsSync(profilePath(item.id))) {
+    const rawProfile = await readFile(profilePath(item.id), 'utf-8')
+    try {
+      profileContent = await decryptProfileContent(rawProfile, oldItem)
+    } catch {
+      profileContent = await decryptProfileContent(rawProfile, item)
+    }
+  }
+
   config.items[index] = item
   if (!item.autoUpdate) await delProfileUpdater(item.id)
   await setProfileConfig(config)
+
+  if (profileContent !== undefined) {
+    await writeProfileContent(item.id, profileContent, item, false)
+  }
 }
 
 export async function addProfileItem(item: Partial<ProfileItem>): Promise<void> {
@@ -134,6 +154,8 @@ export async function createProfile(item: Partial<ProfileItem>): Promise<Profile
     interval: item.interval || 0,
     override: item.override || [],
     useProxy: item.useProxy || false,
+    ageRecipient: item.ageRecipient?.trim() || undefined,
+    ageIdentity: item.ageIdentity?.trim() || undefined,
     updated: new Date().getTime()
   } as ProfileItem
   switch (newItem.type) {
@@ -236,7 +258,7 @@ export async function createProfile(item: Partial<ProfileItem>): Promise<Profile
         }
       }
 
-      const data = res.data
+      const data = await decryptProfileContent(String(res.data), newItem)
       const headers = res.headers
       const contentDispositionKey = Object.keys(headers).find((k) =>
         k.toLowerCase().endsWith('content-disposition')
@@ -272,12 +294,12 @@ export async function createProfile(item: Partial<ProfileItem>): Promise<Profile
           throw new Error('订阅格式错误，无法解析为有效的配置文件\n' + (error as Error).message)
         }
       }
-      await setProfileStr(id, data)
+      await setProfileStr(id, data, newItem)
       break
     }
     case 'local': {
-      const data = item.file || ''
-      await setProfileStr(id, data)
+      const data = await decryptProfileContent(item.file || '', newItem)
+      await setProfileStr(id, data, newItem)
       break
     }
   }
@@ -286,7 +308,8 @@ export async function createProfile(item: Partial<ProfileItem>): Promise<Profile
 
 export async function getProfileStr(id: string | undefined): Promise<string> {
   if (existsSync(profilePath(id || 'default'))) {
-    return await readFile(profilePath(id || 'default'), 'utf-8')
+    const data = await readFile(profilePath(id || 'default'), 'utf-8')
+    return await decryptProfileContent(data, await getProfileItem(id))
   } else {
     return stringifyYaml(defaultProfile)
   }
@@ -299,14 +322,41 @@ export async function getProfileParseStr(id: string | undefined): Promise<string
   } else {
     data = stringifyYaml(defaultProfile)
   }
+  data = await decryptProfileContent(data, await getProfileItem(id))
   const profile = deepMerge(parseYaml<object>(data), {})
   return stringifyYaml(profile)
 }
 
-export async function setProfileStr(id: string, content: string): Promise<void> {
+export async function setProfileStr(
+  id: string,
+  content: string,
+  item?: ProfileItem
+): Promise<void> {
+  await writeProfileContent(id, content, item, true)
+}
+
+async function decryptProfileContent(content: string, item: ProfileItem | undefined): Promise<string> {
+  if (!isAgeEncryptedText(content)) return content
+  if (!item?.ageIdentity) {
+    throw new Error(`${item?.name || '配置'} 已使用 age 加密，请先填写 age 私钥`)
+  }
+  return await decryptAgeText(content, item.ageIdentity)
+}
+
+async function writeProfileContent(
+  id: string,
+  content: string,
+  item: ProfileItem | undefined,
+  shouldRestartCurrent: boolean
+): Promise<void> {
   const { current } = await getProfileConfig()
-  await writeFile(profilePath(id), content, 'utf-8')
-  if (current === id) await restartCore()
+  const profileItem = item || (await getProfileItem(id))
+  const data = profileItem?.ageRecipient
+    ? await encryptAgeText(content, profileItem.ageRecipient)
+    : content
+
+  await writeFile(profilePath(id), data, 'utf-8')
+  if (shouldRestartCurrent && current === id) await restartCore()
 }
 
 export async function getProfile(id: string | undefined): Promise<MihomoConfig> {

@@ -260,7 +260,18 @@ async function completeCoreInitialization(logLevel?: LogLevel): Promise<void> {
       mainWindow?.webContents.send('groupsUpdated')
       mainWindow?.webContents.send('rulesUpdated')
     }),
-    uploadRuntimeConfig()
+    (async () => {
+      try {
+        await uploadRuntimeConfig()
+      } catch (error) {
+        await appendAppLog(`[Manager]: upload runtime config failed, ${error}\n`)
+        void showNotification({
+          title: '同步 Gist 配置失败',
+          body: `${error}`,
+          variant: 'danger'
+        })
+      }
+    })()
   ]
 
   if (logLevel) {
@@ -812,7 +823,7 @@ function clearTailscaleAuthNotifications(name?: string): void {
     new Set(
       Array.from(notifiedCoreLogKeys).filter((key) =>
         key.startsWith(tailscaleAuthNotificationKeyPrefix)
-      ),
+      )
     )
   if (keys.size === 0) return
 

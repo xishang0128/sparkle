@@ -3,10 +3,16 @@ import React, { useState, useEffect, useRef } from 'react'
 import SettingItem from '../base/base-setting-item'
 import { SettingTabs, settingItemProps } from '../base/base-controls'
 import { useAppConfig } from '@renderer/hooks/use-app-config'
-import { getGistUrl, getUserAgent } from '@renderer/utils/ipc'
+import {
+  ageIdentityToRecipient,
+  generateAgeKeyPair,
+  getGistUrl,
+  getUserAgent
+} from '@renderer/utils/ipc'
 import debounce from '@renderer/utils/debounce'
 import { IoIosHelpCircle } from 'react-icons/io'
 import { BiCopy, BiHide, BiShow } from 'react-icons/bi'
+import { LuArrowRight, LuRefreshCw } from 'react-icons/lu'
 import { notify } from '@renderer/utils/notification'
 
 interface Props {
@@ -25,11 +31,15 @@ const ProfileSettingDrawer: React.FC<Props> = (props) => {
     userAgent,
     diffWorkDir = false,
     githubToken = '',
-    gistSyncEnabled = githubToken !== ''
+    gistSyncEnabled = githubToken !== '',
+    gistEncrypted = false,
+    gistAgeRecipient = '',
+    gistAgeIdentity = ''
   } = appConfig || {}
 
   const [ua, setUa] = useState(userAgent ?? '')
   const [tokenVisible, setTokenVisible] = useState(false)
+  const [gistAgeIdentityVisible, setGistAgeIdentityVisible] = useState(false)
   const [defaultUserAgent, setDefaultUserAgent] = useState<string>('')
   const userAgentFetched = useRef(false)
   const [isOpen, setIsOpen] = useState(true)
@@ -69,6 +79,35 @@ const ProfileSettingDrawer: React.FC<Props> = (props) => {
     }
     setIsOpen(true)
   }, [reopenSignal])
+
+  const copyValue = async (value: string | undefined, title: string): Promise<void> => {
+    if (!value) return
+    await navigator.clipboard.writeText(value)
+    notify(title, { variant: 'success' })
+  }
+
+  const handleGenerateGistAgeKeyPair = async (): Promise<void> => {
+    try {
+      const keyPair = await generateAgeKeyPair()
+      await patchAppConfig({
+        gistAgeIdentity: keyPair.identity,
+        gistAgeRecipient: keyPair.recipient
+      })
+      notify('已生成 age 密钥', { variant: 'success' })
+    } catch (e) {
+      notify(e, { variant: 'danger' })
+    }
+  }
+
+  const handleDeriveGistAgeRecipient = async (): Promise<void> => {
+    try {
+      const recipient = await ageIdentityToRecipient(gistAgeIdentity)
+      await patchAppConfig({ gistAgeRecipient: recipient })
+      notify('已生成 age 公钥', { variant: 'success' })
+    } catch (e) {
+      notify(e, { variant: 'danger' })
+    }
+  }
 
   const closeWithAnimation = (): void => {
     if (closeTimer.current) return
@@ -165,7 +204,9 @@ const ProfileSettingDrawer: React.FC<Props> = (props) => {
                         try {
                           const url = await getGistUrl()
                           if (url !== '') {
-                            await navigator.clipboard.writeText(`${url}/raw/sparkle.yaml`)
+                            const fileName = gistEncrypted ? 'sparkle.yaml.age' : 'sparkle.yaml'
+                            await navigator.clipboard.writeText(`${url}/raw/${fileName}`)
+                            notify('已复制 Gist URL', { variant: 'success' })
                           }
                         } catch (e) {
                           notify(e, { variant: 'danger' })
@@ -191,7 +232,7 @@ const ProfileSettingDrawer: React.FC<Props> = (props) => {
                 </Switch>
               </SettingItem>
               {gistSyncEnabled && (
-                <SettingItem title={null} {...settingItemProps}>
+                <SettingItem title={null} {...settingItemProps} divider>
                   <InputGroup data-setting-input="full" variant="secondary">
                     <InputGroup.Input
                       aria-label="GitHub Token"
@@ -211,6 +252,112 @@ const ProfileSettingDrawer: React.FC<Props> = (props) => {
                         onPress={() => setTokenVisible((visible) => !visible)}
                       >
                         {tokenVisible ? (
+                          <BiHide className="text-lg" />
+                        ) : (
+                          <BiShow className="text-lg" />
+                        )}
+                      </Button>
+                    </InputGroup.Suffix>
+                  </InputGroup>
+                </SettingItem>
+              )}
+              {gistSyncEnabled && (
+                <SettingItem title="加密 Gist 配置" {...settingItemProps} divider>
+                  <Switch
+                    aria-label="加密 Gist 配置"
+                    isSelected={gistEncrypted}
+                    onChange={(v) => {
+                      patchAppConfig({ gistEncrypted: v })
+                    }}
+                  >
+                    <Switch.Control>
+                      <Switch.Thumb />
+                    </Switch.Control>
+                  </Switch>
+                </SettingItem>
+              )}
+              {gistSyncEnabled && gistEncrypted && (
+                <SettingItem title="Gist age 公钥" {...settingItemProps} divider>
+                  <InputGroup data-setting-input="full" variant="secondary">
+                    <InputGroup.Input
+                      aria-label="Gist age 公钥"
+                      value={gistAgeRecipient}
+                      placeholder="age1..."
+                      onChange={(event) => {
+                        patchAppConfig({
+                          gistAgeRecipient: event.target.value.trim() || undefined
+                        })
+                      }}
+                    />
+                    <InputGroup.Suffix>
+                      <Tooltip>
+                        <Button
+                          aria-label="从 Gist age 私钥生成公钥"
+                          isIconOnly
+                          size="sm"
+                          variant="ghost"
+                          onPress={handleDeriveGistAgeRecipient}
+                        >
+                          <LuArrowRight className="text-lg" />
+                        </Button>
+                        <Tooltip.Content>从私钥生成公钥</Tooltip.Content>
+                      </Tooltip>
+                      <Button
+                        aria-label="复制 Gist age 公钥"
+                        isIconOnly
+                        size="sm"
+                        variant="ghost"
+                        onPress={() => copyValue(gistAgeRecipient, '已复制 age 公钥')}
+                      >
+                        <BiCopy className="text-lg" />
+                      </Button>
+                    </InputGroup.Suffix>
+                  </InputGroup>
+                </SettingItem>
+              )}
+              {gistSyncEnabled && gistEncrypted && (
+                <SettingItem title="Gist age 私钥" {...settingItemProps}>
+                  <InputGroup data-setting-input="full" variant="secondary">
+                    <InputGroup.Input
+                      aria-label="Gist age 私钥"
+                      type={gistAgeIdentityVisible ? 'text' : 'password'}
+                      value={gistAgeIdentity}
+                      placeholder="AGE-SECRET-KEY-1..."
+                      onChange={(event) => {
+                        patchAppConfig({
+                          gistAgeIdentity: event.target.value.trim() || undefined
+                        })
+                      }}
+                    />
+                    <InputGroup.Suffix>
+                      <Button
+                        aria-label="生成 Gist age 私钥"
+                        isIconOnly
+                        size="sm"
+                        variant="ghost"
+                        onPress={handleGenerateGistAgeKeyPair}
+                      >
+                        <LuRefreshCw className="text-lg" />
+                      </Button>
+                      <Button
+                        aria-label="复制 Gist age 私钥"
+                        isIconOnly
+                        size="sm"
+                        variant="ghost"
+                        onPress={() => copyValue(gistAgeIdentity, '已复制 age 私钥')}
+                      >
+                        <BiCopy className="text-lg" />
+                      </Button>
+                      <Button
+                        aria-label={
+                          gistAgeIdentityVisible ? '隐藏 Gist age 私钥' : '显示 Gist age 私钥'
+                        }
+                        isIconOnly
+                        size="sm"
+                        variant="ghost"
+                        onPress={() => setGistAgeIdentityVisible((visible) => !visible)}
+                      >
+                        {gistAgeIdentityVisible ? (
                           <BiHide className="text-lg" />
                         ) : (
                           <BiShow className="text-lg" />

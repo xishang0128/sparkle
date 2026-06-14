@@ -76,6 +76,9 @@ interface AppConfig {
   tunCardStatus?: CardStatus
   githubToken?: string
   gistSyncEnabled?: boolean
+  gistEncrypted?: boolean
+  gistAgeRecipient?: string
+  gistAgeIdentity?: string
   useSubStore: boolean
   subStoreHost?: string
   subStoreBackendSyncCron?: string
@@ -166,6 +169,8 @@ interface ProfileItem {
   updated?: number
   override?: string[]
   useProxy?: boolean
+  ageRecipient?: string
+  ageIdentity?: string
   extra?: SubscriptionUserInfo
   substore?: boolean
   locked?: boolean

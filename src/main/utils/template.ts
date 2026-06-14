@@ -24,6 +24,7 @@ export const defaultConfig: AppConfig = {
   connectionGroupDirection: 'asc',
   connectionInterval: 500,
   gistSyncEnabled: false,
+  gistEncrypted: false,
   useSubStore: true,
   proxyDisplayOrder: 'default',
   autoCheckUpdate: false,

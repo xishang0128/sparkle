@@ -25,6 +25,8 @@ const SettingItem: React.FC<SettingItemProps> = (props) => {
     contentAlign = 'start'
   } = props
   const isCompact = variant === 'compact'
+  const hasTitle = title !== null && title !== undefined && title !== false
+  const isTitleless = !hasTitle && !actions
 
   return (
     <>
@@ -42,13 +44,16 @@ const SettingItem: React.FC<SettingItemProps> = (props) => {
             'setting-item select-text',
             align === 'start' ? 'setting-item--start' : 'setting-item--center',
             isCompact && 'setting-item--compact',
+            isTitleless && 'setting-item--titleless',
             contentAlign === 'end' && 'setting-item--content-end'
           )}
         >
-          <div className="setting-item__title-wrap">
-            <h4 className="setting-item__title">{title}</h4>
-            {actions}
-          </div>
+          {(hasTitle || actions) && (
+            <div className="setting-item__title-wrap">
+              {hasTitle && <h4 className="setting-item__title">{title}</h4>}
+              {actions}
+            </div>
+          )}
           <div className="setting-item__content">{children}</div>
         </div>
       )}

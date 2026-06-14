@@ -2,6 +2,7 @@ import {
   Button,
   Dropdown,
   Input,
+  InputGroup,
   Label,
   Modal,
   Separator,
@@ -12,10 +13,12 @@ import {
 import type { ReactNode } from 'react'
 import React, { useState } from 'react'
 import { useOverrideConfig } from '@renderer/hooks/use-override-config'
-import { restartCore } from '@renderer/utils/ipc'
+import { ageIdentityToRecipient, generateAgeKeyPair, restartCore } from '@renderer/utils/ipc'
 import { MdDeleteForever } from 'react-icons/md'
 import { FaPlus } from 'react-icons/fa6'
 import { IoIosHelpCircle } from 'react-icons/io'
+import { BiCopy, BiHide, BiShow } from 'react-icons/bi'
+import { LuArrowRight, LuRefreshCw } from 'react-icons/lu'
 import { notify } from '@renderer/utils/notification'
 
 interface Props {
@@ -30,6 +33,37 @@ const EditInfoModal: React.FC<Props> = (props) => {
   const { overrideConfig } = useOverrideConfig()
   const { items: overrideItems = [] } = overrideConfig || {}
   const [values, setValues] = useState({ ...item, autoUpdate: item.autoUpdate ?? true })
+  const [ageIdentityVisible, setAgeIdentityVisible] = useState(false)
+
+  const copyValue = async (value: string | undefined, title: string): Promise<void> => {
+    if (!value) return
+    await navigator.clipboard.writeText(value)
+    notify(title, { variant: 'success' })
+  }
+
+  const handleGenerateAgeKeyPair = async (): Promise<void> => {
+    try {
+      const keyPair = await generateAgeKeyPair()
+      setValues((current) => ({
+        ...current,
+        ageIdentity: keyPair.identity,
+        ageRecipient: keyPair.recipient
+      }))
+      notify('已生成 age 密钥', { variant: 'success' })
+    } catch (e) {
+      notify(e, { variant: 'danger' })
+    }
+  }
+
+  const handleDeriveAgeRecipient = async (): Promise<void> => {
+    try {
+      const recipient = await ageIdentityToRecipient(values.ageIdentity ?? '')
+      setValues((current) => ({ ...current, ageRecipient: recipient }))
+      notify('已生成 age 公钥', { variant: 'success' })
+    } catch (e) {
+      notify(e, { variant: 'danger' })
+    }
+  }
 
   const onSave = async (): Promise<void> => {
     try {
@@ -58,28 +92,39 @@ const EditInfoModal: React.FC<Props> = (props) => {
       actions?: ReactNode
       align?: 'start' | 'center'
       divider?: boolean
+      stacked?: boolean
     }
   ) => {
-    const { actions, align = 'center', divider = true } = options || {}
+    const { actions, align = 'center', divider = true, stacked = false } = options || {}
 
     return (
       <Surface key={title} variant="transparent" className="flex flex-col">
-        <div
-          className={`setting-item px-0 setting-item--content-end ${
-            align === 'start' ? 'setting-item--start' : 'setting-item--center'
-          }`}
-          style={{ gridTemplateColumns: '150px minmax(0, 1fr)' }}
-        >
-          <div className="setting-item__title-wrap">
-            <Label className="setting-item__title">{title}</Label>
-          </div>
-          <div className="setting-item__content">
-            <div className="flex w-full min-w-0 items-center justify-end gap-2">
+        {stacked ? (
+          <div className="flex flex-col gap-1.5 py-2">
+            <div className="flex items-center gap-2">
+              <Label className="setting-item__title">{title}</Label>
               {actions}
-              {content}
+            </div>
+            <div className="w-full min-w-0">{content}</div>
+          </div>
+        ) : (
+          <div
+            className={`setting-item px-0 setting-item--content-end ${
+              align === 'start' ? 'setting-item--start' : 'setting-item--center'
+            }`}
+            style={{ gridTemplateColumns: '150px minmax(0, 1fr)' }}
+          >
+            <div className="setting-item__title-wrap">
+              <Label className="setting-item__title">{title}</Label>
+            </div>
+            <div className="setting-item__content">
+              <div className="flex w-full min-w-0 items-center justify-end gap-2">
+                {actions}
+                {content}
+              </div>
             </div>
           </div>
-        </div>
+        )}
         {divider ? <Separator variant="tertiary" className="bg-default-100/70" /> : null}
       </Surface>
     )
@@ -311,6 +356,93 @@ const EditInfoModal: React.FC<Props> = (props) => {
                       </Switch.Control>
                     </Switch>
                   )}
+                {renderField(
+                  'age 公钥',
+                  <InputGroup data-setting-input="edit-modal" variant="secondary">
+                    <InputGroup.Input
+                      aria-label="age 公钥"
+                      value={values.ageRecipient ?? ''}
+                      placeholder="age1..."
+                      onChange={(event) => {
+                        const v = event.target.value
+                        setValues({ ...values, ageRecipient: v.trim() || undefined })
+                      }}
+                    />
+                    <InputGroup.Suffix>
+                      <Tooltip delay={0}>
+                        <Tooltip.Trigger>
+                          <Button
+                            aria-label="从 age 私钥生成公钥"
+                            isIconOnly
+                            size="sm"
+                            variant="ghost"
+                            onPress={handleDeriveAgeRecipient}
+                          >
+                            <LuArrowRight className="text-lg" />
+                          </Button>
+                        </Tooltip.Trigger>
+                        <Tooltip.Content>从私钥生成公钥</Tooltip.Content>
+                      </Tooltip>
+                      <Button
+                        aria-label="复制 age 公钥"
+                        isIconOnly
+                        size="sm"
+                        variant="ghost"
+                        onPress={() => copyValue(values.ageRecipient, '已复制 age 公钥')}
+                      >
+                        <BiCopy className="text-lg" />
+                      </Button>
+                    </InputGroup.Suffix>
+                  </InputGroup>
+                )}
+                {renderField(
+                  'age 私钥',
+                  <InputGroup data-setting-input="edit-modal" variant="secondary">
+                    <InputGroup.Input
+                      aria-label="age 私钥"
+                      type={ageIdentityVisible ? 'text' : 'password'}
+                      value={values.ageIdentity ?? ''}
+                      placeholder="AGE-SECRET-KEY-1..."
+                      onChange={(event) => {
+                        const v = event.target.value
+                        setValues({ ...values, ageIdentity: v.trim() || undefined })
+                      }}
+                    />
+                    <InputGroup.Suffix>
+                      <Button
+                        aria-label="生成 age 私钥"
+                        isIconOnly
+                        size="sm"
+                        variant="ghost"
+                        onPress={handleGenerateAgeKeyPair}
+                      >
+                        <LuRefreshCw className="text-lg" />
+                      </Button>
+                      <Button
+                        aria-label="复制 age 私钥"
+                        isIconOnly
+                        size="sm"
+                        variant="ghost"
+                        onPress={() => copyValue(values.ageIdentity, '已复制 age 私钥')}
+                      >
+                        <BiCopy className="text-lg" />
+                      </Button>
+                      <Button
+                        aria-label={ageIdentityVisible ? '隐藏 age 私钥' : '显示 age 私钥'}
+                        isIconOnly
+                        size="sm"
+                        variant="ghost"
+                        onPress={() => setAgeIdentityVisible((visible) => !visible)}
+                      >
+                        {ageIdentityVisible ? (
+                          <BiHide className="text-lg" />
+                        ) : (
+                          <BiShow className="text-lg" />
+                        )}
+                      </Button>
+                    </InputGroup.Suffix>
+                  </InputGroup>
+                )}
                 {values.type === 'remote' &&
                   values.autoUpdate &&
                   renderField(

@@ -19,7 +19,9 @@ const monacoEditorPlugin = isObjectWithDefaultFunction(monacoEditorPluginModule)
 export default defineConfig({
   main: {
     build: {
-      externalizeDeps: true
+      externalizeDeps: {
+        exclude: ['age-encryption']
+      }
     }
   },
   preload: {

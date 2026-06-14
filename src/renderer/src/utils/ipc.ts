@@ -553,6 +553,14 @@ export async function getUserAgent(): Promise<string> {
   return ipcErrorWrapper(await window.electron.ipcRenderer.invoke('getUserAgent'))
 }
 
+export async function generateAgeKeyPair(): Promise<{ identity: string; recipient: string }> {
+  return ipcErrorWrapper(await window.electron.ipcRenderer.invoke('generateAgeKeyPair'))
+}
+
+export async function ageIdentityToRecipient(identity: string): Promise<string> {
+  return ipcErrorWrapper(await window.electron.ipcRenderer.invoke('ageIdentityToRecipient', identity))
+}
+
 export async function getAppName(appPath: string): Promise<string> {
   return ipcErrorWrapper(await window.electron.ipcRenderer.invoke('getAppName', appPath))
 }
