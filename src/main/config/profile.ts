@@ -335,7 +335,10 @@ export async function setProfileStr(
   await writeProfileContent(id, content, item, true)
 }
 
-async function decryptProfileContent(content: string, item: ProfileItem | undefined): Promise<string> {
+async function decryptProfileContent(
+  content: string,
+  item: ProfileItem | undefined
+): Promise<string> {
   if (!isAgeEncryptedText(content)) return content
   if (!item?.ageIdentity) {
     throw new Error(`${item?.name || '配置'} 已使用 age 加密，请先填写 age 私钥`)
@@ -494,10 +497,19 @@ async function writeEditableFile(
   }
 }
 
-export async function getFileStr(path: string): Promise<string> {
+export async function getFileStr(path: string, ageSecretKey?: string): Promise<string> {
   const { diffWorkDir = false } = await getAppConfig()
   const { current } = await getProfileConfig()
-  return await readFile(resolveEditableFilePath(path, current, diffWorkDir), 'utf-8')
+  const content = await readFile(resolveEditableFilePath(path, current, diffWorkDir), 'utf-8')
+  if (!isAgeEncryptedText(content)) {
+    return content
+  }
+
+  if (!ageSecretKey) {
+    throw new Error('当前内容已使用 age 加密，请先配置 age 私钥')
+  }
+
+  return await decryptAgeText(content, ageSecretKey)
 }
 
 export async function getFilePreviewStr(path: string, format?: string): Promise<string> {

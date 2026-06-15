@@ -23,6 +23,7 @@ interface Props {
   title: string
   providerType: string
   format?: string
+  ageSecretKey?: string
 }
 
 function getDefaultLanguage(format?: string): Language {
@@ -65,7 +66,7 @@ function hasManyLines(value: string, limit: number): boolean {
 }
 
 const Viewer: React.FC<Props> = (props) => {
-  const { type, path, title, format, providerType, onClose } = props
+  const { type, path, title, format, providerType, onClose, ageSecretKey } = props
   const [currData, setCurrData] = useState('')
   const [showPermissionConfirm, setShowPermissionConfirm] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
@@ -106,7 +107,7 @@ const Viewer: React.FC<Props> = (props) => {
       try {
         const fileContent = await (format === 'MrsRule'
           ? getFilePreviewStr(path, format)
-          : getFileStr(type === 'Inline' ? 'config.yaml' : path))
+          : getFileStr(type === 'Inline' ? 'config.yaml' : path, ageSecretKey))
 
         if (canceled) return
         setCurrData(
@@ -127,7 +128,7 @@ const Viewer: React.FC<Props> = (props) => {
     return () => {
       canceled = true
     }
-  }, [format, path, providerType, title, type])
+  }, [ageSecretKey, format, path, providerType, title, type])
 
   return (
     <Modal>

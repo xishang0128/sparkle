@@ -21,11 +21,12 @@ function getStaleGistFileName(encrypted: boolean): string {
   return encrypted ? GIST_FILE_NAME : GIST_ENCRYPTED_FILE_NAME
 }
 
-async function getGistUploadContent(): Promise<{ content: string; encrypted: boolean; fileName: string }> {
-  const {
-    gistEncrypted = false,
-    gistAgeRecipient = ''
-  } = await getAppConfig()
+async function getGistUploadContent(): Promise<{
+  content: string
+  encrypted: boolean
+  fileName: string
+}> {
+  const { gistEncrypted = false, gistAgeRecipient = '' } = await getAppConfig()
   const config = await getRuntimeConfigStr()
   const content = gistEncrypted ? await encryptAgeText(config, gistAgeRecipient) : config
 

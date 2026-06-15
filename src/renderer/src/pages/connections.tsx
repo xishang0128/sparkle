@@ -839,35 +839,38 @@ const Connections: React.FC = () => {
     )
   }, [])
 
-  const renderGroupHeader = useCallback((index: number) => {
-    const group = connectionGroupsRef.current[index]
-    if (!group) return <div>Never See This</div>
-    const path = group.processPath || ''
-    const showIcon = displayIconRef.current && findProcessModeRef.current !== 'off'
-    const iconUrl = (showIcon && iconMapRefStable.current[path]) || ''
-    const displayName =
-      displayAppNameRef.current && path ? appNameCacheRefStable.current[path] : undefined
+  const renderGroupHeader = useCallback(
+    (index: number) => {
+      const group = connectionGroupsRef.current[index]
+      if (!group) return <div>Never See This</div>
+      const path = group.processPath || ''
+      const showIcon = displayIconRef.current && findProcessModeRef.current !== 'off'
+      const iconUrl = (showIcon && iconMapRefStable.current[path]) || ''
+      const displayName =
+        displayAppNameRef.current && path ? appNameCacheRefStable.current[path] : undefined
 
-    return (
-      <ConnectionGroupHeader
-        groupKey={group.key}
-        label={group.label}
-        count={group.count}
-        upload={group.upload}
-        download={group.download}
-        uploadSpeed={group.uploadSpeed}
-        downloadSpeed={group.downloadSpeed}
-        expanded={expandedGroupsRef.current.has(group.key)}
-        isLast={index === connectionGroupsRef.current.length - 1}
-        isClosed={tabRef.current === 'closed'}
-        displayIcon={showIcon}
-        iconUrl={iconUrl}
-        displayName={displayName}
-        onToggle={toggleGroupStable}
-        onCloseAll={closeGroupStable}
-      />
-    )
-  }, [toggleGroupStable, closeGroupStable])
+      return (
+        <ConnectionGroupHeader
+          groupKey={group.key}
+          label={group.label}
+          count={group.count}
+          upload={group.upload}
+          download={group.download}
+          uploadSpeed={group.uploadSpeed}
+          downloadSpeed={group.downloadSpeed}
+          expanded={expandedGroupsRef.current.has(group.key)}
+          isLast={index === connectionGroupsRef.current.length - 1}
+          isClosed={tabRef.current === 'closed'}
+          displayIcon={showIcon}
+          iconUrl={iconUrl}
+          displayName={displayName}
+          onToggle={toggleGroupStable}
+          onCloseAll={closeGroupStable}
+        />
+      )
+    },
+    [toggleGroupStable, closeGroupStable]
+  )
 
   return (
     <BasePage

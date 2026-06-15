@@ -25,7 +25,8 @@ const ProxyProvider: React.FC = () => {
     path: '',
     type: '',
     title: '',
-    providerType: ''
+    providerType: '',
+    ageSecretKey: ''
   })
   const [qrCode, setQrCode] = useState<{ name: string; url: string } | null>(null)
   useEffect(() => {
@@ -38,11 +39,12 @@ const ProxyProvider: React.FC = () => {
             setShowDetails((prev) => ({
               ...prev,
               show: true,
-              path: provider.path || `proxies/${getHash(provider.url || '')}`
+              path: provider.path || `proxies/${getHash(provider.url || '')}`,
+              ageSecretKey: provider['age-secret-key'] || ''
             }))
           }
         } catch {
-          setShowDetails((prev) => ({ ...prev, path: '' }))
+          setShowDetails((prev) => ({ ...prev, path: '', ageSecretKey: '' }))
         }
       }
       fetchProviderPath(showDetails.title)
@@ -119,8 +121,16 @@ const ProxyProvider: React.FC = () => {
           type={showDetails.type}
           title={showDetails.title}
           providerType={showDetails.providerType}
+          ageSecretKey={showDetails.ageSecretKey || undefined}
           onClose={() =>
-            setShowDetails({ show: false, path: '', type: '', title: '', providerType: '' })
+            setShowDetails({
+              show: false,
+              path: '',
+              type: '',
+              title: '',
+              providerType: '',
+              ageSecretKey: ''
+            })
           }
         />
       )}
@@ -171,7 +181,8 @@ const ProxyProvider: React.FC = () => {
                     providerType: 'proxy-providers',
                     path: provider.name,
                     type: provider.vehicleType,
-                    title: provider.name
+                    title: provider.name,
+                    ageSecretKey: ''
                   })
                 }}
               >
