@@ -1,4 +1,4 @@
-import { execFile, execSync, spawn } from 'child_process'
+import { exec, execFile, execSync, spawn } from 'child_process'
 import { app, dialog, nativeTheme, shell } from 'electron'
 import { readFile } from 'fs/promises'
 import path from 'path'
@@ -65,6 +65,94 @@ export async function setupFirewall(): Promise<void> {
       { name: 'Sparkle', applicationPath: exePath() }
     ])
   }
+}
+
+// TUN 模式启动前被重置 forwarding 的网卡接口索引，用于 TUN 关闭时恢复
+let forwardingResetInterfaceIndexes: number[] = []
+
+/**
+ * 解析 PowerShell 输出的逗号分隔接口索引列表
+ */
+function parseInterfaceIndexes(output: string): number[] {
+  return Array.from(
+    new Set(
+      output
+        .trim()
+        .split(',')
+        .map((item) => Number.parseInt(item.trim(), 10))
+        .filter((item) => Number.isInteger(item) && item > 0)
+    )
+  )
+}
+
+/**
+ * 重置活跃物理网卡的 IPv4 Forwarding 状态，防止 TUN 模式无网络
+ *
+ * 在某些 Windows 系统中，物理网卡的 IP forwarding 被异常启用
+ * （可能由 VPN/虚拟机/ICS 残留），导致 WFP 将 TUN 流量分类到
+ * IPFORWARD 层而非 IPLOCAL 层，从而被错误过滤。
+ *
+ * 仅操作持有默认路由(0.0.0.0/0)的活跃 IPv4 接口，
+ * 使用 InterfaceIndex 定位以避免本地化接口名问题。
+ *
+ * @see https://github.com/clash-verge-rev/clash-verge-rev/issues/244
+ * @returns 被重置的接口数量
+ */
+export async function resetForwardingForTun(): Promise<number> {
+  if (process.platform !== 'win32') return 0
+
+  const execPromise = promisify(exec)
+  const script = `
+$ErrorActionPreference = 'Stop'
+$indexes = @(Get-NetRoute -AddressFamily IPv4 -DestinationPrefix "0.0.0.0/0" -ErrorAction Stop |
+  Select-Object -ExpandProperty InterfaceIndex -Unique)
+$updated = @()
+foreach ($index in $indexes) {
+  try {
+    $iface = Get-NetIPInterface -InterfaceIndex $index -AddressFamily IPv4 -ErrorAction Stop
+    if ($iface.Forwarding -ne "Enabled") { continue }
+    Set-NetIPInterface -InterfaceIndex $index -AddressFamily IPv4 -Forwarding Disabled -PolicyStore ActiveStore -ErrorAction Stop
+    $updated += [int]$index
+  } catch {
+    continue
+  }
+}
+($updated | Sort-Object -Unique) -join ","
+`
+
+  const { stdout } = await execPromise(script, { shell: 'powershell' })
+  forwardingResetInterfaceIndexes = parseInterfaceIndexes(stdout)
+  return forwardingResetInterfaceIndexes.length
+}
+
+/**
+ * 恢复先前被 resetForwardingForTun 重置的网卡 forwarding 状态
+ *
+ * @returns 被恢复的接口数量
+ */
+export async function recoverForwardingForTun(): Promise<number> {
+  if (process.platform !== 'win32') return 0
+  if (forwardingResetInterfaceIndexes.length === 0) return 0
+
+  const indexes = [...forwardingResetInterfaceIndexes]
+
+  const execPromise = promisify(exec)
+  const script = `
+$ErrorActionPreference = 'Stop'
+$indexes = @(${indexes.join(',')})
+foreach ($index in $indexes) {
+  try {
+    Set-NetIPInterface -InterfaceIndex $index -AddressFamily IPv4 -Forwarding Enabled -PolicyStore ActiveStore -ErrorAction Stop
+  } catch {
+    continue
+  }
+}
+`
+
+  await execPromise(script, { shell: 'powershell' })
+  // 仅在恢复执行成功后才清除索引列表，失败时保留以供后续重试
+  forwardingResetInterfaceIndexes = []
+  return indexes.length
 }
 
 export function setNativeTheme(theme: 'system' | 'light' | 'dark'): void {

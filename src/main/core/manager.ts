@@ -67,6 +67,7 @@ import {
   stopNetworkDetection as stopNetworkDetectionController
 } from './network'
 import { checkProfile } from './profile-check'
+import { resetForwardingForTun, recoverForwardingForTun } from '../sys/misc'
 import {
   createCoreEnvironment,
   createCoreSpawnArgs,
@@ -414,6 +415,16 @@ export async function startCore(detached = false): Promise<Promise<void>[]> {
   if (!serviceCoreRunning) {
     await stopCore()
   }
+  if (process.platform === 'win32' && tun?.enable) {
+    try {
+      const resetCount = await resetForwardingForTun()
+      if (resetCount > 0) {
+        await appendAppLog(`[Manager]: reset ipv4 forwarding on ${resetCount} interface(s)\n`)
+      }
+    } catch (error) {
+      await appendAppLog(`[Manager]: reset ipv4 forwarding failed, ${error}\n`)
+    }
+  }
   setMihomoLogSource('out')
   if (tun?.enable && autoSetDNSMode !== 'none') {
     try {
@@ -625,6 +636,15 @@ export async function stopCore(force = false): Promise<void> {
     }
   } catch (error) {
     await appendAppLog(`[Manager]: recover dns failed, ${error}\n`)
+  }
+
+  try {
+    const recoveredCount = await recoverForwardingForTun()
+    if (recoveredCount > 0) {
+      await appendAppLog(`[Manager]: restored ipv4 forwarding on ${recoveredCount} interface(s)\n`)
+    }
+  } catch (error) {
+    await appendAppLog(`[Manager]: restore ipv4 forwarding failed, ${error}\n`)
   }
 
   stopMihomoTraffic()
