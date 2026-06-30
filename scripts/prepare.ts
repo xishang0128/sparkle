@@ -133,10 +133,24 @@ function mihomo() {
     downloadURL
   }
 }
+interface SidecarInfo {
+  name: string
+  targetFile: string
+  zipFile: string
+  exeFile: string
+  downloadURL: string
+}
+
+interface ResourceInfo {
+  file: string
+  downloadURL: string
+  needExecutable?: boolean
+}
+
 /**
  * download sidecar and rename
  */
-async function resolveSidecar(binInfo) {
+async function resolveSidecar(binInfo: SidecarInfo) {
   const { name, targetFile, zipFile, exeFile, downloadURL } = binInfo
 
   const sidecarDir = path.join(cwd, 'extra', 'sidecar')
@@ -216,7 +230,7 @@ async function resolveSidecar(binInfo) {
 /**
  * download the file to the extra dir
  */
-async function resolveResource(binInfo) {
+async function resolveResource(binInfo: ResourceInfo) {
   const { file, downloadURL, needExecutable = false } = binInfo
 
   const resDir = path.join(cwd, 'extra', 'files')
@@ -240,7 +254,7 @@ async function resolveResource(binInfo) {
 /**
  * download file and save to `path`
  */
-async function downloadFile(url, path) {
+async function downloadFile(url: string | URL | Request, path: fs.PathOrFileDescriptor) {
   const response = await fetch(url, {
     method: 'GET',
     headers: { 'Content-Type': 'application/octet-stream' }
@@ -275,6 +289,11 @@ const resolveASN = () =>
   resolveResource({
     file: 'ASN.mmdb',
     downloadURL: `https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/GeoLite2-ASN.mmdb`
+  })
+const resolveBundleMRS = () =>
+  resolveResource({
+    file: 'BundleMRS.7z',
+    downloadURL: `https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/BundleMRS.7z`
   })
 const resolveEnableLoopback = () =>
   resolveResource({
@@ -426,6 +445,7 @@ const tasks: Task[] = [
   { name: 'geosite', func: resolveGeosite, retry: 5 },
   { name: 'geoip', func: resolveGeoIP, retry: 5 },
   { name: 'asn', func: resolveASN, retry: 5 },
+  { name: 'bundlemrs', func: resolveBundleMRS, retry: 5 },
   {
     name: 'font',
     func: resolveFont,
