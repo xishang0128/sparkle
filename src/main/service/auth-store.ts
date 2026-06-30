@@ -2,20 +2,14 @@ import { existsSync } from 'fs'
 import { mkdir, readFile, rename, unlink, writeFile } from 'fs/promises'
 import { dirname } from 'path'
 import { serviceAuthStorePath } from '../utils/dirs'
-import { decryptLegacyString } from '../utils/encrypt'
 import { computeKeyId, type KeyPair } from './key'
-
-interface EncryptedServiceAuthEnvelope {
-  version: 1
-  ciphertext: string
-}
 
 interface PlainServiceAuthEnvelope extends ServiceAuthSecret {
   version: 2
   storage: 'plain'
 }
 
-type ServiceAuthEnvelope = EncryptedServiceAuthEnvelope | PlainServiceAuthEnvelope
+type ServiceAuthEnvelope = PlainServiceAuthEnvelope
 
 export interface ServiceAuthSecret extends KeyPair {}
 
@@ -60,15 +54,6 @@ export async function loadServiceAuthSecret(): Promise<ServiceAuthSecret | null>
   const envelope = JSON.parse(raw) as Partial<ServiceAuthEnvelope>
   if (envelope.version === 2 && envelope.storage === 'plain') {
     return normalizeServiceAuthSecret(envelope)
-  }
-
-  // Compatibility shim for the safeStorage-backed v1 auth store.
-  // TODO(next version): remove this migration and keep only the plaintext v2 envelope.
-  if (envelope.version === 1 && typeof envelope.ciphertext === 'string' && envelope.ciphertext) {
-    const payload = decryptLegacyString(envelope.ciphertext)
-    const secret = normalizeServiceAuthSecret(JSON.parse(payload) as Partial<ServiceAuthSecret>)
-    await saveServiceAuthSecret(secret)
-    return secret
   }
 
   throw new Error('服务鉴权存储格式无效')
