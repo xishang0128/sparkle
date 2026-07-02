@@ -6,7 +6,10 @@ import ProxyDetailTooltip from './proxy-detail-tooltip'
 
 interface Props {
   mutateProxies: () => void
-  onProxyDelay: (proxy: string, group?: ControllerMixedGroup) => Promise<ControllerProxiesDelay>
+  onProxyDelay: (
+    proxy: ControllerProxiesDetail | ControllerGroupDetail,
+    group?: ControllerMixedGroup
+  ) => Promise<ControllerProxiesDelay>
   proxyDisplayLayout: 'hidden' | 'single' | 'double'
   showGroupSelectedProxy: boolean
   showProxyDetailTooltip: boolean
@@ -150,7 +153,7 @@ const ProxyItem: React.FC<Props> = (props) => {
 
   const onDelay = (): void => {
     setLoading(true)
-    onProxyDelay(proxy.name, group).finally(() => {
+    onProxyDelay(proxy, group).finally(() => {
       mutateProxies()
       setLoading(false)
     })

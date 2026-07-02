@@ -40,6 +40,10 @@ function compareProxyDelay(a: ProxyLike, b: ProxyLike): number {
   return delayA - delayB
 }
 
+function getProviderName(proxy: ProxyLike): string | undefined {
+  return 'provider-name' in proxy ? proxy['provider-name'] : undefined
+}
+
 interface GroupHeaderProps {
   index: number
   group: ControllerMixedGroup
@@ -320,8 +324,8 @@ const Proxies: React.FC = () => {
   )
 
   const onProxyDelay = useCallback(
-    async (proxy: string, group?: ControllerMixedGroup): Promise<ControllerProxiesDelay> => {
-      return await mihomoProxyDelay(proxy, getDelayTestUrl(group))
+    async (proxy: ProxyLike, group?: ControllerMixedGroup): Promise<ControllerProxiesDelay> => {
+      return await mihomoProxyDelay(proxy.name, getDelayTestUrl(group), getProviderName(proxy))
     },
     [getDelayTestUrl]
   )
@@ -372,7 +376,7 @@ const Proxies: React.FC = () => {
 
         await runDelayTestsWithConcurrency(proxies, delayTestConcurrency, async (proxy) => {
           try {
-            await mihomoProxyDelay(proxy.name, testUrl)
+            await mihomoProxyDelay(proxy.name, testUrl, getProviderName(proxy))
           } catch {
             // ignore
           }

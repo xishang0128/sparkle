@@ -134,6 +134,7 @@ interface ControllerProxiesDetail {
   history: ControllerProxiesHistory[]
   id: string
   name: string
+  'provider-name'?: string
   tfo: boolean
   type: MihomoProxyType
   udp: boolean

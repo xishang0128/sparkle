@@ -84,9 +84,12 @@ export async function mihomoUpgrade(channel: string): Promise<void> {
 
 export async function mihomoProxyDelay(
   proxy: string,
-  url?: string
+  url?: string,
+  provider?: string
 ): Promise<ControllerProxiesDelay> {
-  return ipcErrorWrapper(await window.electron.ipcRenderer.invoke('mihomoProxyDelay', proxy, url))
+  return ipcErrorWrapper(
+    await window.electron.ipcRenderer.invoke('mihomoProxyDelay', proxy, url, provider)
+  )
 }
 
 export async function mihomoGroupDelay(group: string, url?: string): Promise<ControllerGroupDelay> {

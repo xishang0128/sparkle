@@ -241,8 +241,8 @@ export function registerIpcMainHandlers(): void {
   ipcMain.handle('mihomoUpgradeGeo', ipcErrorWrapper(mihomoUpgradeGeo))
   ipcMain.handle('mihomoUpgradeUI', ipcErrorWrapper(mihomoUpgradeUI))
   ipcMain.handle('mihomoUpgrade', (_e, channel) => ipcErrorWrapper(mihomoUpgrade)(channel))
-  ipcMain.handle('mihomoProxyDelay', (_e, proxy, url) =>
-    ipcErrorWrapper(mihomoProxyDelay)(proxy, url)
+  ipcMain.handle('mihomoProxyDelay', (_e, proxy, url, provider) =>
+    ipcErrorWrapper(mihomoProxyDelay)(proxy, url, provider)
   )
   ipcMain.handle('mihomoGroupDelay', (_e, group, url) =>
     ipcErrorWrapper(mihomoGroupDelay)(group, url)

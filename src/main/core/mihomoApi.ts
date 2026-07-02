@@ -147,31 +147,90 @@ export const mihomoProxies = async (): Promise<ControllerProxies> => {
   return await instance.get('/proxies')
 }
 
+function isControllerGroupDetail(
+  proxy: ControllerProxiesDetail | ControllerGroupDetail | undefined
+): proxy is ControllerGroupDetail {
+  return Boolean(proxy && 'all' in proxy)
+}
+
+const PROVIDER_DETAIL_FETCH_THRESHOLD = 8
+
+async function resolveProviderProxies(
+  names: Set<string>,
+  providerNames: Set<string>,
+  fallbackToAllProviders: boolean
+): Promise<Record<string, ControllerProxiesDetail>> {
+  if (names.size === 0) return {}
+
+  const providers =
+    fallbackToAllProviders || providerNames.size > PROVIDER_DETAIL_FETCH_THRESHOLD
+      ? Object.values((await mihomoProxyProviders()).providers)
+      : await Promise.all([...providerNames].map((name) => mihomoProxyProvider(name)))
+
+  const providerProxies: Record<string, ControllerProxiesDetail> = {}
+  providers.forEach((provider) => {
+    provider.proxies?.forEach((proxy) => {
+      if (names.has(proxy.name)) {
+        providerProxies[proxy.name] = proxy
+      }
+    })
+  })
+  return providerProxies
+}
+
 export const mihomoGroups = async (): Promise<ControllerMixedGroup[]> => {
   const { mode = 'rule' } = await getControledMihomoConfig()
   if (mode === 'direct') return []
-  const proxies = await mihomoProxies()
-  const runtime = await getRuntimeConfig()
-  const groups: ControllerMixedGroup[] = []
-  runtime?.['proxy-groups']?.forEach((group: { name: string; url?: string }) => {
-    const { name, url } = group
-    if (proxies.proxies[name] && 'all' in proxies.proxies[name] && !proxies.proxies[name].hidden) {
-      const newGroup = proxies.proxies[name]
-      newGroup.testUrl = url
-      const newAll = newGroup.all.map((name) => proxies.proxies[name])
-      groups.push({ ...newGroup, all: newAll })
+  const [proxies, runtime] = await Promise.all([mihomoProxies(), getRuntimeConfig()])
+  const rawGroups: { group: ControllerGroupDetail & { testUrl?: string }; providers: string[] }[] =
+    []
+
+  runtime?.['proxy-groups']?.forEach((group: { name: string; url?: string; use?: string[] }) => {
+    const proxy = proxies.proxies[group.name]
+    if (isControllerGroupDetail(proxy) && !proxy.hidden) {
+      rawGroups.push({ group: { ...proxy, testUrl: group.url }, providers: group.use || [] })
     }
   })
-  if (!groups.find((group) => group.name === 'GLOBAL')) {
-    const newGlobal = proxies.proxies['GLOBAL'] as ControllerGroupDetail
-    if (!newGlobal.hidden) {
-      const newAll = newGlobal.all.map((name) => proxies.proxies[name])
-      groups.push({ ...newGlobal, all: newAll })
+
+  if (!rawGroups.find(({ group }) => group.name === 'GLOBAL')) {
+    const global = proxies.proxies['GLOBAL']
+    if (isControllerGroupDetail(global) && !global.hidden) {
+      rawGroups.push({ group: global, providers: [] })
     }
   }
+
+  const missingProxyNames = new Set<string>()
+  const providerNames = new Set<string>()
+  let fallbackToAllProviders = false
+  rawGroups.forEach(({ group, providers }) => {
+    group.all.forEach((name) => {
+      if (!proxies.proxies[name]) {
+        missingProxyNames.add(name)
+        if (providers.length > 0) {
+          providers.forEach((provider) => providerNames.add(provider))
+        } else {
+          fallbackToAllProviders = true
+        }
+      }
+    })
+  })
+
+  const providerProxies = await resolveProviderProxies(
+    missingProxyNames,
+    providerNames,
+    fallbackToAllProviders
+  )
+  const groups: ControllerMixedGroup[] = []
+  rawGroups.forEach(({ group }) => {
+    const newAll = group.all
+      .map((name) => proxies.proxies[name] || providerProxies[name])
+      .filter((proxy): proxy is ControllerProxiesDetail | ControllerGroupDetail => Boolean(proxy))
+    groups.push({ ...group, all: newAll })
+  })
+
   if (mode === 'global') {
     const global = groups.findIndex((group) => group.name === 'GLOBAL')
-    groups.unshift(groups.splice(global, 1)[0])
+    if (global > 0) groups.unshift(groups.splice(global, 1)[0])
   }
   return groups
 }
@@ -179,6 +238,11 @@ export const mihomoGroups = async (): Promise<ControllerMixedGroup[]> => {
 export const mihomoProxyProviders = async (): Promise<ControllerProxyProviders> => {
   const instance = await getAxios()
   return await instance.get('/providers/proxies')
+}
+
+const mihomoProxyProvider = async (name: string): Promise<ControllerProxyProviderDetail> => {
+  const instance = await getAxios()
+  return await instance.get(`/providers/proxies/${encodeURIComponent(name)}`)
 }
 
 export const mihomoUpdateProxyProviders = async (name: string): Promise<void> => {
@@ -211,12 +275,16 @@ export const mihomoUnfixedProxy = async (group: string): Promise<ControllerProxi
 
 export const mihomoProxyDelay = async (
   proxy: string,
-  url?: string
+  url?: string,
+  provider?: string
 ): Promise<ControllerProxiesDelay> => {
   const appConfig = await getAppConfig()
   const { delayTestUrl, delayTestTimeout } = appConfig
   const instance = await getAxios()
-  return await instance.get(`/proxies/${encodeURIComponent(proxy)}/delay`, {
+  const path = provider
+    ? `/providers/proxies/${encodeURIComponent(provider)}/${encodeURIComponent(proxy)}/healthcheck`
+    : `/proxies/${encodeURIComponent(proxy)}/delay`
+  return await instance.get(path, {
     params: {
       url: url || delayTestUrl || 'https://www.gstatic.com/generate_204',
       timeout: delayTestTimeout || 5000
