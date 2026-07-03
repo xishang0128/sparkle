@@ -1,5 +1,5 @@
 import { app, ipcMain, powerMonitor, type BrowserWindow, type IpcMainEvent } from 'electron'
-import { stopCore } from '../core/manager'
+import { stopCore, stopNetworkDetection } from '../core/manager'
 import { disableSysProxySync, triggerSysProxy } from '../sys/sysproxy'
 import { appendAppLog } from '../utils/log'
 
@@ -61,6 +61,12 @@ async function quit(context: AppQuitLifecycleContext): Promise<void> {
 }
 
 async function cleanupBeforeExit(useRegistry: boolean): Promise<void> {
+  try {
+    await stopNetworkDetection()
+  } catch (error) {
+    await appendAppLog(`[App]: stop network detection before exit failed, ${error}\n`)
+  }
+
   await Promise.all([
     (async (): Promise<void> => {
       try {
