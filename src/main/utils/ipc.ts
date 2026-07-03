@@ -61,13 +61,8 @@ import {
   subStoreFrontendPort,
   subStorePort
 } from '../resolve/server'
-import {
-  quitWithoutCore,
-  restartCore,
-  startNetworkDetection,
-  stopCore,
-  stopNetworkDetection
-} from '../core/manager'
+import { quitWithoutCore, restartCore, startNetworkDetection, stopCore } from '../core/manager'
+import { stopNetworkDetection } from '../core/network'
 import {
   checkCorePermission,
   manualGrantCorePermition,

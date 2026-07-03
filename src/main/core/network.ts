@@ -93,7 +93,9 @@ export async function recoverDNS(): Promise<void> {
   }
 }
 
-export async function startNetworkDetection(controller: NetworkCoreController): Promise<void> {
+export async function startNetworkDetectionController(
+  controller: NetworkCoreController
+): Promise<void> {
   const {
     onlyActiveDevice = false,
     networkDetectionBypass = [],

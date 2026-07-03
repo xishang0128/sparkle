@@ -1,5 +1,6 @@
 import { app, ipcMain, powerMonitor, type BrowserWindow, type IpcMainEvent } from 'electron'
-import { stopCore, stopNetworkDetection } from '../core/manager'
+import { stopCore } from '../core/manager'
+import { stopNetworkDetection } from '../core/network'
 import { disableSysProxySync, triggerSysProxy } from '../sys/sysproxy'
 import { appendAppLog } from '../utils/log'
 

@@ -14,12 +14,9 @@ import {
   startMihomoConnections,
   startMihomoLogs,
   startMihomoMemory,
-  stopMihomoConnections,
-  stopMihomoTraffic,
-  stopMihomoLogs,
-  stopMihomoMemory,
   patchMihomoConfig,
-  mihomoGroups
+  mihomoGroups,
+  getAxios
 } from './mihomoApi'
 import { readFile, rm, writeFile } from 'fs/promises'
 import { mainWindow } from '..'
@@ -28,29 +25,16 @@ import os from 'os'
 import { existsSync } from 'fs'
 import { uploadRuntimeConfig } from '../resolve/gistApi'
 import { startMonitor } from '../resolve/trafficMonitor'
-import { floatingWindow } from '../resolve/floatingWindow'
-import { getAxios } from './mihomoApi'
 import {
   getCoreStatus,
   startCore as startServiceCore,
   stopCore as stopServiceCore,
-  startServiceCoreEventStream,
-  stopServiceCoreEventStream,
-  stopServiceSysproxyEventStream,
-  subscribeServiceCoreEvents,
-  subscribeServiceCoreEventStream,
-  setServiceUnavailableFallbackHandler,
   isServiceConnectionError,
   isServiceUnavailableError,
-  type ServiceCoreEvent,
   type ServiceCoreLaunchProfile
 } from '../service/api'
 import { serviceStatus } from '../service/manager'
-import {
-  clearAppUpdateServiceFallbackPause,
-  getServiceFallbackPolicy,
-  shouldSkipServiceUnavailableFallback
-} from '../service/fallback'
+import { clearAppUpdateServiceFallbackPause, getServiceFallbackPolicy } from '../service/fallback'
 import { appendAppLog, createLogWritable, setMihomoLogSource } from '../utils/log'
 import {
   dismissNotification,
@@ -60,12 +44,7 @@ import {
 } from '../utils/notification'
 import { createCoreHookWaiter, createCoreStartupHook } from './startupHook'
 import { stopChildProcess } from './process-control'
-import {
-  recoverDNS,
-  setPublicDNS,
-  startNetworkDetection as startNetworkDetectionWithCore,
-  stopNetworkDetection as stopNetworkDetectionController
-} from './network'
+import { recoverDNS, setPublicDNS, startNetworkDetectionController } from './network'
 import { checkProfile } from './profile-check'
 import {
   createCoreEnvironment,
@@ -76,13 +55,7 @@ import {
   isTunPermissionError,
   isUpdaterFinishedLog
 } from './startup-chain'
-export {
-  checkCorePermission,
-  checkCorePermissionSync,
-  manualGrantCorePermition,
-  revokeCorePermission
-} from './permission'
-export { getDefaultDevice } from './network'
+import { createServiceCoreRuntime } from './service-core-runtime'
 
 const ctlParam = process.platform === 'win32' ? '-ext-ctl-pipe' : '-ext-ctl-unix'
 
@@ -96,22 +69,13 @@ const directCoreState = {
   logLineBuffer: ''
 }
 
-const serviceCoreState = {
-  streamsRestartTimer: null as NodeJS.Timeout | null,
-  unsubscribeEvents: null as (() => void) | null,
-  unsubscribeEventStream: null as (() => void) | null,
-  streamsActive: false,
-  streamsStarting: null as Promise<void> | null,
-  lastEventKey: '',
-  startupActive: false,
-  managed: false,
-  autoResumePaused: false,
-  reconnectResumePromise: null as Promise<void> | null
-}
-
-const serviceFallbackState = {
-  unavailableModePromise: null as Promise<void> | null
-}
+const serviceCoreRuntime = createServiceCoreRuntime({
+  notifyCoreLog,
+  resetDirectCoreRetry: () => {
+    directCoreState.retry = 10
+  },
+  startCore: (detached) => startCore(detached)
+})
 
 type CoreLogNotification = AppNotificationPayload & {
   key: string
@@ -232,25 +196,6 @@ function delay(ms: number): Promise<void> {
     setTimeout(resolve, ms)
   })
 }
-
-setServiceUnavailableFallbackHandler(async (reason) => {
-  if (shouldSkipServiceUnavailableFallback()) {
-    await appendAppLog(
-      `[Manager]: skip service unavailable fallback during app update, ${reason}\n`
-    )
-    return
-  }
-
-  if (!serviceFallbackState.unavailableModePromise) {
-    serviceFallbackState.unavailableModePromise = fallbackUnavailableServiceModes(reason).finally(
-      () => {
-        serviceFallbackState.unavailableModePromise = null
-      }
-    )
-  }
-
-  return serviceFallbackState.unavailableModePromise
-})
 
 type ServiceCoreConnectionProbe = {
   reachable: boolean
@@ -417,7 +362,7 @@ export async function startCore(detached = false): Promise<Promise<void>[]> {
       if (isServiceUnavailableError(error)) {
         const probe = await waitForServiceCoreConnection(error)
         if (!probe.reachable) {
-          return fallbackToElevatedCore(detached, probe.error)
+          return serviceCoreRuntime.fallbackToElevatedCore(detached, probe.error)
         }
         serviceCoreRunning = probe.running
       }
@@ -476,33 +421,33 @@ export async function startCore(detached = false): Promise<Promise<void>[]> {
     }
 
     await appendAppLog(`[Manager]: Core permission mode: service\n`)
-    serviceCoreState.autoResumePaused = false
-    ensureServiceCoreEventHandler()
-    serviceCoreState.startupActive = true
+    serviceCoreRuntime.resumeAutoResume()
+    serviceCoreRuntime.ensureEventHandler()
+    serviceCoreRuntime.beginStartup()
     try {
-      await startServiceCoreEventStream()
+      await serviceCoreRuntime.startEventStream()
       if (!serviceCoreRunning) {
         await startServiceCore(serviceProfile)
       }
-      serviceCoreState.managed = true
+      serviceCoreRuntime.setManaged(true)
     } catch (error) {
       if (isServiceUnavailableError(error)) {
         const probe = await waitForServiceCoreConnection(error)
         if (!probe.reachable) {
-          return fallbackToElevatedCore(detached, probe.error)
+          return serviceCoreRuntime.fallbackToElevatedCore(detached, probe.error)
         }
-        await startServiceCoreEventStream()
+        await serviceCoreRuntime.startEventStream()
         if (!probe.running) {
           await startServiceCore(serviceProfile)
         }
-        serviceCoreState.managed = true
+        serviceCoreRuntime.setManaged(true)
       } else {
         throw error
       }
     } finally {
-      serviceCoreState.startupActive = false
+      serviceCoreRuntime.endStartup()
     }
-    await ensureServiceCoreStreamsStarted()
+    await serviceCoreRuntime.ensureStreamsStarted()
     initialized = true
     return [completeCoreInitialization(logLevel)]
   }
@@ -633,7 +578,7 @@ export async function startCore(detached = false): Promise<Promise<void>[]> {
 }
 
 export async function stopCore(force = false): Promise<void> {
-  serviceCoreState.autoResumePaused = true
+  serviceCoreRuntime.pauseAutoResume()
 
   try {
     if (!force) {
@@ -643,27 +588,18 @@ export async function stopCore(force = false): Promise<void> {
     await appendAppLog(`[Manager]: recover dns failed, ${error}\n`)
   }
 
-  stopMihomoTraffic()
-  stopMihomoConnections()
-  stopMihomoLogs()
-  stopMihomoMemory()
-  serviceCoreState.streamsActive = false
-  if (serviceCoreState.streamsRestartTimer) {
-    clearTimeout(serviceCoreState.streamsRestartTimer)
-    serviceCoreState.streamsRestartTimer = null
-  }
+  serviceCoreRuntime.clearStreams()
 
   const { corePermissionMode = 'elevated' } = await getAppConfig()
-  const shouldStopServiceCore = serviceCoreState.managed || corePermissionMode === 'service'
+  const shouldStopServiceCore = serviceCoreRuntime.isManaged() || corePermissionMode === 'service'
   if (shouldStopServiceCore) {
     try {
       await stopServiceCore()
     } catch (error) {
       await appendAppLog(`[Manager]: stop service core failed, ${error}\n`)
     } finally {
-      serviceCoreState.managed = false
-      stopServiceCoreEventStream()
-      releaseServiceCoreEventHandler()
+      serviceCoreRuntime.setManaged(false)
+      serviceCoreRuntime.stopEventHandlers()
     }
   }
 
@@ -694,96 +630,6 @@ export async function stopCore(force = false): Promise<void> {
       }
     }
     await rm(path.join(dataDir(), 'core.pid')).catch(() => {})
-  }
-}
-
-function ensureServiceCoreEventHandler(): void {
-  if (!serviceCoreState.unsubscribeEvents) {
-    serviceCoreState.unsubscribeEvents = subscribeServiceCoreEvents((event) =>
-      handleServiceCoreEvent(event)
-    )
-  }
-  if (!serviceCoreState.unsubscribeEventStream) {
-    serviceCoreState.unsubscribeEventStream = subscribeServiceCoreEventStream((state) =>
-      handleServiceCoreEventStreamState(state)
-    )
-  }
-}
-
-function releaseServiceCoreEventHandler(): void {
-  if (serviceCoreState.unsubscribeEvents) {
-    serviceCoreState.unsubscribeEvents()
-    serviceCoreState.unsubscribeEvents = null
-  }
-  if (serviceCoreState.unsubscribeEventStream) {
-    serviceCoreState.unsubscribeEventStream()
-    serviceCoreState.unsubscribeEventStream = null
-  }
-}
-
-async function handleServiceCoreEvent(event: ServiceCoreEvent): Promise<void> {
-  if (event.type === 'log') {
-    notifyCoreLog(event)
-    return
-  }
-
-  if (isDuplicateServiceCoreEvent(event)) {
-    return
-  }
-
-  await appendAppLog(
-    `[Manager]: Service core event: ${event.type}${event.pid ? `, pid: ${event.pid}` : ''}${event.error ? `, error: ${event.error}` : ''}\n`
-  )
-
-  mainWindow?.webContents.send('core-status-changed', event)
-
-  switch (event.type) {
-    case 'started':
-      serviceCoreState.autoResumePaused = false
-      serviceCoreState.managed = true
-      await getAxios(true).catch(() => {})
-      mainWindow?.webContents.send('core-started', event)
-      mainWindow?.webContents.send('groupsUpdated')
-      mainWindow?.webContents.send('rulesUpdated')
-      ipcMain.emit('updateTrayMenu')
-      void ensureServiceCoreStreamsStarted().catch((error) => {
-        appendAppLog(`[Manager]: start service core streams failed, ${error}\n`).catch(() => {})
-      })
-      break
-    case 'takeover':
-    case 'ready':
-      serviceCoreState.autoResumePaused = false
-      serviceCoreState.managed = true
-      await getAxios(true).catch(() => {})
-      mainWindow?.webContents.send('core-started', event)
-      mainWindow?.webContents.send('groupsUpdated')
-      mainWindow?.webContents.send('rulesUpdated')
-      ipcMain.emit('updateTrayMenu')
-      scheduleServiceCoreStreamsRestart()
-      break
-    case 'exited':
-    case 'failed':
-    case 'restart_failed':
-      stopMihomoTraffic()
-      stopMihomoConnections()
-      stopMihomoLogs()
-      stopMihomoMemory()
-      serviceCoreState.streamsActive = false
-      setMihomoLogSource('out')
-      mainWindow?.webContents.send('core-stopped', event)
-      if (event.type === 'failed' || event.type === 'restart_failed') {
-        serviceCoreState.managed = false
-      }
-      if (event.type === 'restart_failed') {
-        mainWindow?.webContents.reload()
-      }
-      break
-    case 'stopped':
-      serviceCoreState.autoResumePaused = true
-      serviceCoreState.managed = false
-      serviceCoreState.streamsActive = false
-      mainWindow?.webContents.send('core-stopped', event)
-      break
   }
 }
 
@@ -859,200 +705,6 @@ function clearTailscaleAuthNotifications(name?: string): void {
   }
 }
 
-async function handleServiceCoreEventStreamState(
-  state: 'connected' | 'disconnected'
-): Promise<void> {
-  await appendAppLog(`[Manager]: Service core event stream ${state}\n`)
-  if (state !== 'connected') {
-    return
-  }
-  if (
-    serviceCoreState.startupActive ||
-    serviceCoreState.autoResumePaused ||
-    serviceCoreState.reconnectResumePromise
-  ) {
-    return
-  }
-
-  serviceCoreState.reconnectResumePromise = resumeServiceCoreAfterReconnect()
-  try {
-    await serviceCoreState.reconnectResumePromise
-  } finally {
-    serviceCoreState.reconnectResumePromise = null
-  }
-}
-
-async function resumeServiceCoreAfterReconnect(): Promise<void> {
-  await delay(500)
-  if (serviceCoreState.startupActive || serviceCoreState.autoResumePaused) {
-    return
-  }
-
-  const { corePermissionMode = 'elevated' } = await getAppConfig()
-  if (corePermissionMode !== 'service') {
-    return
-  }
-
-  try {
-    await getCoreStatus()
-    return
-  } catch (error) {
-    if (isServiceConnectionError(error)) {
-      return
-    }
-  }
-
-  if (serviceCoreState.autoResumePaused) {
-    return
-  }
-
-  await appendAppLog(`[Manager]: Service reconnected without running core, starting core\n`)
-  const promises = await startCore()
-  await Promise.all(promises)
-  mainWindow?.webContents.send('core-started')
-}
-
-function isDuplicateServiceCoreEvent(event: ServiceCoreEvent): boolean {
-  const key =
-    event.seq !== undefined
-      ? `seq:${event.seq}`
-      : [event.type, event.time, event.pid ?? '', event.old_pid ?? '', event.error ?? ''].join('|')
-  if (key === serviceCoreState.lastEventKey) {
-    return true
-  }
-  serviceCoreState.lastEventKey = key
-  return false
-}
-
-function scheduleServiceCoreStreamsRestart(): void {
-  if (serviceCoreState.streamsRestartTimer) {
-    clearTimeout(serviceCoreState.streamsRestartTimer)
-  }
-
-  serviceCoreState.streamsRestartTimer = setTimeout(() => {
-    serviceCoreState.streamsRestartTimer = null
-    restartServiceCoreStreams().catch((error) => {
-      appendAppLog(`[Manager]: restart service core streams failed, ${error}\n`).catch(() => {})
-    })
-  }, 300)
-}
-
-async function restartServiceCoreStreams(): Promise<void> {
-  stopMihomoTraffic()
-  stopMihomoConnections()
-  stopMihomoLogs()
-  stopMihomoMemory()
-  serviceCoreState.streamsActive = false
-  await ensureServiceCoreStreamsStarted()
-}
-
-async function ensureServiceCoreStreamsStarted(): Promise<void> {
-  if (serviceCoreState.streamsRestartTimer) {
-    clearTimeout(serviceCoreState.streamsRestartTimer)
-    serviceCoreState.streamsRestartTimer = null
-  }
-  if (serviceCoreState.streamsActive) {
-    return
-  }
-  if (serviceCoreState.streamsStarting) {
-    return serviceCoreState.streamsStarting
-  }
-
-  serviceCoreState.streamsStarting = (async () => {
-    await getAxios(true).catch(() => {})
-    await startMihomoTraffic()
-    await startMihomoConnections()
-    await startMihomoLogs()
-    await startMihomoMemory()
-    setMihomoLogSource('ws')
-    directCoreState.retry = 10
-    serviceCoreState.streamsActive = true
-  })()
-
-  try {
-    await serviceCoreState.streamsStarting
-  } finally {
-    serviceCoreState.streamsStarting = null
-  }
-}
-
-async function fallbackToElevatedCore(
-  detached: boolean,
-  reason: unknown
-): Promise<Promise<void>[]> {
-  await appendAppLog(`[Manager]: Service unavailable, fallback to elevated core, ${reason}\n`)
-  stopServiceCoreEventStream()
-  releaseServiceCoreEventHandler()
-  await patchAppConfig({ corePermissionMode: 'elevated' })
-  mainWindow?.webContents.send('appConfigUpdated')
-  floatingWindow?.webContents.send('appConfigUpdated')
-  void showNotification({ title: '服务不可用，已切换到非服务模式' })
-  return startCore(detached)
-}
-
-async function fallbackUnavailableServiceModes(reason: unknown): Promise<void> {
-  const appConfig = await getAppConfig()
-  const { sysProxy, corePermissionMode = 'elevated', autoSetDNSMode = 'none' } = appConfig
-  const useServiceCore = corePermissionMode === 'service'
-  const useServiceSysProxy = sysProxy?.settingMode === 'service'
-  const useServiceDNS = autoSetDNSMode === 'service'
-
-  if (!useServiceCore && !useServiceSysProxy && !useServiceDNS) {
-    return
-  }
-
-  await appendAppLog(`[Manager]: Service unavailable, fallback service modes, ${reason}\n`)
-
-  if (useServiceCore) {
-    stopMihomoTraffic()
-    stopMihomoConnections()
-    stopMihomoLogs()
-    stopMihomoMemory()
-    serviceCoreState.streamsActive = false
-    if (serviceCoreState.streamsRestartTimer) {
-      clearTimeout(serviceCoreState.streamsRestartTimer)
-      serviceCoreState.streamsRestartTimer = null
-    }
-    stopServiceCoreEventStream()
-    releaseServiceCoreEventHandler()
-    setMihomoLogSource('out')
-  }
-
-  if (useServiceSysProxy) {
-    stopServiceSysproxyEventStream()
-  }
-
-  await patchAppConfig({
-    ...(useServiceCore ? { corePermissionMode: 'elevated' as const } : {}),
-    ...(useServiceSysProxy && sysProxy
-      ? {
-          sysProxy: {
-            ...sysProxy,
-            settingMode: 'exec' as const,
-            guard: false,
-            guardNotify: false
-          }
-        }
-      : {}),
-    ...(useServiceDNS ? { autoSetDNSMode: 'exec' as const } : {})
-  })
-
-  mainWindow?.webContents.send('appConfigUpdated')
-  floatingWindow?.webContents.send('appConfigUpdated')
-
-  try {
-    if (useServiceCore) {
-      const promises = await startCore()
-      await Promise.all(promises)
-      mainWindow?.webContents.send('core-started')
-    }
-    void showNotification({ title: '服务不可用，已切换到非服务模式' })
-  } finally {
-    mainWindow?.webContents.reload()
-    floatingWindow?.webContents.reload()
-  }
-}
-
 export async function restartCore(): Promise<void> {
   try {
     clearTailscaleAuthNotifications()
@@ -1087,7 +739,7 @@ export async function quitWithoutCore(): Promise<void> {
 }
 
 export async function startNetworkDetection(): Promise<void> {
-  await startNetworkDetectionWithCore({
+  await startNetworkDetectionController({
     shouldStartCore: (networkDownHandled) =>
       (networkDownHandled && !directCoreState.child) || Boolean(directCoreState.child?.killed),
     startCore: async () => {
@@ -1097,5 +749,3 @@ export async function startNetworkDetection(): Promise<void> {
     stopCore
   })
 }
-
-export const stopNetworkDetection = stopNetworkDetectionController
