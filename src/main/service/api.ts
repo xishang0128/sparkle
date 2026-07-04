@@ -459,6 +459,15 @@ let serviceSysproxyEventsManualClose = true
 let serviceSysproxyEventsReconnectTimer: NodeJS.Timeout | null = null
 const serviceSysproxyEventHandlers = new Set<ServiceSysproxyEventHandler>()
 
+function closeServiceWebSocket(ws: WebSocket): void {
+  ws.removeAllListeners()
+  ws.on('error', () => {})
+  if (ws.readyState === WebSocket.CLOSED || ws.readyState === WebSocket.CLOSING) {
+    return
+  }
+  ws.close()
+}
+
 export function subscribeServiceCoreEvents(handler: ServiceCoreEventHandler): () => void {
   serviceCoreEventHandlers.add(handler)
   return () => {
@@ -547,8 +556,7 @@ export function stopServiceCoreEventStream(): void {
     serviceCoreEventsReconnectTimer = null
   }
   if (serviceCoreEventsWs) {
-    serviceCoreEventsWs.removeAllListeners()
-    serviceCoreEventsWs.close()
+    closeServiceWebSocket(serviceCoreEventsWs)
     serviceCoreEventsWs = null
   }
 }
@@ -610,8 +618,7 @@ export function stopServiceSysproxyEventStream(): void {
     serviceSysproxyEventsReconnectTimer = null
   }
   if (serviceSysproxyEventsWs) {
-    serviceSysproxyEventsWs.removeAllListeners()
-    serviceSysproxyEventsWs.close()
+    closeServiceWebSocket(serviceSysproxyEventsWs)
     serviceSysproxyEventsWs = null
   }
 }
