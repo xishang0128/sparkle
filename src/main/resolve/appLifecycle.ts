@@ -39,6 +39,7 @@ export function initAppQuitLifecycle(context: AppQuitLifecycleContext): void {
         await quit(context)
       }
     } else if (notQuitDialog) {
+      event.preventDefault()
       await quit(context)
     }
   })
