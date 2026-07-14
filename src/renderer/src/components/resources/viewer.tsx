@@ -9,7 +9,7 @@ import {
   saveFileStrWithElevation,
   setFileStr
 } from '@renderer/utils/ipc'
-import yaml from 'js-yaml'
+import { dump, load } from 'js-yaml'
 import ConfirmModal from '../base/base-confirm'
 import { notify } from '@renderer/utils/notification'
 type Language = 'yaml' | 'javascript' | 'css' | 'json' | 'text'
@@ -32,7 +32,7 @@ function getDefaultLanguage(format?: string): Language {
 
 function getViewerContent(fileContent: string, providerType: string, title: string): string {
   try {
-    const parsedYaml = yaml.load(fileContent)
+    const parsedYaml = load(fileContent)
     if (!parsedYaml || typeof parsedYaml !== 'object') {
       return fileContent
     }
@@ -40,13 +40,13 @@ function getViewerContent(fileContent: string, providerType: string, title: stri
     const yamlObj = parsedYaml as Record<string, unknown>
     const payload = yamlObj[providerType]?.[title]?.payload
     if (payload) {
-      return yaml.dump(
+      return dump(
         providerType === 'proxy-providers' ? { proxies: payload } : { rules: payload }
       )
     }
 
     const targetObj = yamlObj[providerType]?.[title]
-    return targetObj ? yaml.dump(targetObj) : fileContent
+    return targetObj ? dump(targetObj) : fileContent
   } catch {
     return fileContent
   }

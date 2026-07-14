@@ -36,7 +36,6 @@ export async function createDriver(navigate: NavigateFunction): Promise<Driver> 
           title: '欢迎使用 Sparkle',
           description:
             '这是一份交互式使用教程，如果您已经完全熟悉本软件的操作，可以直接点击右上角关闭按钮，后续您可以随时从设置中打开本教程',
-          side: 'over',
           align: 'center'
         }
       },
