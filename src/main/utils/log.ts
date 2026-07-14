@@ -72,6 +72,11 @@ function getWriteStream(target: LogTarget): WriteStream {
   }
 
   const stream = createWriteStream(nextPath, { flags: 'a', highWaterMark: logStreamHighWaterMark })
+  stream.on('error', () => {
+    if (streamMap.get(target)?.stream === stream) {
+      streamMap.delete(target)
+    }
+  })
   streamMap.set(target, { path: nextPath, stream })
   return stream
 }
@@ -401,7 +406,7 @@ export function createLogWritable(target: LogTarget, type: LogLevel = 'info'): W
       }
       void appendLog(target, content).then(
         () => callback(),
-        (error) => callback(error as Error)
+        () => callback()
       )
     },
     writev(chunks, callback) {
@@ -414,7 +419,7 @@ export function createLogWritable(target: LogTarget, type: LogLevel = 'info'): W
       }
       void appendLog(target, content).then(
         () => callback(),
-        (error) => callback(error as Error)
+        () => callback()
       )
     },
     final(callback) {
