@@ -39,7 +39,7 @@ const Tun: React.FC = () => {
     strictRoute,
     routeExcludeAddress,
     disableIcmpForwarding,
-    mtu
+    mtu: Math.min(Math.max(mtu || 1500, 1), 65535)
   })
   const setValues = (v: typeof values): void => {
     originSetValues(v)
@@ -204,8 +204,12 @@ const Tun: React.FC = () => {
               type="number"
               className="w-25"
               value={values.mtu.toString()}
+              min={1}
               onValueChange={(v) => {
-                setValues({ ...values, mtu: parseInt(v) })
+                setValues({
+                  ...values,
+                  mtu: Math.min(Math.max(parseInt(v) || 1500, 1), 65535)
+                })
               }}
             />
           </SettingItem>
