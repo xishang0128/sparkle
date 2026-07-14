@@ -7,6 +7,7 @@ import { restartCore } from '@renderer/utils/ipc'
 import EditableList from '../base/base-list-editor'
 import { platform } from '@renderer/utils/init'
 import { notify } from '@renderer/utils/notification'
+import PubSub from 'pubsub-js'
 
 const EnvSetting: React.FC = () => {
   const { appConfig, patchAppConfig } = useAppConfig()
