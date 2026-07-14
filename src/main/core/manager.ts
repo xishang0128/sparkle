@@ -62,6 +62,7 @@ const ctlParam = process.platform === 'win32' ? '-ext-ctl-pipe' : '-ext-ctl-unix
 const serviceConnectionRetryInterval = 500
 const tailscaleAuthNotificationKeyPrefix = 'tailscale-auth:'
 const directCoreLogLineLimit = 16 * 1024
+const coreLogReadyTimeout = 30000
 
 const directCoreState = {
   child: undefined as ChildProcess | undefined,
@@ -516,13 +517,37 @@ export async function startCore(detached = false): Promise<Promise<void>[]> {
     let controllerReady = false
 
     return new Promise((resolve, reject) => {
+      let settled = false
+
+      const settleResolve = (value: Promise<void>[]): void => {
+        if (settled) return
+        settled = true
+        clearTimeout(timer)
+        resolve(value)
+      }
+
+      const settleReject = (reason?: unknown): void => {
+        if (settled) return
+        settled = true
+        clearTimeout(timer)
+        reject(reason)
+      }
+
+      const timer = setTimeout(() => {
+        settleReject(new Error(`等待内核启动超时：${coreLogReadyTimeout}ms`))
+      }, coreLogReadyTimeout)
+
+      child.once('close', (code, signal) => {
+        settleReject(new Error(`内核启动失败，code: ${code}, signal: ${signal}`))
+      })
+
       child.stdout?.on('data', async (data) => {
         const str = data.toString()
-        await handleCoreOutput(str, reject)
+        await handleCoreOutput(str, settleReject)
 
         if (!controllerReady && isControllerReadyLog(str)) {
           controllerReady = true
-          resolve([
+          settleResolve([
             new Promise((resolve, reject) => {
               const handleProviderInitialization = async (logLine: string): Promise<void> => {
                 providerTracker.track(logLine)
@@ -546,6 +571,12 @@ export async function startCore(detached = false): Promise<Promise<void>[]> {
               child.stdout?.on('data', (data) => {
                 if (!initialized) {
                   handleProviderInitialization(data.toString()).catch(reject)
+                }
+              })
+
+              child.once('close', (code, signal) => {
+                if (!initialized) {
+                  reject(new Error(`内核启动失败，code: ${code}, signal: ${signal}`))
                 }
               })
             })
@@ -742,8 +773,12 @@ export async function startNetworkDetection(): Promise<void> {
   await startNetworkDetectionController({
     shouldStartCore: (networkDownHandled) => networkDownHandled && !directCoreState.child,
     startCore: async () => {
-      const promises = await startCore()
-      await Promise.all(promises)
+      try {
+        const promises = await startCore()
+        await Promise.all(promises)
+      } catch (error) {
+        await appendAppLog(`[Manager]: network detection start core failed, ${error}\n`)
+      }
     },
     stopCore
   })
