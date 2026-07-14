@@ -84,6 +84,21 @@ async function ensureWindowsInstallerTempSpace(): Promise<void> {
 
 export async function downloadAndInstallUpdate(version: string): Promise<void> {
   let appUpdateInstalling = false
+  let sysProxyPaused = false
+  const pauseSysProxy = async (): Promise<void> => {
+    sysProxyPaused = true
+    await triggerSysProxy(false, false)
+  }
+  const resumeSysProxy = async (): Promise<void> => {
+    if (!sysProxyPaused) return
+    sysProxyPaused = false
+    try {
+      const { sysProxy, onlyActiveDevice = false } = await getAppConfig()
+      if (sysProxy.enable) await triggerSysProxy(true, onlyActiveDevice)
+    } catch (error) {
+      await appendAppLog(`[Updater]: restore sysproxy failed, ${error}\n`).catch(() => {})
+    }
+  }
   const { 'mixed-port': mixedPort = 7890 } = await getControledMihomoConfig()
   let releaseTag = version
   if (version.includes('beta')) {
@@ -179,7 +194,7 @@ export async function downloadAndInstallUpdate(version: string): Promise<void> {
 
     if (file.endsWith('.exe')) {
       await ensureWindowsInstallerTempSpace()
-      await triggerSysProxy(false, false)
+      await pauseSysProxy()
       await pauseServiceFallbackForAppUpdate()
       spawn(path.join(dataDir(), file), ['/S', '--updated', '--force-run'], {
         detached: true,
@@ -188,7 +203,7 @@ export async function downloadAndInstallUpdate(version: string): Promise<void> {
       appUpdateInstalling = true
     }
     if (file.endsWith('.7z')) {
-      await triggerSysProxy(false, false)
+      await pauseSysProxy()
       await pauseServiceFallbackForAppUpdate()
       await stopServiceForPortableUpdate()
       await copyFile(path.join(resourcesFilesDir(), '7za.exe'), path.join(dataDir(), '7za.exe'))
@@ -209,7 +224,7 @@ export async function downloadAndInstallUpdate(version: string): Promise<void> {
     }
     if (file.endsWith('.pkg')) {
       try {
-        await triggerSysProxy(false, false)
+        await pauseSysProxy()
         await pauseServiceFallbackForAppUpdate()
         const execPromise = promisify(exec)
         const shell = `installer -pkg ${path.join(dataDir(), file).replace(' ', '\\\\ ')} -target /`
@@ -221,12 +236,14 @@ export async function downloadAndInstallUpdate(version: string): Promise<void> {
         app.quit()
       } catch {
         await clearAppUpdateServiceFallbackPause()
+        await resumeSysProxy()
         shell.openPath(path.join(dataDir(), file))
       }
     }
   } catch (e) {
     if (!appUpdateInstalling) {
       await clearAppUpdateServiceFallbackPause()
+      await resumeSysProxy()
     }
     await rm(path.join(dataDir(), file), { force: true })
     if (axios.isCancel(e)) {
