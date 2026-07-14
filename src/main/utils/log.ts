@@ -22,11 +22,13 @@ const writeQueue: Record<LogTarget, Promise<void>> = {
 const cachedLogs: CachedControllerLog[] = []
 const cachedLogLimit = 2000
 const logFileSizeMap = new Map<LogTarget, { path: string; size: number | null }>()
+const logWriteRetryAt = new Map<LogTarget, number>()
 let nextLogSeq = 0
 let mihomoLogSource: MihomoLogSource = 'out'
 const logfmtFieldPattern = /([A-Za-z0-9_.-]+)=("(?:\\.|[^"\\])*"|[^\s]+)/g
 const logStreamHighWaterMark = 256 * 1024
 const logTrimLowWatermarkRatio = 0.7
+const logWriteRetryDelay = 5000
 
 function resolveLogPath(target: LogTarget): string {
   switch (target) {
@@ -72,6 +74,11 @@ function getWriteStream(target: LogTarget): WriteStream {
   }
 
   const stream = createWriteStream(nextPath, { flags: 'a', highWaterMark: logStreamHighWaterMark })
+  stream.on('error', () => {
+    if (streamMap.get(target)?.stream === stream) {
+      streamMap.delete(target)
+    }
+  })
   streamMap.set(target, { path: nextPath, stream })
   return stream
 }
@@ -332,7 +339,8 @@ function normalizeWriteChunk(chunk: string | Buffer): Buffer {
 }
 
 async function appendLog(target: LogTarget, content: LogContent): Promise<void> {
-  if (isEmptyLogContent(content) || !(await shouldSaveLogs())) return
+  if (isEmptyLogContent(content) || (logWriteRetryAt.get(target) || 0) > Date.now()) return
+  if (!(await shouldSaveLogs())) return
 
   const path = resolveLogPath(target)
   const maxLogFileSizeBytes = await getMaxLogFileSizeBytes()
@@ -340,6 +348,7 @@ async function appendLog(target: LogTarget, content: LogContent): Promise<void> 
   const currentQueue = writeQueue[target].catch(() => {})
   writeQueue[target] = (async () => {
     await currentQueue
+    if ((logWriteRetryAt.get(target) || 0) > Date.now()) return
     try {
       await new Promise<void>((resolve, reject) => {
         const stream = getWriteStream(target)
@@ -352,7 +361,9 @@ async function appendLog(target: LogTarget, content: LogContent): Promise<void> 
         })
       })
       await enforceLogFileSizeLimit(target, path, contentSize, maxLogFileSizeBytes)
+      logWriteRetryAt.delete(target)
     } catch (error) {
+      logWriteRetryAt.set(target, Date.now() + logWriteRetryDelay)
       await closeWriteStream(target)
       throw error
     }
@@ -401,7 +412,7 @@ export function createLogWritable(target: LogTarget, type: LogLevel = 'info'): W
       }
       void appendLog(target, content).then(
         () => callback(),
-        (error) => callback(error as Error)
+        () => callback()
       )
     },
     writev(chunks, callback) {
@@ -414,7 +425,7 @@ export function createLogWritable(target: LogTarget, type: LogLevel = 'info'): W
       }
       void appendLog(target, content).then(
         () => callback(),
-        (error) => callback(error as Error)
+        () => callback()
       )
     },
     final(callback) {
