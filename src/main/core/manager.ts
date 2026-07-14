@@ -604,9 +604,9 @@ export async function stopCore(force = false): Promise<void> {
   }
 
   const child = directCoreState.child
-  if (child && !child.killed) {
-    await stopChildProcess(child)
+  if (child) {
     directCoreState.child = undefined
+    await stopChildProcess(child)
   }
 
   await getAxios(true).catch(() => {})
@@ -740,8 +740,7 @@ export async function quitWithoutCore(): Promise<void> {
 
 export async function startNetworkDetection(): Promise<void> {
   await startNetworkDetectionController({
-    shouldStartCore: (networkDownHandled) =>
-      (networkDownHandled && !directCoreState.child) || Boolean(directCoreState.child?.killed),
+    shouldStartCore: (networkDownHandled) => networkDownHandled && !directCoreState.child,
     startCore: async () => {
       const promises = await startCore()
       await Promise.all(promises)
