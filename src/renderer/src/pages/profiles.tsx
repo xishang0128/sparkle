@@ -169,13 +169,23 @@ const Profiles: React.FC = () => {
     pageRef.current?.addEventListener('dragleave', (e) => {
       e.preventDefault()
       e.stopPropagation()
+      const rect = pageRef.current?.getBoundingClientRect()
+      if (
+        rect &&
+        e.clientX >= rect.left &&
+        e.clientX <= rect.right &&
+        e.clientY >= rect.top &&
+        e.clientY <= rect.bottom
+      )
+        return
       setFileOver(false)
     })
     pageRef.current?.addEventListener('drop', async (event) => {
       event.preventDefault()
       event.stopPropagation()
-      if (event.dataTransfer?.files) {
-        const file = event.dataTransfer.files[0]
+      const dataTransfer = event.dataTransfer
+      const file = dataTransfer?.files[0]
+      if (file) {
         if (
           file.name.endsWith('.yml') ||
           file.name.endsWith('.yaml') ||
@@ -193,6 +203,28 @@ const Profiles: React.FC = () => {
           }
         } else {
           notify('不支持的文件类型', { variant: 'danger' })
+        }
+      } else {
+        const droppedUrl =
+          dataTransfer
+            ?.getData('text/uri-list')
+            .split(/\r?\n/)
+            .find((value) => value && !value.startsWith('#')) ||
+          dataTransfer?.getData('text/plain').trim()
+        try {
+          const urlObj = new URL(droppedUrl || '')
+          if (urlObj.protocol !== 'http:' && urlObj.protocol !== 'https:') throw new Error()
+          setEditingItem({
+            id: '',
+            name: '',
+            type: 'remote',
+            url: droppedUrl,
+            useProxy: false,
+            autoUpdate: true
+          })
+          setShowEditModal(true)
+        } catch {
+          notify('未检测到有效的订阅链接', { variant: 'danger' })
         }
       }
       setFileOver(false)
