@@ -238,9 +238,9 @@ export function disableSysProxySync(useRegistry = false): void {
   if (process.platform !== 'win32') return
 
   try {
-    execFileSync(servicePath(), ['disable', ...registryArgs(useRegistry)], {
+    execFileSync(servicePath(), ['sysproxy', 'disable', ...registryArgs(useRegistry)], {
       stdio: 'ignore',
-      timeout: 5000
+      timeout: 3000
     })
   } catch {
     // ignore

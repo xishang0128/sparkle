@@ -299,6 +299,7 @@ export async function createWindow(appConfig?: AppConfig): Promise<void> {
     mainWindow.on('move', windowStateManager.save)
 
     mainWindow.on('session-end', async () => {
+      disableSysProxySync(true)
       await triggerSysProxy(false, false, true)
       await stopCore()
     })
