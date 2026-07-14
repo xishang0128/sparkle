@@ -62,7 +62,7 @@ const PermissionModal: React.FC<Props> = (props) => {
     coreName: 'mihomo' | 'mihomo-alpha',
     isGrant: boolean
   ): Promise<void> => {
-    setLoading({ ...loading, [coreName]: true })
+    setLoading((prev) => ({ ...prev, [coreName]: true }))
     try {
       if (isGrant) {
         await manualGrantCorePermition([coreName])
@@ -80,7 +80,7 @@ const PermissionModal: React.FC<Props> = (props) => {
       }
       notify(e, { variant: 'danger' })
     } finally {
-      setLoading({ ...loading, [coreName]: false })
+      setLoading((prev) => ({ ...prev, [coreName]: false }))
     }
   }
 
