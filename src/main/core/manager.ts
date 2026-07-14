@@ -516,6 +516,10 @@ export async function startCore(detached = false): Promise<Promise<void>[]> {
     let controllerReady = false
 
     return new Promise((resolve, reject) => {
+      child.once('close', (code, signal) => {
+        reject(new Error(`内核启动失败，code: ${code}, signal: ${signal}`))
+      })
+
       child.stdout?.on('data', async (data) => {
         const str = data.toString()
         await handleCoreOutput(str, reject)
@@ -546,6 +550,12 @@ export async function startCore(detached = false): Promise<Promise<void>[]> {
               child.stdout?.on('data', (data) => {
                 if (!initialized) {
                   handleProviderInitialization(data.toString()).catch(reject)
+                }
+              })
+
+              child.once('close', (code, signal) => {
+                if (!initialized) {
+                  reject(new Error(`内核启动失败，code: ${code}, signal: ${signal}`))
                 }
               })
             })
