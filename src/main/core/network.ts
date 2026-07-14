@@ -96,12 +96,7 @@ export async function recoverDNS(): Promise<void> {
 export async function startNetworkDetectionController(
   controller: NetworkCoreController
 ): Promise<void> {
-  const {
-    onlyActiveDevice = false,
-    networkDetectionBypass = [],
-    networkDetectionInterval = 10,
-    sysProxy = { enable: false }
-  } = await getAppConfig()
+  const { networkDetectionBypass = [], networkDetectionInterval = 10 } = await getAppConfig()
   const { tun: { device = process.platform === 'darwin' ? undefined : 'mihomo' } = {} } =
     await getControledMihomoConfig()
   if (networkDetectionTimer) {
@@ -112,6 +107,7 @@ export async function startNetworkDetectionController(
   )
 
   networkDetectionTimer = setInterval(async () => {
+    const { onlyActiveDevice = false, sysProxy = { enable: false } } = await getAppConfig()
     if (isAnyNetworkInterfaceUp(extendedBypass) && net.isOnline()) {
       if (controller.shouldStartCore(networkDownHandled)) {
         await controller.startCore()
