@@ -184,51 +184,54 @@ const Profiles: React.FC = () => {
     pageRef.current?.addEventListener('drop', async (event) => {
       event.preventDefault()
       event.stopPropagation()
-      const dataTransfer = event.dataTransfer
-      const file = dataTransfer?.files[0]
-      if (file) {
-        if (
-          file.name.endsWith('.yml') ||
-          file.name.endsWith('.yaml') ||
-          file.name.endsWith('.json') ||
-          file.name.endsWith('.jsonc') ||
-          file.name.endsWith('.json5') ||
-          file.name.endsWith('.txt')
-        ) {
-          try {
-            const path = window.api.webUtils.getPathForFile(file)
-            const content = await readTextFile(path)
-            await addProfileItem({ name: file.name, type: 'local', file: content })
-          } catch (e) {
-            notify('文件导入失败' + e, { variant: 'danger' })
+      try {
+        const dataTransfer = event.dataTransfer
+        const file = dataTransfer?.files[0]
+        if (file) {
+          if (
+            file.name.endsWith('.yml') ||
+            file.name.endsWith('.yaml') ||
+            file.name.endsWith('.json') ||
+            file.name.endsWith('.jsonc') ||
+            file.name.endsWith('.json5') ||
+            file.name.endsWith('.txt')
+          ) {
+            try {
+              const path = window.api.webUtils.getPathForFile(file)
+              const content = await readTextFile(path)
+              await addProfileItem({ name: file.name, type: 'local', file: content })
+            } catch (e) {
+              notify('文件导入失败' + e, { variant: 'danger' })
+            }
+          } else {
+            notify('不支持的文件类型', { variant: 'danger' })
           }
         } else {
-          notify('不支持的文件类型', { variant: 'danger' })
+          const droppedUrl =
+            dataTransfer
+              ?.getData('text/uri-list')
+              .split(/\r?\n/)
+              .find((value) => value && !value.startsWith('#')) ||
+            dataTransfer?.getData('text/plain').trim()
+          try {
+            const urlObj = new URL(droppedUrl || '')
+            if (urlObj.protocol !== 'http:' && urlObj.protocol !== 'https:') throw new Error()
+            setEditingItem({
+              id: '',
+              name: '',
+              type: 'remote',
+              url: droppedUrl,
+              useProxy: false,
+              autoUpdate: true
+            })
+            setShowEditModal(true)
+          } catch {
+            notify('未检测到有效的订阅链接', { variant: 'danger' })
+          }
         }
-      } else {
-        const droppedUrl =
-          dataTransfer
-            ?.getData('text/uri-list')
-            .split(/\r?\n/)
-            .find((value) => value && !value.startsWith('#')) ||
-          dataTransfer?.getData('text/plain').trim()
-        try {
-          const urlObj = new URL(droppedUrl || '')
-          if (urlObj.protocol !== 'http:' && urlObj.protocol !== 'https:') throw new Error()
-          setEditingItem({
-            id: '',
-            name: '',
-            type: 'remote',
-            url: droppedUrl,
-            useProxy: false,
-            autoUpdate: true
-          })
-          setShowEditModal(true)
-        } catch {
-          notify('未检测到有效的订阅链接', { variant: 'danger' })
-        }
+      } finally {
+        setFileOver(false)
       }
-      setFileOver(false)
     })
     return (): void => {
       pageRef.current?.removeEventListener('dragover', () => {})
