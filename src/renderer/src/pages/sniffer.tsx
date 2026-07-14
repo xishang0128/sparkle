@@ -95,7 +95,9 @@ const Sniffer: React.FC = () => {
                   'override-destination': values.overrideDestination,
                   sniff: values.sniff,
                   'skip-domain': values.skipDomain,
-                  'force-domain': values.forceDomain
+                  'force-domain': values.forceDomain,
+                  'skip-dst-address': values.skipDstAddress,
+                  'skip-src-address': values.skipSrcAddress
                 }
               })
             }
