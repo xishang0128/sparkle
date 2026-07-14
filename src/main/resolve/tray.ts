@@ -38,7 +38,7 @@ import { applyTheme } from './theme'
 import { existsSync } from 'fs'
 
 export let tray: Tray | null = null
-let customTrayWindow: BrowserWindow | null = null
+export let customTrayWindow: BrowserWindow | null = null
 let trayMenu: Menu | null = null
 let trayIconUpdateListenerRegistered = false
 let updateTrayMenuListenerRegistered = false

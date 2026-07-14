@@ -2,7 +2,7 @@ import axios, { AxiosInstance } from 'axios'
 import { getAppConfig, getControledMihomoConfig } from '../config'
 import { mainWindow } from '..'
 import WebSocket from 'ws'
-import { tray } from '../resolve/tray'
+import { customTrayWindow, tray } from '../resolve/tray'
 import { calcTraffic } from '../utils/calc'
 import { getRuntimeConfig } from './factory'
 import { floatingWindow } from '../resolve/floatingWindow'
@@ -370,6 +370,9 @@ const mihomoTraffic = async (): Promise<void> => {
         )
       }
       floatingWindow?.webContents.send('mihomoTraffic', json)
+      if (customTrayWindow && !customTrayWindow.isDestroyed() && customTrayWindow.isVisible()) {
+        customTrayWindow.webContents.send('mihomoTraffic', json)
+      }
     } catch {
       // ignore
     }
