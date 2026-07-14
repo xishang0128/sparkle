@@ -63,12 +63,13 @@ export async function getAppConfig(force = false): Promise<AppConfig> {
 
 export async function patchAppConfig(patch: Partial<AppConfig>): Promise<AppConfig> {
   const previousPromise = writePromise
-  writePromise = (async () => {
+  const currentPromise = (async () => {
     await previousPromise
     appConfig = deepMerge(appConfig, patch)
     await safeWriteConfig(stringifyYaml(appConfig))
   })()
-  await writePromise
+  writePromise = currentPromise.catch(() => {})
+  await currentPromise
   return appConfig
 }
 
