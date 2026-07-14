@@ -332,6 +332,12 @@ const Connections: React.FC = () => {
         lastActiveTime.current.set(id, now)
       })
 
+      lastActiveTime.current.forEach((activeAt, id) => {
+        if (now - activeAt >= 1000) {
+          lastActiveTime.current.delete(id)
+        }
+      })
+
       const activeConns = info.connections.map((conn) => {
         const preConn = prevActiveMap.get(conn.id)
         const downloadSpeed = preConn
