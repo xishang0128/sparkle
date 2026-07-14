@@ -1,4 +1,6 @@
-import { execFileSync } from 'child_process'
+import { statSync } from 'fs'
+
+const S_ISUID = 0o4000
 
 export function hasSetuidPermission(permissions: string): boolean {
   return permissions.includes('s') || permissions.includes('S')
@@ -7,9 +9,7 @@ export function hasSetuidPermission(permissions: string): boolean {
 export function checkCorePermissionPathSync(corePath: string): boolean {
   if (process.platform === 'win32') return true
   try {
-    const stdout = execFileSync('ls', ['-l', corePath], { encoding: 'utf8' })
-    const permissions = stdout.trim().split(/\s+/)[0]
-    return hasSetuidPermission(permissions)
+    return (statSync(corePath).mode & S_ISUID) !== 0
   } catch {
     return false
   }
