@@ -5,6 +5,7 @@ import { promisify } from 'util'
 import { getAppConfig, getControledMihomoConfig, patchAppConfig } from '../config'
 import { setSysDns } from '../service/api'
 import { triggerSysProxy } from '../sys/sysproxy'
+import { appendAppLog } from '../utils/log'
 
 export interface NetworkCoreController {
   shouldStartCore: (networkDownHandled: boolean) => boolean
@@ -111,12 +112,20 @@ export async function startNetworkDetectionController(
     if (isAnyNetworkInterfaceUp(extendedBypass) && net.isOnline()) {
       if (controller.shouldStartCore(networkDownHandled)) {
         await controller.startCore()
-        if (sysProxy.enable) triggerSysProxy(true, onlyActiveDevice)
+        if (sysProxy.enable) {
+          triggerSysProxy(true, onlyActiveDevice).catch((error) => {
+            appendAppLog(`[Network]: enable sysproxy failed, ${error}\n`).catch(() => {})
+          })
+        }
         networkDownHandled = false
       }
     } else {
       if (!networkDownHandled) {
-        if (sysProxy.enable) triggerSysProxy(false, onlyActiveDevice, true)
+        if (sysProxy.enable) {
+          triggerSysProxy(false, onlyActiveDevice, true).catch((error) => {
+            appendAppLog(`[Network]: disable sysproxy failed, ${error}\n`).catch(() => {})
+          })
+        }
         await controller.stopCore()
         networkDownHandled = true
       }

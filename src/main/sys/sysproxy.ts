@@ -39,10 +39,11 @@ export async function triggerSysProxy(
     if (net.isOnline()) {
       await setSysProxy(onlyActiveDevice, useRegistry)
     } else {
-      triggerSysProxyTimer = setTimeout(
-        () => triggerSysProxy(enable, onlyActiveDevice, useRegistry),
-        5000
-      )
+      triggerSysProxyTimer = setTimeout(() => {
+        triggerSysProxy(enable, onlyActiveDevice, useRegistry).catch((error) => {
+          appendAppLog(`[Sysproxy]: retry enable failed, ${error}\n`).catch(() => {})
+        })
+      }, 5000)
     }
   } else {
     await disableSysProxy(onlyActiveDevice, useRegistry)
