@@ -38,7 +38,7 @@ const AdvancedSettings: React.FC = () => {
   const [pauseSSIDInput, setPauseSSIDInput] = useState(pauseSSIDArray)
 
   const [bypass, setBypass] = useState(networkDetectionBypass)
-  const [interval, setInterval] = useState(networkDetectionInterval)
+  const [interval, setInterval] = useState(Math.max(networkDetectionInterval || 10, 1))
 
   useEffect(() => {
     setPauseSSIDInput(pauseSSIDArray)
@@ -224,7 +224,7 @@ const AdvancedSettings: React.FC = () => {
                 value={interval.toString()}
                 min={1}
                 onValueChange={(v) => {
-                  setInterval(parseInt(v))
+                  setInterval(Math.max(parseInt(v) || 10, 1))
                 }}
               />
             </div>
