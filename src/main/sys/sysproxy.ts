@@ -31,11 +31,14 @@ export async function triggerSysProxy(
   onlyActiveDevice: boolean,
   useRegistry = false
 ): Promise<void> {
+  if (triggerSysProxyTimer) {
+    clearTimeout(triggerSysProxyTimer)
+    triggerSysProxyTimer = null
+  }
   if (enable) {
     if (net.isOnline()) {
       await setSysProxy(onlyActiveDevice, useRegistry)
     } else {
-      if (triggerSysProxyTimer) clearTimeout(triggerSysProxyTimer)
       triggerSysProxyTimer = setTimeout(
         () => triggerSysProxy(enable, onlyActiveDevice, useRegistry),
         5000
