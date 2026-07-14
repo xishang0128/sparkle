@@ -8,6 +8,14 @@ import path from 'path'
 
 const appName = 'sparkle'
 
+function escapeXml(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+}
+
 const taskXml = `<?xml version="1.0" encoding="UTF-16"?>
 <Task version="1.2" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">
   <Triggers>
@@ -43,8 +51,8 @@ const taskXml = `<?xml version="1.0" encoding="UTF-16"?>
   </Settings>
   <Actions Context="Author">
     <Exec>
-      <Command>"${path.join(taskDir(), `sparkle-run.exe`)}"</Command>
-      <Arguments>"${exePath()}"</Arguments>
+      <Command>"${escapeXml(path.join(taskDir(), `sparkle-run.exe`))}"</Command>
+      <Arguments>"${escapeXml(exePath())}"</Arguments>
     </Exec>
   </Actions>
 </Task>
