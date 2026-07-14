@@ -65,7 +65,7 @@ const RuleItem: React.FC<Props> = ({ rule, index }) => {
   const handleToggle = async (v: boolean): Promise<void> => {
     setIsEnabled(v)
     try {
-      await mihomoRulesDisable({ [index]: !v })
+      await mihomoRulesDisable({ [rule.index]: !v })
     } catch {
       setIsEnabled(!v)
     }
