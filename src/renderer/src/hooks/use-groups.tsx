@@ -16,15 +16,15 @@ export const GroupsProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   })
 
   React.useEffect(() => {
-    window.electron.ipcRenderer.on('groupsUpdated', () => {
+    const unsubscribeGroupsUpdated = window.electron.ipcRenderer.on('groupsUpdated', () => {
       mutate()
     })
-    window.electron.ipcRenderer.on('core-started', () => {
+    const unsubscribeCoreStarted = window.electron.ipcRenderer.on('core-started', () => {
       mutate()
     })
     return (): void => {
-      window.electron.ipcRenderer.removeAllListeners('groupsUpdated')
-      window.electron.ipcRenderer.removeAllListeners('core-started')
+      unsubscribeGroupsUpdated()
+      unsubscribeCoreStarted()
     }
   }, [])
 
