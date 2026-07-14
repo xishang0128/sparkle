@@ -39,10 +39,10 @@ const UpdaterButton: React.FC<Props> = (props) => {
       setUpdateStatus(status)
     }
 
-    window.electron.ipcRenderer.on('update-status', handleUpdateStatus)
+    const unsubscribe = window.electron.ipcRenderer.on('update-status', handleUpdateStatus)
 
     return (): void => {
-      window.electron.ipcRenderer.removeAllListeners('update-status')
+      unsubscribe()
     }
   }, [])
 
