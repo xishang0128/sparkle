@@ -16,7 +16,7 @@ import { useProfileConfig } from '@renderer/hooks/use-profile-config'
 import { useAppConfig } from '@renderer/hooks/use-app-config'
 import { getFilePath, readTextFile, subStoreCollections, subStoreSubs } from '@renderer/utils/ipc'
 import type { KeyboardEvent } from 'react'
-import { ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { ReactNode, useEffect, useMemo, useRef, useState } from 'react'
 import { MdContentPaste } from 'react-icons/md'
 import { DndContext, closestCenter, DragEndEvent } from '@dnd-kit/core'
 import { SortableContext } from '@dnd-kit/sortable'
@@ -128,10 +128,14 @@ const Profiles: React.FC = () => {
     return items
   }, [subs, collections])
   const handleImport = async (importUrl: string): Promise<void> => {
+    if (importing) return
     setImporting(true)
-    await addProfileItem({ name: '', type: 'remote', url: importUrl, useProxy, autoUpdate: true })
-    setUrl('')
-    setImporting(false)
+    try {
+      await addProfileItem({ name: '', type: 'remote', url: importUrl, useProxy, autoUpdate: true })
+      setUrl('')
+    } finally {
+      setImporting(false)
+    }
   }
   const pageRef = useRef<HTMLDivElement>(null)
 
@@ -152,13 +156,10 @@ const Profiles: React.FC = () => {
     }
   }
 
-  const handleInputKeyUp = useCallback(
-    (e: KeyboardEvent<HTMLInputElement>) => {
-      if (e.key !== 'Enter' || isUrlEmpty) return
-      handleImport((e.currentTarget as HTMLInputElement).value)
-    },
-    [isUrlEmpty]
-  )
+  const handleInputKeyUp = (e: KeyboardEvent<HTMLInputElement>): void => {
+    if (e.key !== 'Enter' || isUrlEmpty || importing) return
+    handleImport(e.currentTarget.value)
+  }
 
   useEffect(() => {
     pageRef.current?.addEventListener('dragover', (e) => {
