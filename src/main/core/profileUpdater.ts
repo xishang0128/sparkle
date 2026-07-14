@@ -38,6 +38,10 @@ export async function initProfileUpdater(): Promise<void> {
         }
       }
 
+      if (intervalPool[item.id]) {
+        clearTimeout(intervalPool[item.id])
+      }
+
       intervalPool[item.id] = setTimeout(
         async () => {
           try {
@@ -60,6 +64,10 @@ export async function initProfileUpdater(): Promise<void> {
       } catch (e) {
         // ignore
       }
+    }
+
+    if (intervalPool[currentItem.id]) {
+      clearTimeout(intervalPool[currentItem.id])
     }
 
     intervalPool[currentItem.id] = setTimeout(
