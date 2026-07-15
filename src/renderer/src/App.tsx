@@ -413,14 +413,12 @@ const App: React.FC = () => {
         />
       )}
       {siderWidthValue === narrowWidth ? (
-        <div style={{ width: `${narrowWidth}px` }} className="side h-full">
-          <div className="app-drag flex justify-center items-center z-40 bg-transparent h-11.25">
+        <div style={{ width: `${narrowWidth}px` }} className="side h-full flex flex-col">
+          <div className="app-drag flex shrink-0 justify-center items-center z-40 bg-transparent h-11.25">
             {platform !== 'darwin' && <MihomoIcon className="h-8 leading-8 text-lg mx-px" />}
           </div>
-          <div
-            className={`${latest ? 'h-[calc(100%-275px)]' : 'h-[calc(100%-227px)]'} overflow-y-auto no-scrollbar`}
-          >
-            <div className="h-full w-full flex flex-col gap-2">
+          <div className="min-h-0 flex-1 overflow-y-auto no-scrollbar">
+            <div className="min-h-full w-full flex flex-col gap-2">
               {order.map((key: string) => {
                 const Component = componentMap[key]
                 if (!Component) return null
@@ -428,7 +426,7 @@ const App: React.FC = () => {
               })}
             </div>
           </div>
-          <div className="p-2 flex flex-col items-center space-y-2">
+          <div className="px-2 pt-2 pb-4 flex shrink-0 flex-col items-center space-y-2">
             {latest && latest.version && (
               <UpdaterButton
                 iconOnly={true}
