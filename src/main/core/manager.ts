@@ -75,7 +75,7 @@ const serviceCoreRuntime = createServiceCoreRuntime({
   resetDirectCoreRetry: () => {
     directCoreState.retry = 10
   },
-  startCore: (detached) => startCore(detached)
+  startCore: (detached) => startCoreImpl(detached)
 })
 
 type CoreLogNotification = AppNotificationPayload & {
@@ -320,7 +320,25 @@ async function getServiceStatusAfterConnectionError(): Promise<
   }
 }
 
-export async function startCore(detached = false): Promise<Promise<void>[]> {
+let lifecycleChain: Promise<unknown> = Promise.resolve()
+
+function enqueueLifecycle<T>(task: () => Promise<T>): Promise<T> {
+  const result = lifecycleChain.then(
+    () => task(),
+    () => task()
+  )
+  lifecycleChain = result.then(
+    () => {},
+    () => {}
+  )
+  return result
+}
+
+export function startCore(detached = false): Promise<Promise<void>[]> {
+  return enqueueLifecycle(() => startCoreImpl(detached))
+}
+
+async function startCoreImpl(detached = false): Promise<Promise<void>[]> {
   const {
     core = 'mihomo',
     corePermissionMode = 'elevated',
@@ -347,7 +365,7 @@ export async function startCore(detached = false): Promise<Promise<void>[]> {
   } catch (error) {
     if (core === 'system') {
       await patchAppConfig({ core: 'mihomo' })
-      return startCore(detached)
+      return startCoreImpl(detached)
     }
     throw error
   }
@@ -370,7 +388,7 @@ export async function startCore(detached = false): Promise<Promise<void>[]> {
     }
   }
   if (!serviceCoreRunning) {
-    await stopCore()
+    await stopCoreImpl()
   }
   setMihomoLogSource('out')
   if (tun?.enable && autoSetDNSMode !== 'none') {
@@ -608,7 +626,11 @@ export async function startCore(detached = false): Promise<Promise<void>[]> {
   return coreStartupMode === 'post-up' ? waitForCoreReadyByHook() : waitForCoreReadyByLog()
 }
 
-export async function stopCore(force = false): Promise<void> {
+export function stopCore(force = false): Promise<void> {
+  return enqueueLifecycle(() => stopCoreImpl(force))
+}
+
+async function stopCoreImpl(force = false): Promise<void> {
   serviceCoreRuntime.pauseAutoResume()
 
   try {
@@ -738,13 +760,17 @@ function clearTailscaleAuthNotifications(name?: string): void {
 
 export async function restartCore(): Promise<void> {
   try {
-    clearTailscaleAuthNotifications()
-    await stopCore()
-    const promises = await startCore()
+    const promises = await enqueueLifecycle(() => restartCoreImpl())
     await Promise.all(promises)
   } catch (e) {
     void showNotification({ title: '内核启动出错', body: `${e}`, variant: 'danger' })
   }
+}
+
+async function restartCoreImpl(): Promise<Promise<void>[]> {
+  clearTailscaleAuthNotifications()
+  await stopCoreImpl()
+  return startCoreImpl()
 }
 
 export async function keepCoreAlive(): Promise<void> {
