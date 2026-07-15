@@ -45,6 +45,10 @@ export async function stopChildProcess(process: ChildProcess): Promise<void> {
     } catch {
       // ignore
     }
+    if (!isProcessAlive(pid)) {
+      resolveOnce()
+      return
+    }
 
     const timer1 = setTimeout(() => {
       if (isResolved) return
