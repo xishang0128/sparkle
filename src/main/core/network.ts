@@ -16,6 +16,7 @@ export interface NetworkCoreController {
 let setPublicDNSTimer: NodeJS.Timeout | null = null
 let recoverDNSTimer: NodeJS.Timeout | null = null
 let networkDetectionTimer: NodeJS.Timeout | null = null
+let networkDetectionGeneration = 0
 let networkDownHandled = false
 
 export async function getDefaultDevice(): Promise<string> {
@@ -97,6 +98,8 @@ export async function recoverDNS(): Promise<void> {
 export async function startNetworkDetectionController(
   controller: NetworkCoreController
 ): Promise<void> {
+  const generation = ++networkDetectionGeneration
+  let detecting = false
   const { networkDetectionBypass = [], networkDetectionInterval = 10 } = await getAppConfig()
   const { tun: { device = process.platform === 'darwin' ? undefined : 'mihomo' } = {} } =
     await getControledMihomoConfig()
@@ -108,32 +111,36 @@ export async function startNetworkDetectionController(
   )
 
   networkDetectionTimer = setInterval(async () => {
-    const { onlyActiveDevice = false, sysProxy = { enable: false } } = await getAppConfig()
-    if (isAnyNetworkInterfaceUp(extendedBypass) && net.isOnline()) {
-      if (controller.shouldStartCore(networkDownHandled)) {
-        await controller.startCore()
-        if (sysProxy.enable) {
-          triggerSysProxy(true, onlyActiveDevice).catch((error) => {
-            appendAppLog(`[Network]: enable sysproxy failed, ${error}\n`).catch(() => {})
-          })
+    if (detecting || generation !== networkDetectionGeneration) return
+    detecting = true
+    try {
+      const { onlyActiveDevice = false, sysProxy = { enable: false } } = await getAppConfig()
+      if (generation !== networkDetectionGeneration) return
+      if (isAnyNetworkInterfaceUp(extendedBypass) && net.isOnline()) {
+        if (controller.shouldStartCore(networkDownHandled)) {
+          await controller.startCore()
+          if (generation !== networkDetectionGeneration) return
+          if (sysProxy.enable) await triggerSysProxy(true, onlyActiveDevice)
+          networkDownHandled = false
         }
-        networkDownHandled = false
-      }
-    } else {
-      if (!networkDownHandled) {
-        if (sysProxy.enable) {
-          triggerSysProxy(false, onlyActiveDevice, true).catch((error) => {
-            appendAppLog(`[Network]: disable sysproxy failed, ${error}\n`).catch(() => {})
-          })
-        }
+      } else if (!networkDownHandled) {
+        if (sysProxy.enable) await triggerSysProxy(false, onlyActiveDevice, true)
+        if (generation !== networkDetectionGeneration) return
         await controller.stopCore()
-        networkDownHandled = true
+        if (generation === networkDetectionGeneration) {
+          networkDownHandled = true
+        }
       }
+    } catch (error) {
+      appendAppLog(`[Network]: network detection failed, ${error}\n`).catch(() => {})
+    } finally {
+      detecting = false
     }
   }, networkDetectionInterval * 1000)
 }
 
-export async function stopNetworkDetection(): Promise<void> {
+export function stopNetworkDetection(): void {
+  networkDetectionGeneration++
   if (networkDetectionTimer) {
     clearInterval(networkDetectionTimer)
     networkDetectionTimer = null

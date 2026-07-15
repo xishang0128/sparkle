@@ -3,6 +3,7 @@ import { registerIpcMainHandlers } from './utils/ipc'
 import { app, shell, BrowserWindow, Menu } from 'electron'
 import { getAppConfig } from './config'
 import { quitWithoutCore, startCore, stopCore } from './core/manager'
+import { stopNetworkDetection } from './core/network'
 import { disableSysProxySync, triggerSysProxy } from './sys/sysproxy'
 import icon from '../../resources/icon.png?asset'
 import { createTray } from './resolve/tray'
@@ -299,6 +300,7 @@ export async function createWindow(appConfig?: AppConfig): Promise<void> {
     mainWindow.on('move', windowStateManager.save)
 
     mainWindow.on('session-end', async () => {
+      stopNetworkDetection()
       disableSysProxySync(true)
       await triggerSysProxy(false, false, true)
       await stopCore()
