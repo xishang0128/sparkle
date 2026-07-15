@@ -102,7 +102,7 @@
     "tar": "^7.5.20",
     "tsx": "^4.23.1",
     "types-pac": "^1.0.3",
-    "typescript": "^7.0.2",
+    "typescript": "^6.0.3",
     "vite": "^8.1.4",
     "vite-plugin-monaco-editor": "1.1.0"
   },
