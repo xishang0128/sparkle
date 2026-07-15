@@ -18,12 +18,47 @@ import express from 'express'
 import axios from 'axios'
 import AdmZip from 'adm-zip'
 import { createLogWritable } from '../utils/log'
+import { createHash } from 'crypto'
 
 export let pacPort: number
 export let subStorePort: number
 export let subStoreFrontendPort: number
 let subStoreFrontendServer: http.Server
 let subStoreBackendWorker: Worker
+
+interface ReleaseAsset {
+  name: string
+  browser_download_url: string
+  digest?: string
+}
+
+async function downloadReleaseAsset(repo: string, file: string, mixedPort: number) {
+  const proxy =
+    mixedPort != 0
+      ? { proxy: { protocol: 'http' as const, host: '127.0.0.1', port: mixedPort } }
+      : {}
+  const { data: release } = await axios.get<{ assets: ReleaseAsset[] }>(
+    `https://api.github.com/repos/${repo}/releases/latest`,
+    {
+      headers: { Accept: 'application/vnd.github.v3+json' },
+      ...proxy
+    }
+  )
+  const asset = release.assets.find((asset) => asset.name === file)
+  if (!asset?.browser_download_url || !asset.digest?.match(/^sha256:[a-f\d]{64}$/i)) {
+    throw new Error(`无法从 GitHub Release 中找到 "${file}" 对应的 SHA-256 信息`)
+  }
+  const { data } = await axios.get(asset.browser_download_url, {
+    responseType: 'arraybuffer',
+    headers: { 'Content-Type': 'application/octet-stream' },
+    ...proxy
+  })
+  const buffer = Buffer.from(data)
+  if (createHash('sha256').update(buffer).digest('hex') !== asset.digest.slice(7).toLowerCase()) {
+    throw new Error(`SHA-256 校验失败："${file}" 哈希不匹配`)
+  }
+  return buffer
+}
 
 const defaultPacScript = `
 function FindProxyForURL(url, host) {
@@ -157,38 +192,10 @@ export async function downloadSubStore(): Promise<void> {
   const tempDir = subStoreTempDir()
 
   try {
-    // 下载后端文件
-    const backendRes = await axios.get(
-      'https://github.com/sub-store-org/Sub-Store/releases/latest/download/sub-store.bundle.js',
-      {
-        responseType: 'arraybuffer',
-        headers: { 'Content-Type': 'application/octet-stream' },
-        ...(mixedPort != 0 && {
-          proxy: {
-            protocol: 'http',
-            host: '127.0.0.1',
-            port: mixedPort
-          }
-        })
-      }
-    )
-    await writeFile(backendPath, Buffer.from(backendRes.data))
-
-    // 下载前端文件
-    const frontendRes = await axios.get(
-      'https://github.com/sub-store-org/Sub-Store-Front-End/releases/latest/download/dist.zip',
-      {
-        responseType: 'arraybuffer',
-        headers: { 'Content-Type': 'application/octet-stream' },
-        ...(mixedPort != 0 && {
-          proxy: {
-            protocol: 'http',
-            host: '127.0.0.1',
-            port: mixedPort
-          }
-        })
-      }
-    )
+    const [backend, frontend] = await Promise.all([
+      downloadReleaseAsset('sub-store-org/Sub-Store', 'sub-store.bundle.js', mixedPort),
+      downloadReleaseAsset('sub-store-org/Sub-Store-Front-End', 'dist.zip', mixedPort)
+    ])
 
     // 创建临时目录
     if (existsSync(tempDir)) {
@@ -197,8 +204,10 @@ export async function downloadSubStore(): Promise<void> {
     mkdirSync(tempDir, { recursive: true })
 
     // 先解压到临时目录
-    const zip = new AdmZip(Buffer.from(frontendRes.data))
+    const zip = new AdmZip(frontend)
     zip.extractAllTo(tempDir, true)
+
+    await writeFile(backendPath, backend)
 
     // 确保目标目录存在并清空
     if (existsSync(frontendDir)) {
