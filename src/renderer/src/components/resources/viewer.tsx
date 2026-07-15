@@ -183,6 +183,9 @@ const Viewer: React.FC<Props> = (props) => {
             </Modal.Body>
             {type === 'File' && !isLoading && (
               <Modal.Footer className="pt-0 pb-0">
+                <Button size="sm" variant="secondary" isDisabled={isSaving} onPress={onClose}>
+                  取消
+                </Button>
                 <Button size="sm" isPending={isSaving} onPress={() => save()}>
                   保存
                 </Button>
