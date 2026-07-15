@@ -18,6 +18,8 @@ import { showNotification } from '../utils/notification'
 
 let defaultBypass: string[]
 let triggerSysProxyTimer: NodeJS.Timeout | null = null
+let triggerSysProxyTask = Promise.resolve()
+let triggerSysProxyRequest = 0
 let sysproxyGuardEventsStartedAt = 0
 let lastSysproxyGuardNotificationKey = ''
 let unsubscribeSysproxyGuardEvents: (() => void) | null = null
@@ -26,19 +28,34 @@ function registryArgs(useRegistry: boolean): string[] {
   return process.platform === 'win32' && useRegistry ? ['--use-registry'] : []
 }
 
-export async function triggerSysProxy(
+export function triggerSysProxy(
   enable: boolean,
   onlyActiveDevice: boolean,
   useRegistry = false
 ): Promise<void> {
+  const request = ++triggerSysProxyRequest
   if (triggerSysProxyTimer) {
     clearTimeout(triggerSysProxyTimer)
     triggerSysProxyTimer = null
   }
+  const task = triggerSysProxyTask.then(() =>
+    triggerSysProxyImpl(enable, onlyActiveDevice, useRegistry, request)
+  )
+  triggerSysProxyTask = task.catch(() => {})
+  return task
+}
+
+async function triggerSysProxyImpl(
+  enable: boolean,
+  onlyActiveDevice: boolean,
+  useRegistry: boolean,
+  request: number
+): Promise<void> {
   if (enable) {
     if (net.isOnline()) {
       await setSysProxy(onlyActiveDevice, useRegistry)
     } else {
+      if (request !== triggerSysProxyRequest) return
       triggerSysProxyTimer = setTimeout(() => {
         triggerSysProxy(enable, onlyActiveDevice, useRegistry).catch((error) => {
           appendAppLog(`[Sysproxy]: retry enable failed, ${error}\n`).catch(() => {})

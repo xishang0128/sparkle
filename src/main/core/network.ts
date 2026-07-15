@@ -103,6 +103,7 @@ export async function startNetworkDetectionController(
   const { networkDetectionBypass = [], networkDetectionInterval = 10 } = await getAppConfig()
   const { tun: { device = process.platform === 'darwin' ? undefined : 'mihomo' } = {} } =
     await getControledMihomoConfig()
+  if (generation !== networkDetectionGeneration) return
   if (networkDetectionTimer) {
     clearInterval(networkDetectionTimer)
   }
