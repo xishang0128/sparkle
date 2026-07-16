@@ -79,9 +79,11 @@ const ConnectionSettingDrawer: React.FC<Props> = (props) => {
                     patchAppConfig({ displayIcon: v })
                   }}
                 >
-                  <Switch.Control>
-                    <Switch.Thumb />
-                  </Switch.Control>
+                  <Switch.Content>
+                    <Switch.Control>
+                      <Switch.Thumb />
+                    </Switch.Control>
+                  </Switch.Content>
                 </Switch>
               </SettingItem>
               <SettingItem title="显示应用名称" {...settingItemProps} divider>
@@ -92,9 +94,11 @@ const ConnectionSettingDrawer: React.FC<Props> = (props) => {
                     patchAppConfig({ displayAppName: v })
                   }}
                 >
-                  <Switch.Control>
-                    <Switch.Thumb />
-                  </Switch.Control>
+                  <Switch.Content>
+                    <Switch.Control>
+                      <Switch.Thumb />
+                    </Switch.Control>
+                  </Switch.Content>
                 </Switch>
               </SettingItem>
               <SettingItem title="进程归类" {...settingItemProps} divider>
@@ -105,9 +109,11 @@ const ConnectionSettingDrawer: React.FC<Props> = (props) => {
                     patchAppConfig({ connectionGroupByProcess: v })
                   }}
                 >
-                  <Switch.Control>
-                    <Switch.Thumb />
-                  </Switch.Control>
+                  <Switch.Content>
+                    <Switch.Control>
+                      <Switch.Thumb />
+                    </Switch.Control>
+                  </Switch.Content>
                 </Switch>
               </SettingItem>
               {connectionGroupByProcess && (

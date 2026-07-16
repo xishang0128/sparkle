@@ -195,9 +195,11 @@ const ProxySettingDrawer: React.FC<Props> = (props) => {
                     patchAppConfig({ showGroupSelectedProxy: v })
                   }}
                 >
-                  <Switch.Control>
-                    <Switch.Thumb />
-                  </Switch.Control>
+                  <Switch.Content>
+                    <Switch.Control>
+                      <Switch.Thumb />
+                    </Switch.Control>
+                  </Switch.Content>
                 </Switch>
               </SettingItem>
               <SettingItem title="悬停显示节点详情" {...settingItemProps} divider>
@@ -208,9 +210,11 @@ const ProxySettingDrawer: React.FC<Props> = (props) => {
                     patchAppConfig({ showProxyDetailTooltip: v })
                   }}
                 >
-                  <Switch.Control>
-                    <Switch.Thumb />
-                  </Switch.Control>
+                  <Switch.Content>
+                    <Switch.Control>
+                      <Switch.Thumb />
+                    </Switch.Control>
+                  </Switch.Content>
                 </Switch>
               </SettingItem>
               <SettingItem title="记住代理组展开状态" {...settingItemProps} divider>
@@ -221,9 +225,11 @@ const ProxySettingDrawer: React.FC<Props> = (props) => {
                     patchAppConfig({ rememberProxyGroupOpenState: v })
                   }}
                 >
-                  <Switch.Control>
-                    <Switch.Thumb />
-                  </Switch.Control>
+                  <Switch.Content>
+                    <Switch.Control>
+                      <Switch.Thumb />
+                    </Switch.Control>
+                  </Switch.Content>
                 </Switch>
               </SettingItem>
               <SettingItem title="切换节点时断开连接" {...settingItemProps} divider>
@@ -234,9 +240,11 @@ const ProxySettingDrawer: React.FC<Props> = (props) => {
                     patchAppConfig({ autoCloseConnection: v })
                   }}
                 >
-                  <Switch.Control>
-                    <Switch.Thumb />
-                  </Switch.Control>
+                  <Switch.Content>
+                    <Switch.Control>
+                      <Switch.Thumb />
+                    </Switch.Control>
+                  </Switch.Content>
                 </Switch>
               </SettingItem>
               {autoCloseConnection && (
@@ -293,9 +301,11 @@ const ProxySettingDrawer: React.FC<Props> = (props) => {
                     patchAppConfig({ delayTestUseGroupApi: v })
                   }}
                 >
-                  <Switch.Control>
-                    <Switch.Thumb />
-                  </Switch.Control>
+                  <Switch.Content>
+                    <Switch.Control>
+                      <Switch.Thumb />
+                    </Switch.Control>
+                  </Switch.Content>
                 </Switch>
               </SettingItem>
               {!delayTestUseGroupApi && (

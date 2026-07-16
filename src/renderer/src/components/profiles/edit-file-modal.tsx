@@ -122,19 +122,19 @@ const EditFileModal: React.FC<Props> = (props) => {
               <div className="flex items-center space-x-2">
                 <Switch size="sm" isSelected={isDiff} onChange={setIsDiff}>
                   <Switch.Content>
+                    <Switch.Control>
+                      <Switch.Thumb />
+                    </Switch.Control>
                     <Label>显示修改</Label>
                   </Switch.Content>
-                  <Switch.Control>
-                    <Switch.Thumb />
-                  </Switch.Control>
                 </Switch>
                 <Switch size="sm" isSelected={sideBySide} onChange={setSideBySide}>
                   <Switch.Content>
+                    <Switch.Control>
+                      <Switch.Thumb />
+                    </Switch.Control>
                     <Label>侧边显示</Label>
                   </Switch.Content>
-                  <Switch.Control>
-                    <Switch.Thumb />
-                  </Switch.Control>
                 </Switch>
               </div>
               <div className="flex gap-2">

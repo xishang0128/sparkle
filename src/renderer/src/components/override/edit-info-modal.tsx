@@ -166,9 +166,11 @@ const EditInfoModal: React.FC<Props> = (props) => {
                       setValues({ ...values, global: v })
                     }}
                   >
-                    <Switch.Control>
-                      <Switch.Thumb />
-                    </Switch.Control>
+                    <Switch.Content>
+                      <Switch.Control>
+                        <Switch.Thumb />
+                      </Switch.Control>
+                    </Switch.Content>
                   </Switch>,
                   { divider: false }
                 )}

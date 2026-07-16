@@ -319,9 +319,11 @@ const EditInfoModal: React.FC<Props> = (props) => {
                         setValues({ ...values, verify: v })
                       }}
                     >
-                      <Switch.Control>
-                        <Switch.Thumb />
-                      </Switch.Control>
+                      <Switch.Content>
+                        <Switch.Control>
+                          <Switch.Thumb />
+                        </Switch.Control>
+                      </Switch.Content>
                     </Switch>
                   )}
                 {values.type === 'remote' &&
@@ -335,9 +337,11 @@ const EditInfoModal: React.FC<Props> = (props) => {
                         setValues({ ...values, useProxy: v })
                       }}
                     >
-                      <Switch.Control>
-                        <Switch.Thumb />
-                      </Switch.Control>
+                      <Switch.Content>
+                        <Switch.Control>
+                          <Switch.Thumb />
+                        </Switch.Control>
+                      </Switch.Content>
                     </Switch>
                   )}
                 {values.type === 'remote' &&
@@ -351,9 +355,11 @@ const EditInfoModal: React.FC<Props> = (props) => {
                         setValues({ ...values, autoUpdate: v })
                       }}
                     >
-                      <Switch.Control>
-                        <Switch.Thumb />
-                      </Switch.Control>
+                      <Switch.Content>
+                        <Switch.Control>
+                          <Switch.Thumb />
+                        </Switch.Control>
+                      </Switch.Content>
                     </Switch>
                   )}
                 {renderField(

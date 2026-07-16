@@ -128,11 +128,11 @@ const ConfigViewer: React.FC<Props> = ({ onClose }) => {
               <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
                 <Switch size="md" isSelected={isDiff} onChange={setIsDiff}>
                   <Switch.Content>
+                    <Switch.Control>
+                      <Switch.Thumb />
+                    </Switch.Control>
                     <Label>对比当前配置</Label>
                   </Switch.Content>
-                  <Switch.Control>
-                    <Switch.Thumb />
-                  </Switch.Control>
                 </Switch>
                 <Separator orientation="vertical" />
                 <Switch
@@ -142,11 +142,11 @@ const ConfigViewer: React.FC<Props> = ({ onClose }) => {
                   onChange={setSideBySide}
                 >
                   <Switch.Content>
+                    <Switch.Control>
+                      <Switch.Thumb />
+                    </Switch.Control>
                     <Label>侧边显示</Label>
                   </Switch.Content>
-                  <Switch.Control>
-                    <Switch.Thumb />
-                  </Switch.Control>
                 </Switch>
                 <Separator orientation="vertical" />
                 <Switch
@@ -158,11 +158,11 @@ const ConfigViewer: React.FC<Props> = ({ onClose }) => {
                   }}
                 >
                   <Switch.Content>
+                    <Switch.Control>
+                      <Switch.Thumb />
+                    </Switch.Control>
                     <Label>显示原始文本</Label>
                   </Switch.Content>
-                  <Switch.Control>
-                    <Switch.Thumb />
-                  </Switch.Control>
                 </Switch>
                 <Separator orientation="vertical" />
                 <Switch
@@ -174,11 +174,11 @@ const ConfigViewer: React.FC<Props> = ({ onClose }) => {
                   }}
                 >
                   <Switch.Content>
+                    <Switch.Control>
+                      <Switch.Thumb />
+                    </Switch.Control>
                     <Label>显示覆写后文本</Label>
                   </Switch.Content>
-                  <Switch.Control>
-                    <Switch.Thumb />
-                  </Switch.Control>
                 </Switch>
               </div>
             </Modal.Footer>
