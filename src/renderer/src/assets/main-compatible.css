@@ -197,13 +197,18 @@
   --segment-foreground: var(--accent-foreground);
 }
 
+.setting-item .tabs__list-container,
+.tray-icon-crop-modal .tabs__list-container,
+.connection-detail-modal .tabs__list-container {
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+}
+
 .setting-item .tabs__list,
 .tray-icon-crop-modal .tabs__list,
 .connection-detail-modal .tabs__list {
   width: fit-content;
   gap: calc(var(--spacing) * 0.5);
-  overflow: hidden;
-  border-radius: var(--radius-lg);
 }
 
 .tray-icon-crop-modal .tabs__list {
