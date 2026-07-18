@@ -10,10 +10,7 @@ let hiddenUpdateButtonVersion = ''
 
 interface Props {
   iconOnly?: boolean
-  latest?: {
-    version: string
-    changelog: string
-  }
+  latest?: AppVersion
   showButtonAfterNotification?: boolean
 }
 
@@ -100,6 +97,7 @@ const UpdaterButton: React.FC<Props> = (props) => {
       {openDrawer && (
         <UpdaterDrawer
           version={latest.version}
+          tag={latest.tag}
           changelog={latest.changelog}
           updateStatus={updateStatus}
           reopenSignal={drawerReopenSignal}

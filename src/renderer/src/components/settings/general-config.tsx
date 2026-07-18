@@ -95,11 +95,11 @@ const GeneralConfig: React.FC = () => {
             color="primary"
             selectedKey={updateChannel}
             onSelectionChange={async (v) => {
-              patchAppConfig({ updateChannel: v as 'stable' | 'beta' })
+              patchAppConfig({ updateChannel: v as AppUpdateChannel })
             }}
           >
             <Tab key="stable" title="正式版" />
-            <Tab key="beta" title="测试版" />
+            <Tab key="rolling" title="滚动版" />
           </Tabs>
         </SettingItem>
         <SettingItem compatKey="legacy" title="通知形式" divider>

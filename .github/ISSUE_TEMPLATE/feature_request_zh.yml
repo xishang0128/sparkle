@@ -9,7 +9,7 @@ body:
         - label: 我已在标题简短的描述了我所需的功能
         - label: 我已在 [Issues](https://github.com/xishang0128/sparkle/issues?q=is%3Aissue) 中寻找过，但未找到我所需的功能
         - label: 这是向 GUI 程序提出的功能请求，而不是内核程序
-        - label: 我未在最新的测试版本找到我所需的功能
+        - label: 我未在最新的滚动版本找到我所需的功能
     id: ensure
     type: checkboxes
   - attributes:

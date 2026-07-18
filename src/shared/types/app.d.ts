@@ -1,8 +1,10 @@
 interface AppVersion {
   version: string
+  tag?: string
   changelog: string
 }
 
+type AppUpdateChannel = 'stable' | 'rolling'
 type AppNotificationMode = 'system' | 'toast'
 type AppNotificationVariant = 'default' | 'accent' | 'success' | 'warning' | 'danger'
 
@@ -31,7 +33,7 @@ interface IHost {
 }
 
 interface AppConfig {
-  updateChannel: 'stable' | 'beta'
+  updateChannel: AppUpdateChannel
   notificationMode?: AppNotificationMode
   showUpdateButtonAfterNotification?: boolean
   core: 'mihomo' | 'mihomo-alpha' | 'system'

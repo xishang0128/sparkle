@@ -1,20 +1,23 @@
 name: Build
-permissions: write-all
+
 on:
-  workflow_dispatch:
+  workflow_call:
     inputs:
+      channel:
+        description: 'Build channel'
+        required: true
+        type: string
       version:
-        description: 'Tag version to release'
+        description: 'Stable version without the v prefix'
         required: false
-  push:
-    branches:
-      - master
-    tags:
-      - v*
-    paths-ignore:
-      - 'README.md'
-      - '.github/ISSUE_TEMPLATE/**'
-      - '.github/workflows/issues.yml'
+        type: string
+      release_tag:
+        description: 'GitHub Release tag containing the artifacts'
+        required: true
+        type: string
+
+permissions:
+  contents: read
 
 jobs:
   build:
@@ -83,23 +86,40 @@ jobs:
         run: npm install -g pnpm
 
       - name: Determine and Update Version
+        env:
+          BUILD_CHANNEL: ${{ inputs.channel }}
+          INPUT_VERSION: ${{ inputs.version }}
         shell: bash
         run: |
           GIT_COMMIT_HASH=$(git rev-parse --short HEAD)
           VERSION=$(jq -r '.version' package.json)
 
-          if [ "${{ github.event.inputs.version }}" == "" ]; then
-            BASE_VERSION=$(echo $VERSION | awk -F. '{print $1"."$2"."$3+1}')
-            VERSION_PREFIX=${VERSION_PREFIX:-beta}
-            RELEASE_VERSION="${BASE_VERSION}-${VERSION_PREFIX}-${GIT_COMMIT_HASH}"
-          else
-            INPUT_VERSION="${{ github.event.inputs.version }}"
-            CLEAN_VERSION=$(echo "$INPUT_VERSION" | sed 's/^v//')
-            if [[ ! "$CLEAN_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-              echo "Invalid version format: $INPUT_VERSION"
+          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Invalid package version: $VERSION"
+            exit 1
+          fi
+
+          case "$BUILD_CHANNEL" in
+            stable)
+              if [[ ! "$INPUT_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+                echo "Invalid stable version: $INPUT_VERSION"
+                exit 1
+              fi
+              RELEASE_VERSION="$INPUT_VERSION"
+              ;;
+            rolling)
+              IFS=. read -r MAJOR MINOR PATCH <<< "$VERSION"
+              RELEASE_VERSION="${MAJOR}.${MINOR}.$((PATCH + 1))-rolling-${GIT_COMMIT_HASH}"
+              ;;
+            *)
+              echo "Invalid build channel: $BUILD_CHANNEL"
               exit 1
-            fi
-            RELEASE_VERSION="$CLEAN_VERSION"
+              ;;
+          esac
+
+          if [[ ! "$RELEASE_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-rolling-[0-9a-f]+)?$ ]]; then
+            echo "Invalid release version: $RELEASE_VERSION"
+            exit 1
           fi
 
           jq --arg version "$RELEASE_VERSION" '.version = $version' package.json > tmp.json && mv tmp.json package.json
@@ -203,6 +223,8 @@ jobs:
           git log -1 --pretty=format:"%s%n%b" > changelog.md
 
       - name: Generate latest.yml
+        env:
+          RELEASE_TAG: ${{ inputs.release_tag }}
         shell: bash
         run: SKIP_CHANGELOG=1 pnpm updater
 
@@ -216,133 +238,3 @@ jobs:
             !dist/sparkle*blockmap*
             latest.yml
             changelog.md
-
-  pre-release:
-    needs: [build]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Download Artifacts
-        uses: actions/download-artifact@v7
-        with:
-          path: bin/
-          merge-multiple: true
-
-      - name: Delete current release assets
-        uses: 8Mi-Tech/delete-release-assets-action@main
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          tag: pre-release
-          deleteOnlyFromDrafts: false
-
-      - name: Tag Repo
-        uses: richardsimko/update-tag@v1
-        with:
-          tag_name: pre-release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Publish Prerelease
-        if: success()
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: pre-release
-          body_path: bin/changelog.md
-          files: |
-            bin/latest.yml
-            bin/dist/*
-          prerelease: true
-
-  release:
-    if: startsWith(github.ref, 'refs/tags/v') || (github.event_name == 'workflow_dispatch' && github.event.inputs.version != '')
-    needs: [build]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-        with:
-          fetch-depth: '0'
-          fetch-tags: 'true'
-
-      - name: Setup Node
-        uses: actions/setup-node@v6
-        with:
-          node-version: 25
-
-      - name: Generate Changelog
-        env:
-          API_URL: ${{ secrets.API_URL }}
-          API_KEY: ${{ secrets.API_KEY }}
-        run: |
-          TEXT=$(git log $(jq -r .version package.json)..HEAD --pretty=format:%s | grep -v '[0-9]\+\.[0-9]\+\.[0-9]\+$' | sed ':a;N;$!ba;s/\n/\\n/g')
-          QUESTION="Translate into Chinese:\n"""\n$TEXT\n""""
-          PAYLOAD=$(cat <<EOF
-          {
-            "stream": false,
-            "model": "gpt-5-mini",
-            "messages": [
-              {
-                "role": "system",
-                "content": "You are a professional translation engine, please translate the text into a colloquial, professional, elegant and fluent content, without the style of machine translation. You must only translate the text content, never interpret it."
-              },
-              {
-                "role": "user",
-                "content": "$QUESTION"
-              }
-            ]
-          }
-          EOF
-          )
-          RESPONSE=$(curl -s -X POST "$API_URL/v1/chat/completions" \
-            -H "Authorization: Bearer $API_KEY" \
-            -H "Content-Type: application/json" \
-            -d "$PAYLOAD" \
-            --max-time 30)
-          echo '# 更新日志' > changelog.md
-          echo $RESPONSE | jq .choices[0].message.content -r | sed 's/\\n/\n/g' | sed 's/^/ - /g' >> changelog.md
-
-      - name: Update Version
-        run: |
-          INPUT_VERSION="${{ github.event.inputs.version }}"
-          CLEAN_VERSION=$(echo "$INPUT_VERSION" | sed 's/^v//')
-          if [[ ! "$CLEAN_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "Invalid version format: $INPUT_VERSION"
-            exit 1
-          fi
-          jq --arg version "$CLEAN_VERSION" '.version = $version' package.json > tmp.json && mv tmp.json package.json
-
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git config --global user.name "github-actions[bot]"
-          git add package.json
-          git commit -m "update version to $CLEAN_VERSION"
-          git push
-
-      - name: Install Dependencies and Updater
-        run: |
-          npm install -g pnpm
-          SKIP_PREPARE=1 pnpm install
-          pnpm updater
-
-      - uses: actions/download-artifact@v7
-        with:
-          path: bin/
-          merge-multiple: true
-
-      - name: Delete Current
-        uses: 8Mi-Tech/delete-release-assets-action@main
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          tag: ${{ github.event.inputs.version != '' && github.event.inputs.version || github.ref }}
-          deleteOnlyFromDrafts: false
-
-      - name: Publish Release
-        if: success()
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ github.event.inputs.version != '' && github.event.inputs.version || github.ref }}
-          body_path: changelog.md
-          files: |
-            latest.yml
-            bin/dist/*

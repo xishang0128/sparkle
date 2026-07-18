@@ -7,6 +7,7 @@ import { notify } from '@renderer/utils/notification'
 
 interface Props {
   version: string
+  tag?: string
   changelog: string
   updateStatus?: {
     downloading: boolean
@@ -21,7 +22,7 @@ interface Props {
 const DRAWER_CLOSE_ANIMATION_MS = 700
 
 const UpdaterDrawer: React.FC<Props> = (props) => {
-  const { version, changelog, updateStatus, onCancel, onClose, reopenSignal } = props
+  const { version, tag, changelog, updateStatus, onCancel, onClose, reopenSignal } = props
   const [downloading, setDownloading] = useState(false)
   const [isOpen, setIsOpen] = useState(true)
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -45,7 +46,7 @@ const UpdaterDrawer: React.FC<Props> = (props) => {
   const onUpdate = async (): Promise<void> => {
     try {
       setDownloading(true)
-      await downloadAndInstallUpdate(version)
+      await downloadAndInstallUpdate(version, tag)
     } catch (e) {
       notify(e, { variant: 'danger' })
       setDownloading(false)
@@ -78,9 +79,8 @@ const UpdaterDrawer: React.FC<Props> = (props) => {
   }
 
   const isDownloading = updateStatus?.downloading || downloading
-  const releaseUrl = version.includes('beta')
-    ? 'https://github.com/xishang0128/sparkle/releases/tag/pre-release'
-    : `https://github.com/xishang0128/sparkle/releases/tag/${version}`
+  const releaseTag = tag ?? (version.includes('-rolling-') ? 'rolling' : version)
+  const releaseUrl = `https://github.com/xishang0128/sparkle/releases/tag/${releaseTag}`
 
   const progress = Math.max(0, Math.min(100, updateStatus?.progress ?? 0))
 

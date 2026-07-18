@@ -1,0 +1,85 @@
+name: Rolling
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Target release tag'
+        required: true
+        default: rolling
+        type: string
+  push:
+    branches:
+      - master
+    paths-ignore:
+      - 'README.md'
+      - '.github/ISSUE_TEMPLATE/**'
+      - '.github/workflows/issues.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: rolling
+  cancel-in-progress: true
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.tag.outputs.tag }}
+    steps:
+      - name: Determine Target Tag
+        id: tag
+        env:
+          INPUT_TAG: ${{ inputs.tag }}
+        shell: bash
+        run: |
+          TAG=${INPUT_TAG:-rolling}
+          git check-ref-format "refs/tags/$TAG"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+
+  build:
+    needs: [prepare]
+    uses: ./.github/workflows/build.yml
+    with:
+      channel: rolling
+      release_tag: ${{ needs.prepare.outputs.tag }}
+
+  publish:
+    needs: [prepare, build]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Download Artifacts
+        uses: actions/download-artifact@v7
+        with:
+          path: bin/
+          merge-multiple: true
+
+      - name: Delete Current Rolling Assets
+        uses: 8Mi-Tech/delete-release-assets-action@main
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ needs.prepare.outputs.tag }}
+          deleteOnlyFromDrafts: false
+
+      - name: Move Rolling Tag
+        uses: richardsimko/update-tag@v1
+        with:
+          tag_name: ${{ needs.prepare.outputs.tag }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish Rolling Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.prepare.outputs.tag }}
+          name: Rolling
+          body_path: bin/changelog.md
+          files: |
+            bin/latest.yml
+            bin/dist/*
+          prerelease: true
