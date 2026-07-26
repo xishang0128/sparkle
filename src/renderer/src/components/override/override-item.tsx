@@ -17,9 +17,11 @@ import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import ExecLogModal from './exec-log-modal'
 import { openFile, restartCore } from '@renderer/utils/ipc'
+import { useProfileConfig } from '@renderer/hooks/use-profile-config'
 import ConfirmModal from '../base/base-confirm'
 import QRCodeModal from '../base/base-qrcode-modal'
 import { notify } from '@renderer/utils/notification'
+import { isOverrideUsedByCurrentProfile } from '@renderer/utils/override'
 
 interface Props {
   info: OverrideItem
@@ -40,6 +42,7 @@ interface MenuItem {
 const OverrideItem: React.FC<Props> = (props) => {
   const { info, addOverrideItem, removeOverrideItem, mutateOverrideConfig, updateOverrideItem } =
     props
+  const { profileConfig } = useProfileConfig()
   const [updating, setUpdating] = useState(false)
   const [openInfoEditor, setOpenInfoEditor] = useState(false)
   const [openFileEditor, setOpenFileEditor] = useState(false)
@@ -233,7 +236,9 @@ const OverrideItem: React.FC<Props> = (props) => {
                       setUpdating(true)
                       try {
                         await addOverrideItem(info)
-                        await restartCore()
+                        if (isOverrideUsedByCurrentProfile(profileConfig, info.id, info.global)) {
+                          await restartCore()
+                        }
                       } catch (e) {
                         notify(e, { variant: 'danger' })
                       } finally {
