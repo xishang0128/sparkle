@@ -143,9 +143,9 @@ const EditInfoModal: React.FC<Props> = (props) => {
           fullWidth
           variant="secondary"
           size="sm"
-          className="h-6.5 min-h-6.5 justify-start rounded-md px-2 text-[13px]"
+          className="h-6.5 min-h-6.5 min-w-0 justify-start rounded-md px-2 text-[13px]"
         >
-          {i.name} (全局)
+          <span className="truncate">{i.name} (全局)</span>
         </Button>
       </Surface>
     ))
@@ -161,14 +161,14 @@ const EditInfoModal: React.FC<Props> = (props) => {
           fullWidth
           variant="secondary"
           size="sm"
-          className="h-6.5 min-h-6.5 justify-start rounded-md px-2 text-[13px]"
+          className="h-6.5 min-h-6.5 min-w-0 justify-start rounded-md px-2 text-[13px]"
         >
-          {overrideItem.name}
+          <span className="truncate">{overrideItem.name}</span>
         </Button>
         <Button
           variant="danger-soft"
           size="sm"
-          className="h-6.5 min-h-6.5 min-w-6.5 rounded-md px-1.5"
+          className="h-6.5 min-h-6.5 min-w-6.5 shrink-0 rounded-md px-1.5"
           onPress={() => {
             setValues({
               ...values,
