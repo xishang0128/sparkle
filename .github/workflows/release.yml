@@ -12,8 +12,8 @@ on:
         required: false
         type: string
   schedule:
-    # 23:00 in Asia/Hong_Kong; prepare filters out non-month-end dates.
-    - cron: '0 15 28-31 * *'
+    # 12:00 in Asia/Hong_Kong; prepare filters out non-month-end dates.
+    - cron: '0 4 28-31 * *'
   push:
     tags:
       - 'v[0-9]*.[0-9]*.[0-9]*'
@@ -50,10 +50,11 @@ jobs:
         shell: bash
         run: |
           if [[ "$EVENT_NAME" == "schedule" ]]; then
+            CURRENT_DAY=$(TZ=Asia/Hong_Kong date +%d)
             CURRENT_MONTH=$(TZ=Asia/Hong_Kong date +%m)
             TOMORROW_MONTH=$(TZ=Asia/Hong_Kong date -d tomorrow +%m)
-            if [[ "$CURRENT_MONTH" == "$TOMORROW_MONTH" ]]; then
-              echo "Not the last day of the month in Asia/Hong_Kong"
+            if [[ "$CURRENT_MONTH" == "$TOMORROW_MONTH" && "$CURRENT_DAY" != "01" ]]; then
+              echo "Not the last day of the month or a delayed month-end run in Asia/Hong_Kong"
               echo "should_release=false" >> "$GITHUB_OUTPUT"
               exit 0
             fi
