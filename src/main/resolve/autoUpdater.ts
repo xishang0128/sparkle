@@ -26,6 +26,11 @@ const UPDATE_MANIFEST_URLS: Record<AppUpdateChannel, string> = {
   rolling: 'https://github.com/xishang0128/sparkle/releases/download/rolling/latest.yml'
 }
 
+function getGitHubAuthHeaders(token?: string): Record<string, string> {
+  const normalizedToken = token?.trim()
+  return normalizedToken ? { Authorization: `Bearer ${normalizedToken}` } : {}
+}
+
 function resolveReleaseTag(version: string, tag?: string): string {
   if (tag) return tag
   if (version.includes('-rolling-')) return 'rolling'
@@ -44,10 +49,13 @@ async function ensureFreeSpace(dir: string, requiredBytes: number, message: stri
 
 export async function checkUpdate(): Promise<AppVersion | undefined> {
   const { 'mixed-port': mixedPort = 7890 } = await getControledMihomoConfig()
-  const { updateChannel = 'stable' } = await getAppConfig()
+  const { updateChannel = 'stable', githubToken } = await getAppConfig()
   const url = UPDATE_MANIFEST_URLS[updateChannel]
   const res = await axios.get(url, {
-    headers: { 'Content-Type': 'application/octet-stream' },
+    headers: {
+      'Content-Type': 'application/octet-stream',
+      ...getGitHubAuthHeaders(githubToken)
+    },
     ...(mixedPort != 0 && {
       proxy: {
         protocol: 'http',
@@ -107,6 +115,7 @@ export async function downloadAndInstallUpdate(version: string, tag?: string): P
     }
   }
   const { 'mixed-port': mixedPort = 7890 } = await getControledMihomoConfig()
+  const { githubToken } = await getAppConfig()
   const releaseTag = resolveReleaseTag(version, tag)
   const baseUrl = `https://github.com/xishang0128/sparkle/releases/download/${releaseTag}/`
   const fileMap: Record<string, string> = {
@@ -126,7 +135,10 @@ export async function downloadAndInstallUpdate(version: string, tag?: string): P
 
   const apiUrl = `https://api.github.com/repos/xishang0128/sparkle/releases/tags/${releaseTag}`
   const apiRequestConfig: AxiosRequestConfig = {
-    headers: { Accept: 'application/vnd.github.v3+json' },
+    headers: {
+      Accept: 'application/vnd.github.v3+json',
+      ...getGitHubAuthHeaders(githubToken)
+    },
     ...(mixedPort != 0 && {
       proxy: {
         protocol: 'http',
@@ -166,7 +178,8 @@ export async function downloadAndInstallUpdate(version: string, tag?: string): P
           }
         }),
         headers: {
-          'Content-Type': 'application/octet-stream'
+          'Content-Type': 'application/octet-stream',
+          ...getGitHubAuthHeaders(githubToken)
         },
         cancelToken: downloadCancelToken.token,
         onDownloadProgress: (progressEvent) => {

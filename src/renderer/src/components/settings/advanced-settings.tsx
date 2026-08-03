@@ -12,7 +12,7 @@ import {
 } from '@renderer/utils/ipc'
 import { platform } from '@renderer/utils/init'
 import { IoIosHelpCircle } from 'react-icons/io'
-import { BiCopy } from 'react-icons/bi'
+import { BiCopy, BiHide, BiShow } from 'react-icons/bi'
 import EditableList from '../base/base-list-editor'
 import { notify } from '@renderer/utils/notification'
 
@@ -30,12 +30,14 @@ const AdvancedSettings: React.FC = () => {
     envType = [platform === 'win32' ? 'powershell' : 'bash'],
     networkDetection = false,
     networkDetectionBypass = ['VMware', 'vEthernet'],
-    networkDetectionInterval = 10
+    networkDetectionInterval = 10,
+    githubToken = ''
   } = appConfig || {}
 
   const pauseSSIDArray = pauseSSID ?? emptyArray
 
   const [pauseSSIDInput, setPauseSSIDInput] = useState(pauseSSIDArray)
+  const [githubTokenVisible, setGithubTokenVisible] = useState(false)
 
   const [bypass, setBypass] = useState(networkDetectionBypass)
   const [interval, setInterval] = useState(Math.max(networkDetectionInterval || 10, 1))
@@ -46,6 +48,40 @@ const AdvancedSettings: React.FC = () => {
 
   return (
     <SettingCard header="更多设置">
+      <SettingItem
+        compatKey="legacy"
+        title="GitHub API Token"
+        actions={
+          <Tooltip content="用于 GitHub 更新检查、下载和 Gist 同步；留空时使用匿名请求">
+            <Button aria-label="说明" isIconOnly size="sm" variant="light">
+              <IoIosHelpCircle className="text-lg" />
+            </Button>
+          </Tooltip>
+        }
+        divider
+      >
+        <Input
+          size="sm"
+          className="w-60"
+          type={githubTokenVisible ? 'text' : 'password'}
+          value={githubToken}
+          placeholder="GitHub Personal Access Token"
+          onValueChange={(value) => {
+            void patchAppConfig({ githubToken: value })
+          }}
+          endContent={
+            <Button
+              aria-label={githubTokenVisible ? '隐藏 GitHub Token' : '显示 GitHub Token'}
+              isIconOnly
+              size="sm"
+              variant="light"
+              onPress={() => setGithubTokenVisible((visible) => !visible)}
+            >
+              {githubTokenVisible ? <BiHide className="text-lg" /> : <BiShow className="text-lg" />}
+            </Button>
+          }
+        />
+      </SettingItem>
       <SettingItem
         compatKey="legacy"
         title="自动开启轻量模式"

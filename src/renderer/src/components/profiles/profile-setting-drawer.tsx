@@ -38,7 +38,6 @@ const ProfileSettingDrawer: React.FC<Props> = (props) => {
   } = appConfig || {}
 
   const [ua, setUa] = useState(userAgent ?? '')
-  const [tokenVisible, setTokenVisible] = useState(false)
   const [gistAgeIdentityVisible, setGistAgeIdentityVisible] = useState(false)
   const [defaultUserAgent, setDefaultUserAgent] = useState<string>('')
   const userAgentFetched = useRef(false)
@@ -235,36 +234,6 @@ const ProfileSettingDrawer: React.FC<Props> = (props) => {
                   </Switch.Content>
                 </Switch>
               </SettingItem>
-              {gistSyncEnabled && (
-                <SettingItem title={null} {...settingItemProps} divider>
-                  <InputGroup data-setting-input="full" variant="secondary">
-                    <InputGroup.Input
-                      aria-label="GitHub Token"
-                      type={tokenVisible ? 'text' : 'password'}
-                      value={githubToken}
-                      placeholder="GitHub Token"
-                      onChange={(event) => {
-                        patchAppConfig({ githubToken: event.target.value })
-                      }}
-                    />
-                    <InputGroup.Suffix>
-                      <Button
-                        aria-label={tokenVisible ? '隐藏 GitHub Token' : '显示 GitHub Token'}
-                        isIconOnly
-                        size="sm"
-                        variant="ghost"
-                        onPress={() => setTokenVisible((visible) => !visible)}
-                      >
-                        {tokenVisible ? (
-                          <BiHide className="text-lg" />
-                        ) : (
-                          <BiShow className="text-lg" />
-                        )}
-                      </Button>
-                    </InputGroup.Suffix>
-                  </InputGroup>
-                </SettingItem>
-              )}
               {gistSyncEnabled && (
                 <SettingItem title="加密 Gist 配置" {...settingItemProps} divider>
                   <Switch
