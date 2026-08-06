@@ -42,7 +42,6 @@ export let customTrayWindow: BrowserWindow | null = null
 let trayMenu: Menu | null = null
 let trayIconUpdateListenerRegistered = false
 let updateTrayMenuListenerRegistered = false
-let lastTrafficTrayIcon: string | null = null
 type TrayImage = Electron.NativeImage | string
 const customTrayIconSize = 16
 const customTrayIconScaleFactors = [1, 1.25, 1.5, 2, 2.5, 3]
@@ -115,11 +114,11 @@ function createCustomTrayImage(customTrayIcon: string): TrayImage | null {
   return createMultiScaleTrayImage(icon)
 }
 
-function createTrafficTrayImage(png: string): Electron.NativeImage | null {
+function createTrafficTrayImage(png: string, templateImage = true): Electron.NativeImage | null {
   const image = nativeImage.createFromDataURL(png).resize({ height: customTrayIconSize })
   if (image.isEmpty()) return null
 
-  image.setTemplateImage(true)
+  image.setTemplateImage(templateImage)
   return image
 }
 
@@ -542,21 +541,14 @@ export async function createTray(): Promise<void> {
       ipcMain.on('trayIconUpdate', async (_, png?: string) => {
         const { customTrayIcon = '' } = await getAppConfig()
         const customIcon = createCustomTrayImage(customTrayIcon)
-        if (customIcon) {
-          tray?.setImage(customIcon)
-          return
+        if (png) {
+          const image = createTrafficTrayImage(png, !customIcon)
+          if (image) {
+            tray?.setImage(image)
+            return
+          }
         }
-        if (!png) {
-          lastTrafficTrayIcon = null
-          tray?.setImage(createDarwinTrayIcon())
-          return
-        }
-        lastTrafficTrayIcon = png
-        const image = createTrafficTrayImage(png)
-        if (!image) {
-          return
-        }
-        tray?.setImage(image)
+        tray?.setImage(customIcon || createDarwinTrayIcon())
       })
       trayIconUpdateListenerRegistered = true
     }
@@ -599,8 +591,7 @@ export async function updateTrayIcon(): Promise<void> {
   }
 
   if (process.platform === 'darwin') {
-    const trafficIcon = lastTrafficTrayIcon ? createTrafficTrayImage(lastTrafficTrayIcon) : null
-    tray.setImage(trafficIcon || createDarwinTrayIcon())
+    tray.setImage(createDarwinTrayIcon())
     return
   }
   if (process.platform === 'win32') {

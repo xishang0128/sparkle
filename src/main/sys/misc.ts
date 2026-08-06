@@ -1,5 +1,5 @@
 import { execFile, execSync, spawn } from 'child_process'
-import { app, dialog, nativeTheme, shell } from 'electron'
+import { app, dialog, nativeImage, nativeTheme, shell } from 'electron'
 import { readFile } from 'fs/promises'
 import path from 'path'
 import { promisify } from 'util'
@@ -35,6 +35,11 @@ export async function readTextFile(filePath: string): Promise<string> {
 
 export async function readImageFileDataURL(filePath: string): Promise<string> {
   const ext = path.extname(filePath).toLowerCase()
+  if (ext === '.ico' || ext === '.icns') {
+    const image = nativeImage.createFromPath(filePath)
+    if (image.isEmpty()) throw new Error('Failed to load image')
+    return image.toDataURL()
+  }
   const mimeType =
     ext === '.jpg' || ext === '.jpeg' ? 'image/jpeg' : ext === '.webp' ? 'image/webp' : 'image/png'
   const data = await readFile(filePath)

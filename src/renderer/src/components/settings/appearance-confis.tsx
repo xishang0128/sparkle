@@ -162,7 +162,7 @@ const AppearanceConfig: React.FC = () => {
             compatKey="legacy"
             title="自定义托盘图标"
             actions={
-              <Tooltip content="设置后托盘将始终使用此图标；PNG、JPG、WebP 会先裁剪后保存。">
+              <Tooltip content="设置后托盘会使用此图标；开启网速显示时会与网速合成。PNG、JPG、WebP 会先裁剪后保存。">
                 <Button isIconOnly size="sm" variant="light">
                   <IoIosHelpCircle className="text-lg" />
                 </Button>
@@ -173,7 +173,7 @@ const AppearanceConfig: React.FC = () => {
             <div className="flex min-w-0 max-w-[65%] items-center justify-end gap-2">
               {customTrayIcon && (
                 <span className="truncate text-xs text-default-500">
-                  {customTrayIcon.startsWith('data:image/') ? '已储存裁剪图标' : customTrayIcon}
+                  {customTrayIcon.startsWith('data:image/') ? '已储存自定义图标' : customTrayIcon}
                 </span>
               )}
               <Button
@@ -190,7 +190,7 @@ const AppearanceConfig: React.FC = () => {
                     setTrayIconCropDataURL(await readImageFileDataURL(files[0]))
                     return
                   }
-                  await patchAppConfig({ customTrayIcon: files[0] })
+                  await patchAppConfig({ customTrayIcon: await readImageFileDataURL(files[0]) })
                   await updateTrayIcon()
                 }}
               >

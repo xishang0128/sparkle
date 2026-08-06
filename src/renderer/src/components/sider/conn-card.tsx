@@ -7,13 +7,25 @@ import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { IoLink } from 'react-icons/io5'
 import { useAppConfig } from '@renderer/hooks/use-app-config'
+import { readImageFileDataURL } from '@renderer/utils/ipc'
 import { platform } from '@renderer/utils/init'
+import templateTrayIcon from '../../../../../resources/iconTemplate.png'
 import TrafficChart from './traffic-chart'
 
 let currentUpload: number | undefined = undefined
 let currentDownload: number | undefined = undefined
+let currentTrayIcon = ''
 let hasShowTraffic = false
 let drawing = false
+
+const loadImage = (url: string): Promise<HTMLImageElement> => {
+  return new Promise((resolve, reject) => {
+    const image = new Image()
+    image.onload = (): void => resolve(image)
+    image.onerror = (): void => reject(new Error('Failed to load the tray icon'))
+    image.src = url
+  })
+}
 
 interface Props {
   iconOnly?: boolean
@@ -24,11 +36,14 @@ const ConnCard: React.FC<Props> = (props) => {
   const { appConfig } = useAppConfig()
   const {
     showTraffic = false,
+    customTrayIcon = '',
     connectionCardStatus = 'col-span-2',
     disableAnimation = false
   } = appConfig || {}
   const showTrafficRef = useRef(showTraffic)
   showTrafficRef.current = showTraffic
+  const customTrayIconRef = useRef(customTrayIcon)
+  customTrayIconRef.current = customTrayIcon
 
   const location = useLocation()
   const navigate = useNavigate()
@@ -78,7 +93,7 @@ const ConnCard: React.FC<Props> = (props) => {
         if (drawing) return
         drawing = true
         try {
-          await drawTrayTrafficIcon(info.up, info.down)
+          await drawTrayTrafficIcon(info.up, info.down, customTrayIconRef.current)
           hasShowTraffic = true
         } catch {
           // ignore
@@ -87,6 +102,9 @@ const ConnCard: React.FC<Props> = (props) => {
         }
       } else {
         if (!hasShowTraffic) return
+        currentUpload = undefined
+        currentDownload = undefined
+        currentTrayIcon = ''
         window.electron.ipcRenderer.send('trayIconUpdate')
         hasShowTraffic = false
       }
@@ -218,33 +236,44 @@ export default React.memo(ConnCard, (prevProps, nextProps) => {
   return prevProps.iconOnly === nextProps.iconOnly
 })
 
-const drawTrayTrafficIcon = async (upload: number, download: number): Promise<void> => {
-  if (upload === currentUpload && download === currentDownload) return
-  currentUpload = upload
-  currentDownload = download
+const drawTrayTrafficIcon = async (
+  upload: number,
+  download: number,
+  customTrayIcon: string
+): Promise<void> => {
+  const trayIconKey = customTrayIcon || 'default'
+  if (upload === currentUpload && download === currentDownload && trayIconKey === currentTrayIcon) {
+    return
+  }
 
   const uploadText = `${calcTraffic(upload)}/s`
   const downloadText = `${calcTraffic(download)}/s`
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 118 36"><text x="0" y="15" font-size="18" font-family="PingFang SC, Arial" font-weight="bold">↑</text><text x="118" y="15" font-size="18" font-family="PingFang SC, Arial" font-weight="bold" text-anchor="end">${uploadText}</text><text x="0" y="34" font-size="18" font-family="PingFang SC, Arial" font-weight="bold">↓</text><text x="118" y="34" font-size="18" font-family="PingFang SC, Arial" font-weight="bold" text-anchor="end">${downloadText}</text></svg>`
-  const url = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`
-  const image = await loadImage(url)
-  window.electron.ipcRenderer.send('trayIconUpdate', image)
-}
+  const trayIcon = await loadImage(
+    customTrayIcon && !customTrayIcon.startsWith('data:image/')
+      ? await readImageFileDataURL(customTrayIcon)
+      : customTrayIcon || templateTrayIcon
+  )
 
-const loadImage = (url: string): Promise<string> => {
-  return new Promise((resolve, reject) => {
-    const img = new Image()
-    img.onload = (): void => {
-      const canvas = document.createElement('canvas')
-      const ctx = canvas.getContext('2d')
-      canvas.width = 118
-      canvas.height = 36
-      ctx?.drawImage(img, 0, 0)
-      resolve(canvas.toDataURL('image/png'))
-    }
-    img.onerror = (): void => {
-      reject()
-    }
-    img.src = url
-  })
+  const canvas = document.createElement('canvas')
+  canvas.width = 172
+  canvas.height = 36
+  const ctx = canvas.getContext('2d')
+  if (!ctx) throw new Error('Failed to create the tray icon canvas')
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height)
+  ctx.font = 'bold 18px "PingFang SC", Arial'
+  ctx.fillStyle = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'white' : 'black'
+  ctx.textBaseline = 'alphabetic'
+  ctx.textAlign = 'left'
+  ctx.fillText('↑', 0, 15)
+  ctx.fillText('↓', 0, 34)
+  ctx.textAlign = 'right'
+  ctx.fillText(uploadText, 116, 15)
+  ctx.fillText(downloadText, 116, 34)
+  ctx.drawImage(trayIcon, 128, 0, 36, 36)
+
+  window.electron.ipcRenderer.send('trayIconUpdate', canvas.toDataURL('image/png'))
+  currentUpload = upload
+  currentDownload = download
+  currentTrayIcon = trayIconKey
 }
