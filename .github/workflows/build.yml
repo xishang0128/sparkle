@@ -143,9 +143,9 @@ jobs:
         run: |
           export ELECTRON_MIRROR="https://github.com/darkyzhou/electron-loong64/releases/download/"
           export electron_use_remote_checksums=1
-          SKIP_PREPARE=1 pnpm install electron@39.2.7 -D --ignore-scripts
-          pnpm remove electron-builder --config.ignore-scripts=true
-          SKIP_PREPARE=1 pnpm install @loongdotjs/electron-builder@26.8.2-3 -D --ignore-scripts
+          SKIP_PREPARE=1 pnpm install electron@42.3.0 -D
+          pnpm remove electron-builder
+          SKIP_PREPARE=1 pnpm install @loongdotjs/electron-builder@26.15.6 -D
 
       - name: Install Dependencies and Prepare
         env:

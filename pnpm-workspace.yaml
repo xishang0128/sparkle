@@ -1,7 +1,8 @@
 allowBuilds:
   '@heroui/shared-utils': true
-  electron: false
+  electron: true
   electron-winstaller: true
+  '@loongdotjs/electron-winstaller': true
   esbuild: true
   meta-json-schema: true
 overrides:
