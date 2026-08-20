@@ -280,7 +280,7 @@ const AppearanceConfig: React.FC = () => {
             }}
           />
         </SettingItem>
-        <SettingItem compatKey="legacy" title="更新按钮" divider>
+        <SettingItem compatKey="legacy" title="显示更新按钮" divider>
           <Switch
             size="sm"
             isSelected={showUpdateButtonAfterNotification}
