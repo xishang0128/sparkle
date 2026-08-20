@@ -33,7 +33,7 @@
     "@tailwindcss/postcss": "^4.3.2",
     "@tailwindcss/vite": "^4.3.2",
     "@types/crypto-js": "^4.2.2",
-    "@uruhalushia/sparkle-native": "^0.1.1",
+    "@uruhalushia/sparkle-native": "^0.1.2",
     "adm-zip": "^0.6.0",
     "age-encryption": "^0.3.0",
     "axios": "^1.18.1",
