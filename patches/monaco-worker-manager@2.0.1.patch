@@ -1,0 +1,10 @@
+diff --git a/worker.js b/worker.js
+index 8fe26e59cc2ddf7342c5d96b066a3a13a4b4a284..c3c3851328af1aa067d5d0dbd91aa1f46d2daebb 100644
+--- a/worker.js
++++ b/worker.js
+@@ -1,4 +1,4 @@
+-import { initialize as initializeWorker } from 'monaco-editor/esm/vs/editor/editor.worker.js';
++import { initialize as initializeWorker } from 'monaco-editor/editor/editor.worker.js';
+ /**
+  * Create a web worker proxy.
+  *

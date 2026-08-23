@@ -8,7 +8,7 @@ allowBuilds:
 overrides:
   typescript-eslint: ^8.59.2
 patchedDependencies:
-  vite-plugin-monaco-editor@1.1.0: patches/vite-plugin-monaco-editor@1.1.0.patch
+  monaco-worker-manager@2.0.1: patches/monaco-worker-manager@2.0.1.patch
 publicHoistPattern:
   - '*@heroui/*'
 shamefullyHoist: true

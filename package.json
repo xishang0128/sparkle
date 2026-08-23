@@ -91,7 +91,6 @@
     "react-error-boundary": "^6.1.3",
     "react-icons": "^5.7.0",
     "react-markdown": "^10.1.0",
-    "react-monaco-editor": "^0.59.0",
     "react-router-dom": "^7.18.2",
     "react-virtuoso": "^4.18.12",
     "recharts": "^3.10.1",
@@ -101,8 +100,7 @@
     "tsx": "^4.23.12",
     "types-pac": "^1.0.3",
     "typescript": "^6.0.3",
-    "vite": "^8.2.2",
-    "vite-plugin-monaco-editor": "1.1.0"
+    "vite": "^8.2.2"
   },
   "packageManager": "pnpm@11.1.1"
 }
