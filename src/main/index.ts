@@ -227,7 +227,8 @@ export async function createWindow(appConfig?: AppConfig): Promise<void> {
   })
   try {
     const config = appConfig ?? (await getAppConfig())
-    const { useWindowFrame = false } = config
+    const { useWindowFrame = false, enableWindowDrag = false } = config
+    const useNativeWindowFrame = useWindowFrame && !enableWindowDrag
     const [windowStateManager] = await Promise.all([
       Promise.resolve(createMainWindowStateManager()),
       process.platform === 'darwin'
@@ -243,9 +244,9 @@ export async function createWindow(appConfig?: AppConfig): Promise<void> {
       x: windowState.x,
       y: windowState.y,
       show: false,
-      frame: useWindowFrame,
+      frame: useNativeWindowFrame,
       fullscreenable: false,
-      titleBarStyle: useWindowFrame ? 'default' : 'hidden',
+      titleBarStyle: useNativeWindowFrame ? 'default' : 'hidden',
       titleBarOverlay: useWindowFrame
         ? false
         : {

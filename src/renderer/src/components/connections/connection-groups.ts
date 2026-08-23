@@ -1,10 +1,5 @@
 export type ConnectionGroupSort =
-  | 'name'
-  | 'count'
-  | 'upload'
-  | 'download'
-  | 'uploadSpeed'
-  | 'downloadSpeed'
+  'name' | 'count' | 'upload' | 'download' | 'uploadSpeed' | 'downloadSpeed'
 
 export interface ConnectionGroup {
   key: string

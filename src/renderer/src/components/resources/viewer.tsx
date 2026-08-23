@@ -40,9 +40,7 @@ function getViewerContent(fileContent: string, providerType: string, title: stri
     const yamlObj = parsedYaml as Record<string, unknown>
     const payload = yamlObj[providerType]?.[title]?.payload
     if (payload) {
-      return dump(
-        providerType === 'proxy-providers' ? { proxies: payload } : { rules: payload }
-      )
+      return dump(providerType === 'proxy-providers' ? { proxies: payload } : { rules: payload })
     }
 
     const targetObj = yamlObj[providerType]?.[title]

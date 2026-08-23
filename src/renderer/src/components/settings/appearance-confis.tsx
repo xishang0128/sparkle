@@ -48,6 +48,7 @@ const AppearanceConfig: React.FC = () => {
     showFloatingWindow: showFloating = false,
     spinFloatingIcon = true,
     useWindowFrame = false,
+    enableWindowDrag = false,
     showUpdateButtonAfterNotification = true,
     customTheme = 'default.css',
     appTheme = 'system'
@@ -280,6 +281,29 @@ const AppearanceConfig: React.FC = () => {
             }}
           />
         </SettingItem>
+        {useWindowFrame && (
+          <SettingItem
+            compatKey="legacy"
+            title="启用窗口拖动区域"
+            actions={
+              <Tooltip content="让应用内页面标题的空白区域可用于拖动窗口，适用于系统未提供可拖动标题栏的环境。">
+                <Button isIconOnly size="sm" variant="light">
+                  <IoIosHelpCircle className="text-lg" />
+                </Button>
+              </Tooltip>
+            }
+            divider
+          >
+            <Switch
+              size="sm"
+              isSelected={enableWindowDrag}
+              onValueChange={async (v) => {
+                await patchAppConfig({ enableWindowDrag: v })
+                await relaunchApp()
+              }}
+            />
+          </SettingItem>
+        )}
         <SettingItem compatKey="legacy" title="显示更新按钮" divider>
           <Switch
             size="sm"

@@ -587,12 +587,7 @@ const Connections: React.FC = () => {
     async (v: unknown) => {
       await patchAppConfig({
         connectionOrderBy: (v as { currentKey: string }).currentKey as
-          | 'time'
-          | 'upload'
-          | 'download'
-          | 'uploadSpeed'
-          | 'downloadSpeed'
-          | 'process'
+          'time' | 'upload' | 'download' | 'uploadSpeed' | 'downloadSpeed' | 'process'
       })
     },
     [patchAppConfig]
