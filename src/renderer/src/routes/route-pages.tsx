@@ -49,42 +49,54 @@ const remainingPageLoaders: Array<() => Promise<unknown>> = [
   LogsPage.preload,
   SubStorePage.preload
 ]
+const routePreloadStartDelay = 1000
+const routePreloadInterval = 250
 let remainingPagesPromise: Promise<void> | undefined
+
+function waitForIdle(): Promise<void> {
+  return new Promise((resolve) => {
+    window.requestIdleCallback(() => resolve())
+  })
+}
+
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => {
+    window.setTimeout(resolve, ms)
+  })
+}
 
 function preloadRemainingPages(): Promise<void> {
   if (remainingPagesPromise) return remainingPagesPromise
 
-  let nextLoader = 0
-  const preloadNext = async (): Promise<void> => {
-    while (nextLoader < remainingPageLoaders.length) {
-      const loader = remainingPageLoaders[nextLoader++]
+  remainingPagesPromise = (async (): Promise<void> => {
+    for (const [index, loader] of remainingPageLoaders.entries()) {
+      await waitForIdle()
       try {
         await loader()
       } catch {
         // A failed page import is retried when the route is opened.
       }
+
+      if (index < remainingPageLoaders.length - 1) {
+        await delay(routePreloadInterval)
+      }
     }
-  }
-  remainingPagesPromise = Promise.all([preloadNext(), preloadNext()]).then(() => undefined)
+  })()
   return remainingPagesPromise
 }
 
 export function useDeferredRoutePreload(): void {
   useEffect(() => {
-    let frame: number | undefined
-    let idleCallback: number | undefined
+    let startTimer: number | undefined
     const unsubscribe = onInitialContentReady(() => {
-      frame = window.requestAnimationFrame(() => {
-        idleCallback = window.requestIdleCallback(() => void preloadRemainingPages(), {
-          timeout: 1500
-        })
-      })
+      startTimer = window.setTimeout(() => {
+        void preloadRemainingPages()
+      }, routePreloadStartDelay)
     })
 
     return (): void => {
       unsubscribe()
-      if (frame !== undefined) window.cancelAnimationFrame(frame)
-      if (idleCallback !== undefined) window.cancelIdleCallback(idleCallback)
+      if (startTimer !== undefined) window.clearTimeout(startTimer)
     }
   }, [])
 }
