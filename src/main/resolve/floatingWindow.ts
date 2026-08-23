@@ -1,10 +1,10 @@
 import { is } from '@electron-toolkit/utils'
 import { BrowserWindow, ipcMain } from 'electron'
-import windowStateKeeper from 'electron-window-state'
 import { join } from 'path'
 import { getAppConfig, patchAppConfig } from '../config'
 import { applyTheme } from './theme'
 import { buildContextMenu, showTrayIcon } from './tray'
+import { createWindowStateManager } from './windowState'
 
 export let floatingWindow: BrowserWindow | null = null
 let triggerTimeoutRef: NodeJS.Timeout | null = null
@@ -33,15 +33,19 @@ async function createFloatingWindow(): Promise<void> {
   // 预分配 GPU 资源，防止在创建悬浮窗时卡死
   await preallocateGpuResources()
 
-  const floatingWindowState = windowStateKeeper({
-    file: 'floating-window-state.json'
+  const floatingWindowState = createWindowStateManager({
+    file: 'floating-window-state.json',
+    defaultWidth: 120,
+    defaultHeight: 42,
+    saveSize: false,
+    restoreWindowMode: false
   })
   const { customTheme = 'default.css' } = await getAppConfig()
   floatingWindow = new BrowserWindow({
     width: 120,
     height: 42,
-    x: floatingWindowState.x,
-    y: floatingWindowState.y,
+    x: floatingWindowState.state.x,
+    y: floatingWindowState.state.y,
     show: false,
     frame: false,
     hasShadow: false,
@@ -60,14 +64,11 @@ async function createFloatingWindow(): Promise<void> {
       ...(is.dev ? { webSecurity: false } : {})
     }
   })
-  floatingWindowState.manage(floatingWindow)
+  floatingWindowState.attach(floatingWindow)
   floatingWindow.on('ready-to-show', () => {
     applyTheme(customTheme)
     floatingWindow?.show()
     floatingWindow?.setAlwaysOnTop(true, 'screen-saver')
-  })
-  floatingWindow.on('moved', () => {
-    if (floatingWindow) floatingWindowState.saveState(floatingWindow)
   })
   ipcMain.on('updateFloatingWindow', () => {
     if (floatingWindow) {

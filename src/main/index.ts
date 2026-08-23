@@ -15,7 +15,7 @@ import { initProfileUpdater } from './core/profileUpdater'
 import { startMonitor } from './resolve/trafficMonitor'
 import { showFloatingWindow } from './resolve/floatingWindow'
 import { getAppConfigSync } from './config/app'
-import { createMainWindowStateManager } from './resolve/mainWindowState'
+import { createMainWindowStateManager } from './resolve/windowState'
 import {
   applyWindowsGpuWorkaround,
   ensureWindowsElevatedStartup,
@@ -292,13 +292,8 @@ export async function createWindow(appConfig?: AppConfig): Promise<void> {
     })
 
     mainWindow.on('closed', () => {
-      windowStateManager.cleanup()
       mainWindow = null
     })
-
-    mainWindow.on('resized', windowStateManager.save)
-    mainWindow.on('unmaximize', windowStateManager.save)
-    mainWindow.on('move', windowStateManager.save)
 
     mainWindow.on('session-end', async () => {
       stopNetworkDetection()
