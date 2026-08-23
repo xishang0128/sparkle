@@ -20,6 +20,7 @@ import { deepMerge } from '../utils/merge'
 import { getUserAgent } from '../utils/userAgent'
 import { execWithElevation } from '../utils/elevation'
 import { decryptAgeText, encryptAgeText, isAgeEncryptedText } from '../utils/age'
+import { isHttpUrl } from '../utils/url'
 
 let profileConfig: ProfileConfig // profile.yaml
 const FILE_PERMISSION_ELEVATION_REQUIRED = 'FILE_PERMISSION_ELEVATION_REQUIRED'
@@ -270,7 +271,10 @@ export async function createProfile(item: Partial<ProfileItem>): Promise<Profile
         k.toLowerCase().endsWith('profile-web-page-url')
       )
       if (homeKey) {
-        newItem.home = headers[homeKey]
+        const home = headers[homeKey]
+        if (isHttpUrl(home)) {
+          newItem.home = home
+        }
       }
       const intervalKey = Object.keys(headers).find((k) =>
         k.toLowerCase().endsWith('profile-update-interval')

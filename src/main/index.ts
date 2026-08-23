@@ -16,6 +16,7 @@ import { startMonitor } from './resolve/trafficMonitor'
 import { showFloatingWindow } from './resolve/floatingWindow'
 import { getAppConfigSync } from './config/app'
 import { createMainWindowStateManager } from './resolve/windowState'
+import { isHttpUrl } from './utils/url'
 import {
   applyWindowsGpuWorkaround,
   ensureWindowsElevatedStartup,
@@ -303,7 +304,9 @@ export async function createWindow(appConfig?: AppConfig): Promise<void> {
     })
 
     mainWindow.webContents.setWindowOpenHandler((details) => {
-      shell.openExternal(details.url)
+      if (isHttpUrl(details.url)) {
+        void shell.openExternal(details.url)
+      }
       return { action: 'deny' }
     })
     // HMR for renderer base on electron-vite cli.
