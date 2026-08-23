@@ -5,8 +5,9 @@ import { getAppConfig, getProfileConfig } from '../config'
 import { mihomoCorePath, mihomoTestDir, mihomoWorkConfigPath } from '../utils/dirs'
 
 export async function checkProfile(): Promise<void> {
-  const { core = 'mihomo', diffWorkDir = false, safePaths = [] } = await getAppConfig()
-  const { current } = await getProfileConfig()
+  const [appConfig, profileConfig] = await Promise.all([getAppConfig(), getProfileConfig()])
+  const { core = 'mihomo', diffWorkDir = false, safePaths = [] } = appConfig
+  const { current } = profileConfig
   const corePath = mihomoCorePath(core)
   const execFilePromise = promisify(execFile)
   const env = {

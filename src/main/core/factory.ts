@@ -1,7 +1,6 @@
 import {
   getControledMihomoConfig,
   getProfileConfig,
-  getProfile,
   getProfileStr,
   getProfileItem,
   getOverride,
@@ -29,14 +28,20 @@ let runtimeConfigStr: string,
   runtimeConfig: MihomoConfig
 
 export async function generateProfile(): Promise<void> {
-  const { current } = await getProfileConfig()
-  const { diffWorkDir = false, controlDns = true, controlSniff = true } = await getAppConfig()
-  const currentProfileConfig = await getProfile(current)
-  rawProfileStr = await getProfileStr(current)
+  const [profileConfig, appConfig, controledMihomoConfig] = await Promise.all([
+    getProfileConfig(),
+    getAppConfig(),
+    getControledMihomoConfig()
+  ])
+  const { current } = profileConfig
+  const { diffWorkDir = false, controlDns = true, controlSniff = true } = appConfig
+  const nextRawProfileStr = await getProfileStr(current)
+  let currentProfileConfig = parseYaml<MihomoConfig>(nextRawProfileStr)
+  if (typeof currentProfileConfig !== 'object') currentProfileConfig = {} as MihomoConfig
+  rawProfileStr = nextRawProfileStr
   currentProfileStr = stringifyYaml(currentProfileConfig)
   const currentProfile = await overrideProfile(current, currentProfileConfig)
   overrideProfileStr = stringifyYaml(currentProfile)
-  const controledMihomoConfig = await getControledMihomoConfig()
 
   const configToMerge = JSON.parse(JSON.stringify(controledMihomoConfig))
   if (!controlDns) {

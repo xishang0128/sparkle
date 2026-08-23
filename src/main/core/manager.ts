@@ -320,6 +320,11 @@ async function getServiceStatusAfterConnectionError(): Promise<
 }
 
 export async function startCore(detached = false): Promise<Promise<void>[]> {
+  const [appConfig, controlledMihomoConfig, profileConfig] = await Promise.all([
+    getAppConfig(),
+    getControledMihomoConfig(),
+    getProfileConfig()
+  ])
   const {
     core = 'mihomo',
     corePermissionMode = 'elevated',
@@ -334,10 +339,9 @@ export async function startCore(detached = false): Promise<Promise<void>[]> {
     disableSystemCA = false,
     disableNftables = false,
     safePaths = []
-  } = await getAppConfig()
-  const controlledMihomoConfig = await getControledMihomoConfig()
+  } = appConfig
   const { 'log-level': logLevel, tun } = controlledMihomoConfig
-  const { current } = await getProfileConfig()
+  const { current } = profileConfig
   const useServiceCore = corePermissionMode === 'service' && !detached
 
   let corePath: string

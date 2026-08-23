@@ -126,41 +126,31 @@ async function initFiles(): Promise<void> {
 }
 
 async function cleanup(): Promise<void> {
-  // update cache
-  const files = await readdir(dataDir())
-  for (const file of files) {
-    if (file.endsWith('.exe') || file.endsWith('.pkg') || file.endsWith('.7z')) {
-      try {
-        await rm(path.join(dataDir(), file))
-      } catch {
-        // ignore
-      }
-    }
-  }
-  // logs
-  const { maxLogDays = 7 } = await getAppConfig()
-  const logs = await readdir(logDir())
-  for (const log of logs) {
+  const [files, logs, { maxLogDays = 7 }] = await Promise.all([
+    readdir(dataDir()),
+    readdir(logDir()),
+    getAppConfig()
+  ])
+  const expiredBefore = Date.now() - maxLogDays * 24 * 60 * 60 * 1000
+  const updateCacheFiles = files.filter(
+    (file) => file.endsWith('.exe') || file.endsWith('.pkg') || file.endsWith('.7z')
+  )
+  const expiredLogs = logs.filter((log) => {
     const dateStr = log.match(/(\d{4}-\d{1,2}-\d{1,2})(?=\.log$)/)?.[1]
-    if (!dateStr) continue
+    if (!dateStr) return false
 
-    const date = new Date(dateStr)
-    if (Number.isNaN(date.getTime())) continue
+    const timestamp = new Date(dateStr).getTime()
+    return !Number.isNaN(timestamp) && timestamp < expiredBefore
+  })
 
-    const diff = Date.now() - date.getTime()
-    if (diff > maxLogDays * 24 * 60 * 60 * 1000) {
-      try {
-        await rm(path.join(logDir(), log))
-      } catch {
-        // ignore
-      }
-    }
-  }
+  await Promise.all([
+    ...updateCacheFiles.map((file) => rm(path.join(dataDir(), file)).catch(() => {})),
+    ...expiredLogs.map((log) => rm(path.join(logDir(), log)).catch(() => {}))
+  ])
 }
 
 async function migration(): Promise<void> {
-  const appConfig = await getAppConfig()
-  const mihomoConfig = await getControledMihomoConfig()
+  const [appConfig, mihomoConfig] = await Promise.all([getAppConfig(), getControledMihomoConfig()])
 
   const mihomoConfigPatch: Partial<MihomoConfig> = {}
 
