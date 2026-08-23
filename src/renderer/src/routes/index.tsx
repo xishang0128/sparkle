@@ -1,74 +1,92 @@
+import { useLayoutEffect, type ReactNode } from 'react'
 import { Navigate } from 'react-router-dom'
-import Override from '@renderer/pages/override'
-import Proxies from '@renderer/pages/proxies'
-import Rules from '@renderer/pages/rules'
-import Settings from '@renderer/pages/settings'
-import Profiles from '@renderer/pages/profiles'
-import Logs from '@renderer/pages/logs'
-import Connections from '@renderer/pages/connections'
-import Mihomo from '@renderer/pages/mihomo'
-import Sysproxy from '@renderer/pages/syspeoxy'
-import Tun from '@renderer/pages/tun'
-import Resources from '@renderer/pages/resources'
-import DNS from '@renderer/pages/dns'
-import Sniffer from '@renderer/pages/sniffer'
-import SubStore from '@renderer/pages/substore'
+import { markInitialContentPartReady } from '@renderer/utils/startup'
+import {
+  Connections,
+  DNS,
+  Logs,
+  Mihomo,
+  Override,
+  Profiles,
+  Proxies,
+  Resources,
+  Rules,
+  Settings,
+  Sniffer,
+  SubStore,
+  Sysproxy,
+  Tun
+} from './route-pages'
+
+export { useDeferredRoutePreload } from './route-pages'
+
+function StartupRoute({ children }: { children: ReactNode }): ReactNode {
+  useLayoutEffect(() => {
+    markInitialContentPartReady('route')
+  }, [])
+  return children
+}
+
+function startupRoute(element: ReactNode): ReactNode {
+  return <StartupRoute>{element}</StartupRoute>
+}
+
 const routes = [
   {
     path: '/mihomo',
-    element: <Mihomo />
+    element: startupRoute(<Mihomo />)
   },
   {
     path: '/sysproxy',
-    element: <Sysproxy />
+    element: startupRoute(<Sysproxy />)
   },
   {
     path: '/tun',
-    element: <Tun />
+    element: startupRoute(<Tun />)
   },
   {
     path: '/proxies',
-    element: <Proxies />
+    element: startupRoute(<Proxies />)
   },
   {
     path: '/rules',
-    element: <Rules />
+    element: startupRoute(<Rules />)
   },
   {
     path: '/resources',
-    element: <Resources />
+    element: startupRoute(<Resources />)
   },
   {
     path: '/dns',
-    element: <DNS />
+    element: startupRoute(<DNS />)
   },
   {
     path: '/sniffer',
-    element: <Sniffer />
+    element: startupRoute(<Sniffer />)
   },
   {
     path: '/logs',
-    element: <Logs />
+    element: startupRoute(<Logs />)
   },
   {
     path: '/connections',
-    element: <Connections />
+    element: startupRoute(<Connections />)
   },
   {
     path: '/override',
-    element: <Override />
+    element: startupRoute(<Override />)
   },
   {
     path: '/profiles',
-    element: <Profiles />
+    element: startupRoute(<Profiles />)
   },
   {
     path: '/settings',
-    element: <Settings />
+    element: startupRoute(<Settings />)
   },
   {
     path: '/substore',
-    element: <SubStore />
+    element: startupRoute(<SubStore />)
   },
   {
     path: '/',

@@ -1,73 +1,23 @@
 import { useTheme } from 'next-themes'
-import { useEffect, useRef, useState } from 'react'
+import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import { NavigateFunction, useLocation, useNavigate, useRoutes } from 'react-router-dom'
 import OutboundModeSwitcher from '@renderer/components/sider/outbound-mode-switcher'
-import SysproxySwitcher from '@renderer/components/sider/sysproxy-switcher'
-import TunSwitcher from '@renderer/components/sider/tun-switcher'
 import { Button, Divider } from '@heroui/react'
 import { IoSettings } from 'react-icons/io5'
-import routes from '@renderer/routes'
-import { DndContext, closestCorners, DragEndEvent } from '@dnd-kit/core'
-import { SortableContext } from '@dnd-kit/sortable'
-import ProfileCard from '@renderer/components/sider/profile-card'
-import ProxyCard from '@renderer/components/sider/proxy-card'
-import RuleCard from '@renderer/components/sider/rule-card'
-import DNSCard from '@renderer/components/sider/dns-card'
-import SniffCard from '@renderer/components/sider/sniff-card'
-import OverrideCard from '@renderer/components/sider/override-card'
-import ConnCard from '@renderer/components/sider/conn-card'
-import LogCard from '@renderer/components/sider/log-card'
-import MihomoCoreCard from '@renderer/components/sider/mihomo-core-card'
-import ResourceCard from '@renderer/components/sider/resource-card'
-import UpdaterButton from '@renderer/components/updater/updater-button'
+import routes, { useDeferredRoutePreload } from '@renderer/routes'
 import { useAppConfig } from '@renderer/hooks/use-app-config'
 import { applyTheme, checkUpdate, setNativeTheme, setTitleBarOverlay } from '@renderer/utils/ipc'
 import { platform } from '@renderer/utils/init'
 import { TitleBarOverlayOptions } from 'electron'
-import SubStoreCard from '@renderer/components/sider/substore-card'
 import MihomoIcon from './components/base/mihomo-icon'
 import useSWR from 'swr'
-import ConfirmModal from '@renderer/components/base/base-confirm'
-import { useCardDndSensors } from '@renderer/hooks/use-card-dnd-sensors'
+
+const ConfirmModal = lazy(() => import('@renderer/components/base/base-confirm'))
+const siderCardsPromise = import('@renderer/components/sider/sider-cards')
+const SiderCards = lazy(() => siderCardsPromise)
+const UpdaterButton = lazy(() => import('@renderer/components/updater/updater-button'))
 
 let navigate: NavigateFunction
-
-const interactiveSelector = 'button:not(.pointer-events-none), [role="switch"]'
-
-const defaultSiderOrder = [
-  'sysproxy',
-  'tun',
-  'dns',
-  'sniff',
-  'proxy',
-  'connection',
-  'profile',
-  'mihomo',
-  'rule',
-  'resource',
-  'override',
-  'log',
-  'substore'
-]
-
-const siderCardRouteMap = {
-  'sysproxy-card': '/sysproxy',
-  'tun-card': '/tun',
-  'profile-card': '/profiles',
-  'proxy-card': '/proxies',
-  'mihomo-core-card': '/mihomo',
-  'conn-card': '/connections',
-  'dns-card': '/dns',
-  'sniff-card': '/sniffer',
-  'log-card': '/logs',
-  'rule-card': '/rules',
-  'resource-card': '/resources',
-  'override-card': '/override',
-  'substore-card': '/substore'
-} as const
-const siderCardSelector = Object.keys(siderCardRouteMap)
-  .map((className) => `.${className}`)
-  .join(', ')
 
 const App: React.FC = () => {
   const { appConfig, patchAppConfig } = useAppConfig()
@@ -76,31 +26,23 @@ const App: React.FC = () => {
     customTheme,
     useWindowFrame = false,
     siderWidth = 250,
-    siderOrder,
     autoCheckUpdate,
     updateChannel = 'stable',
     showUpdateButtonAfterNotification = true,
     disableAnimation = false
   } = appConfig || {}
-  const siderOrderArray = siderOrder ?? defaultSiderOrder
   const narrowWidth = platform === 'darwin' ? 70 : 60
-  const [order, setOrder] = useState(siderOrderArray)
   const [siderWidthValue, setSiderWidthValue] = useState(siderWidth)
   const siderWidthValueRef = useRef(siderWidthValue)
   const [resizing, setResizing] = useState(false)
   const resizingRef = useRef(resizing)
   const resizePointerIdRef = useRef<number | null>(null)
-  const suppressSiderClickRef = useRef(false)
-  const suppressSiderClickTimerRef = useRef<number | undefined>(undefined)
-  const sensors = useCardDndSensors({
-    mouseDistance: 8,
-    touchDelay: 220,
-    touchTolerance: 10
-  })
   const { setTheme, systemTheme } = useTheme()
   navigate = useNavigate()
   const location = useLocation()
   const page = useRoutes(routes)
+  useDeferredRoutePreload()
+
   const setTitlebar = (): void => {
     if (!useWindowFrame && platform !== 'darwin') {
       const options = { height: 48 } as TitleBarOverlayOptions
@@ -122,10 +64,9 @@ const App: React.FC = () => {
   )
 
   useEffect(() => {
-    setOrder(siderOrderArray)
     setSiderWidthValue(siderWidth)
     siderWidthValueRef.current = siderWidth
-  }, [siderOrderArray, siderWidth])
+  }, [siderWidth])
 
   useEffect(() => {
     siderWidthValueRef.current = siderWidthValue
@@ -162,9 +103,6 @@ const App: React.FC = () => {
       window.removeEventListener('pointermove', onResizeMove)
       window.removeEventListener('pointerup', onResizeEnd)
       window.removeEventListener('pointercancel', onResizeEnd)
-      if (suppressSiderClickTimerRef.current) {
-        window.clearTimeout(suppressSiderClickTimerRef.current)
-      }
     }
   }, [])
 
@@ -208,75 +146,6 @@ const App: React.FC = () => {
       patchAppConfig({ siderWidth: siderWidthValueRef.current })
     }
     resizePointerIdRef.current = null
-  }
-
-  const onDragEnd = async (event: DragEndEvent): Promise<void> => {
-    const { active, over } = event
-    if (over && active.id !== over.id) {
-      const newOrder = order.slice()
-      const activeIndex = newOrder.indexOf(active.id as string)
-      const overIndex = newOrder.indexOf(over.id as string)
-      newOrder.splice(activeIndex, 1)
-      newOrder.splice(overIndex, 0, active.id as string)
-      setOrder(newOrder)
-      await patchAppConfig({ siderOrder: newOrder })
-    }
-  }
-
-  const releaseSiderClickSuppression = (): void => {
-    if (suppressSiderClickTimerRef.current) {
-      window.clearTimeout(suppressSiderClickTimerRef.current)
-    }
-    suppressSiderClickTimerRef.current = window.setTimeout(() => {
-      suppressSiderClickRef.current = false
-    }, 160)
-  }
-
-  const onSiderDragStart = (): void => {
-    suppressSiderClickRef.current = true
-  }
-
-  const onSiderDragCancel = (): void => {
-    releaseSiderClickSuppression()
-  }
-
-  const onSiderDragEnd = (event: DragEndEvent): void => {
-    void onDragEnd(event).finally(releaseSiderClickSuppression)
-  }
-
-  const onSiderClickCapture = (event: React.MouseEvent<HTMLDivElement>): void => {
-    if (suppressSiderClickRef.current) {
-      event.preventDefault()
-      event.stopPropagation()
-      return
-    }
-
-    const target = event.target as HTMLElement
-    if (target.closest(interactiveSelector)) return
-
-    const clickedCard = target.closest(siderCardSelector)
-    if (!clickedCard) return
-
-    const route = Object.entries(siderCardRouteMap).find(([className]) =>
-      clickedCard.classList.contains(className)
-    )?.[1]
-    if (route) navigate(route)
-  }
-
-  const componentMap = {
-    sysproxy: SysproxySwitcher,
-    tun: TunSwitcher,
-    profile: ProfileCard,
-    proxy: ProxyCard,
-    mihomo: MihomoCoreCard,
-    connection: ConnCard,
-    dns: DNSCard,
-    sniff: SniffCard,
-    log: LogCard,
-    rule: RuleCard,
-    resource: ResourceCard,
-    override: OverrideCard,
-    substore: SubStoreCard
   }
 
   const [showQuitConfirm, setShowQuitConfirm] = useState(false)
@@ -341,98 +210,96 @@ const App: React.FC = () => {
 
   return (
     <div className={`w-full h-screen flex ${resizing ? 'cursor-ew-resize' : ''}`}>
-      {showQuitConfirm && (
-        <ConfirmModal
-          title="确定要退出 Sparkle 吗？"
-          description={
-            <div>
-              <p></p>
-              <p className="text-sm text-gray-500 mt-2">退出后代理功能将停止工作</p>
-              <p className="text-sm text-gray-400 mt-1">
-                快按两次或长按 {platform === 'darwin' ? '⌘Q' : 'Ctrl+Q'} 可直接退出
-              </p>
-            </div>
-          }
-          confirmText="退出"
-          cancelText="取消"
-          onChange={(open) => {
-            if (!open) {
-              handleQuitConfirm(false)
+      <Suspense fallback={null}>
+        {showQuitConfirm && (
+          <ConfirmModal
+            title="确定要退出 Sparkle 吗？"
+            description={
+              <div>
+                <p></p>
+                <p className="text-sm text-gray-500 mt-2">退出后代理功能将停止工作</p>
+                <p className="text-sm text-gray-400 mt-1">
+                  快按两次或长按 {platform === 'darwin' ? '⌘Q' : 'Ctrl+Q'} 可直接退出
+                </p>
+              </div>
             }
-          }}
-          onConfirm={() => handleQuitConfirm(true)}
-        />
-      )}
-      {showProfileInstallConfirm && profileInstallData && (
-        <ConfirmModal
-          title="确定要导入订阅配置吗？"
-          description={
-            <div>
-              <p className="text-sm text-gray-600 mb-2">
-                名称：{profileInstallData.name || '未命名'}
-              </p>
-              <p className="text-sm text-gray-600 mb-2">链接：{profileInstallData.url}</p>
-              <p className="text-sm text-orange-500 mt-2">
-                请确保订阅配置来源可信，恶意配置可能影响您的网络安全
-              </p>
-            </div>
-          }
-          confirmText="导入"
-          cancelText="取消"
-          onChange={(open) => {
-            if (!open) {
-              handleProfileInstallConfirm(false)
+            confirmText="退出"
+            cancelText="取消"
+            onChange={(open) => {
+              if (!open) {
+                handleQuitConfirm(false)
+              }
+            }}
+            onConfirm={() => handleQuitConfirm(true)}
+          />
+        )}
+        {showProfileInstallConfirm && profileInstallData && (
+          <ConfirmModal
+            title="确定要导入订阅配置吗？"
+            description={
+              <div>
+                <p className="text-sm text-gray-600 mb-2">
+                  名称：{profileInstallData.name || '未命名'}
+                </p>
+                <p className="text-sm text-gray-600 mb-2">链接：{profileInstallData.url}</p>
+                <p className="text-sm text-orange-500 mt-2">
+                  请确保订阅配置来源可信，恶意配置可能影响您的网络安全
+                </p>
+              </div>
             }
-          }}
-          onConfirm={() => handleProfileInstallConfirm(true)}
-          className="w-125"
-        />
-      )}
-      {showOverrideInstallConfirm && overrideInstallData && (
-        <ConfirmModal
-          title="确定要导入覆写文件吗？"
-          description={
-            <div>
-              <p className="text-sm text-gray-600 mb-2">
-                名称：{overrideInstallData.name || '未命名'}
-              </p>
-              <p className="text-sm text-gray-600 mb-2">链接：{overrideInstallData.url}</p>
-              <p className="text-sm text-orange-500 mt-2">
-                请确保覆写文件来源可信，恶意覆写文件可能影响您的网络安全
-              </p>
-            </div>
-          }
-          confirmText="导入"
-          cancelText="取消"
-          onChange={(open) => {
-            if (!open) {
-              handleOverrideInstallConfirm(false)
+            confirmText="导入"
+            cancelText="取消"
+            onChange={(open) => {
+              if (!open) {
+                handleProfileInstallConfirm(false)
+              }
+            }}
+            onConfirm={() => handleProfileInstallConfirm(true)}
+            className="w-125"
+          />
+        )}
+        {showOverrideInstallConfirm && overrideInstallData && (
+          <ConfirmModal
+            title="确定要导入覆写文件吗？"
+            description={
+              <div>
+                <p className="text-sm text-gray-600 mb-2">
+                  名称：{overrideInstallData.name || '未命名'}
+                </p>
+                <p className="text-sm text-gray-600 mb-2">链接：{overrideInstallData.url}</p>
+                <p className="text-sm text-orange-500 mt-2">
+                  请确保覆写文件来源可信，恶意覆写文件可能影响您的网络安全
+                </p>
+              </div>
             }
-          }}
-          onConfirm={() => handleOverrideInstallConfirm(true)}
-        />
-      )}
+            confirmText="导入"
+            cancelText="取消"
+            onChange={(open) => {
+              if (!open) {
+                handleOverrideInstallConfirm(false)
+              }
+            }}
+            onConfirm={() => handleOverrideInstallConfirm(true)}
+          />
+        )}
+      </Suspense>
       {siderWidthValue === narrowWidth ? (
         <div style={{ width: `${narrowWidth}px` }} className="side h-full flex flex-col">
           <div className="app-drag flex shrink-0 justify-center items-center z-40 bg-transparent h-11.25">
             {platform !== 'darwin' && <MihomoIcon className="h-8 leading-8 text-lg mx-px" />}
           </div>
-          <div className="min-h-0 flex-1 overflow-y-auto no-scrollbar">
-            <div className="min-h-full w-full flex flex-col gap-2">
-              {order.map((key: string) => {
-                const Component = componentMap[key]
-                if (!Component) return null
-                return <Component key={key} iconOnly={true} />
-              })}
-            </div>
-          </div>
+          <Suspense fallback={<div className="min-h-0 flex-1" />}>
+            <SiderCards iconOnly />
+          </Suspense>
           <div className="px-2 pt-2 pb-4 flex shrink-0 flex-col items-center space-y-2">
             {latest && latest.version && (
-              <UpdaterButton
-                iconOnly={true}
-                latest={latest}
-                showButtonAfterNotification={showUpdateButtonAfterNotification}
-              />
+              <Suspense fallback={null}>
+                <UpdaterButton
+                  iconOnly={true}
+                  latest={latest}
+                  showButtonAfterNotification={showUpdateButtonAfterNotification}
+                />
+              </Suspense>
             )}
             <OutboundModeSwitcher iconOnly />
             <Button
@@ -462,10 +329,12 @@ const App: React.FC = () => {
                 <h3 className="text-lg font-bold leading-8">Sparkle</h3>
               </div>
               {latest && latest.version && (
-                <UpdaterButton
-                  latest={latest}
-                  showButtonAfterNotification={showUpdateButtonAfterNotification}
-                />
+                <Suspense fallback={null}>
+                  <UpdaterButton
+                    latest={latest}
+                    showButtonAfterNotification={showUpdateButtonAfterNotification}
+                  />
+                </Suspense>
               )}
               <Button
                 size="sm"
@@ -484,25 +353,9 @@ const App: React.FC = () => {
           <div className="mt-2 mx-2">
             <OutboundModeSwitcher />
           </div>
-          <div style={{ overflowX: 'clip' }}>
-            <DndContext
-              sensors={sensors}
-              collisionDetection={closestCorners}
-              onDragStart={onSiderDragStart}
-              onDragCancel={onSiderDragCancel}
-              onDragEnd={onSiderDragEnd}
-            >
-              <div className="grid grid-cols-2 gap-2 m-2" onClickCapture={onSiderClickCapture}>
-                <SortableContext items={order}>
-                  {order.map((key: string) => {
-                    const Component = componentMap[key]
-                    if (!Component) return null
-                    return <Component key={key} />
-                  })}
-                </SortableContext>
-              </div>
-            </DndContext>
-          </div>
+          <Suspense fallback={null}>
+            <SiderCards />
+          </Suspense>
         </div>
       )}
 
@@ -535,7 +388,7 @@ const App: React.FC = () => {
         style={{ width: `calc(100% - ${siderWidthValue + 1}px)` }}
         className="main grow h-full overflow-y-auto"
       >
-        {page}
+        <Suspense fallback={null}>{page}</Suspense>
       </div>
     </div>
   )

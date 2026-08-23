@@ -1,6 +1,6 @@
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import { registerIpcMainHandlers } from './utils/ipc'
-import { app, shell, BrowserWindow, Menu } from 'electron'
+import { app, shell, BrowserWindow, Menu, type IpcMainEvent } from 'electron'
 import { getAppConfig } from './config'
 import { quitWithoutCore, startCore, stopCore } from './core/manager'
 import { stopNetworkDetection } from './core/network'
@@ -39,6 +39,27 @@ let initialWindowDisplayPromiseResolve: (() => void) | null = null
 const initialWindowDisplayPromise = new Promise<void>((resolve) => {
   initialWindowDisplayPromiseResolve = resolve
 })
+
+function waitForInitialContent(window: BrowserWindow): Promise<void> {
+  return new Promise((resolve) => {
+    const { webContents } = window
+    let finished = false
+    const finish = (): void => {
+      if (finished) return
+      finished = true
+      clearTimeout(timeout)
+      webContents.off('ipc-message', onIpcMessage)
+      window.off('closed', finish)
+      resolve()
+    }
+    const onIpcMessage = (_event: IpcMainEvent, channel: string): void => {
+      if (channel === 'renderer-content-ready') finish()
+    }
+    const timeout = setTimeout(finish, 5000)
+    webContents.on('ipc-message', onIpcMessage)
+    window.once('closed', finish)
+  })
+}
 
 async function scheduleLightweightMode(): Promise<void> {
   const {
@@ -228,7 +249,7 @@ export async function createWindow(appConfig?: AppConfig): Promise<void> {
   })
   try {
     const config = appConfig ?? (await getAppConfig())
-    const { useWindowFrame = false, enableWindowDrag = false } = config
+    const { useWindowFrame = false, enableWindowDrag = false, silentStart = false } = config
     const useNativeWindowFrame = useWindowFrame && !enableWindowDrag
     const [windowStateManager] = await Promise.all([
       Promise.resolve(createMainWindowStateManager()),
@@ -263,23 +284,7 @@ export async function createWindow(appConfig?: AppConfig): Promise<void> {
       }
     })
     windowStateManager.attach(mainWindow)
-    mainWindow.on('ready-to-show', async () => {
-      const { silentStart = false } = await getAppConfig()
-      if (!silentStart) {
-        if (quitTimeout) {
-          clearTimeout(quitTimeout)
-        }
-        windowShown = true
-        mainWindow?.show()
-        mainWindow?.focusOnWebView()
-        initialWindowDisplayPromiseResolve?.()
-        initialWindowDisplayPromiseResolve = null
-      } else {
-        await scheduleLightweightMode()
-        initialWindowDisplayPromiseResolve?.()
-        initialWindowDisplayPromiseResolve = null
-      }
-    })
+    const initialContentPromise = waitForInitialContent(mainWindow)
     mainWindow.webContents.on('did-fail-load', () => {
       mainWindow?.webContents.reload()
     })
@@ -312,10 +317,23 @@ export async function createWindow(appConfig?: AppConfig): Promise<void> {
     // HMR for renderer base on electron-vite cli.
     // Load the remote URL for development or the local html file for production.
     if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
-      mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
+      void mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
     } else {
-      mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
+      void mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
     }
+    await initialContentPromise
+    if (!mainWindow) return
+
+    if (!silentStart) {
+      clearLightweightTimeout()
+      windowShown = true
+      mainWindow.show()
+      mainWindow.focusOnWebView()
+    } else {
+      await scheduleLightweightMode()
+    }
+    initialWindowDisplayPromiseResolve?.()
+    initialWindowDisplayPromiseResolve = null
   } finally {
     isCreatingWindow = false
     if (createWindowPromiseResolve) {

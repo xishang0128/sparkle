@@ -18,6 +18,10 @@ import AppNotificationProvider from './components/base/app-notification-provider
 
 let F12Count = 0
 
+if (!window.location.hash) {
+  window.history.replaceState(null, '', '#/proxies')
+}
+
 init().then(() => {
   document.addEventListener('keydown', (e) => {
     if (platform !== 'darwin' && e.ctrlKey && e.key === 'q') {
