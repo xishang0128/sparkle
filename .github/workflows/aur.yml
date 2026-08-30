@@ -1,0 +1,88 @@
+name: AUR
+
+on:
+  workflow_call:
+    secrets:
+      AUR_SSH_PRIVATE_KEY:
+        required: true
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: aur
+  cancel-in-progress: true
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    container: archlinux:base-devel
+    strategy:
+      fail-fast: false
+      matrix:
+        package:
+          - sparkle-rolling-bin
+          - sparkle-git
+          - sparkle-electron-git
+    steps:
+      - name: Install Dependencies
+        run: pacman -Syu --noconfirm git github-cli jq
+
+      - name: Checkout
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          fetch-depth: 0
+
+      - name: Configure Git
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
+      - name: Update Package Metadata
+        id: package
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PACKAGE: ${{ matrix.package }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          pkgbuild="aur/${PACKAGE}/PKGBUILD"
+
+          if [[ "$PACKAGE" == sparkle-rolling-bin ]]; then
+            release=$(gh api "repos/${GITHUB_REPOSITORY}/releases/tags/rolling")
+            release_version=$(jq -er '.assets[].name | select(endswith("-amd64.deb")) | sub("^sparkle-linux-"; "") | sub("-amd64.deb$"; "")' <<< "$release")
+            pkgver=${release_version/-rolling-/.r$(git rev-list --count HEAD).}
+            amd64_sha256=$(jq -er --arg name "sparkle-linux-${release_version}-amd64.deb" '.assets[] | select(.name == $name).digest | sub("^sha256:"; "")' <<< "$release")
+            arm64_sha256=$(jq -er --arg name "sparkle-linux-${release_version}-arm64.deb" '.assets[] | select(.name == $name).digest | sub("^sha256:"; "")' <<< "$release")
+            sed -i \
+              -e "s/^pkgver=.*/pkgver=${pkgver}/" \
+              -e "s/^_releasever=.*/_releasever=${release_version}/" \
+              -e "s/^sha256sums_x86_64=.*/sha256sums_x86_64=('${amd64_sha256}')/" \
+              -e "s/^sha256sums_aarch64=.*/sha256sums_aarch64=('${arm64_sha256}')/" \
+              "$pkgbuild"
+          else
+            pkgver=$(git describe --long --tags --exclude=rolling --exclude=pre-release | sed 's/\([^-]*-g\)/r\1/;s/-/./g' | tr -d v)
+            sed -i "s/^pkgver=.*/pkgver=${pkgver}/" "$pkgbuild"
+          fi
+
+          echo "pkgver=$pkgver" >> "$GITHUB_OUTPUT"
+
+      - name: Generate Package Metadata
+        env:
+          PACKAGE: ${{ matrix.package }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          useradd --create-home builder
+          chown -R builder:builder "aur/${PACKAGE}"
+          runuser -u builder -- bash -c "cd 'aur/${PACKAGE}' && makepkg --printsrcinfo > .SRCINFO"
+
+      - name: Publish AUR Package
+        uses: KSXGitHub/github-actions-deploy-aur@084b0d9b15415bf9cdb65d44dad1efe37a354050
+        with:
+          pkgname: ${{ matrix.package }}
+          asset_dir: aur/${{ matrix.package }}
+          commit_username: xishang
+          commit_email: xishang02@gmail.com
+          ssh_private_key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
+          commit_message: Update to ${{ steps.package.outputs.pkgver }}
+          allow_empty_commits: false

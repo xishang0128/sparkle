@@ -1,15 +1,16 @@
 pkgname=sparkle-electron-git
 _pkgname=${pkgname%-electron-git}
-pkgver=r737.e4a7e67
+pkgver=1.26.7.r17.g2fed67e
 pkgrel=1
-pkgdesc="Another Mihomo GUI."
+pkgdesc="Another Mihomo GUI"
 arch=('x86_64' 'aarch64')
 url="https://github.com/xishang0128/sparkle"
-license=('GPL3')
-conflicts=("$_pkgname" "$_pkgname-git" "$_pkgname-bin" "$_pkgname-electron" "$_pkgname-electron-bin")
+license=('GPL-3.0-only')
+provides=("$_pkgname=$pkgver")
+conflicts=("$_pkgname" "$_pkgname-git" "$_pkgname-bin" "$_pkgname-rolling-bin" "$_pkgname-electron" "$_pkgname-electron-bin")
 depends=('electron' 'alsa-lib' 'gtk3' 'libnotify' 'nss' 'libxss' 'libxtst' 'xdg-utils' 'at-spi2-core' 'util-linux-libs' 'libsecret')
 optdepends=('libappindicator-gtk3: Allow sparkle to extend a menu via Ayatana indicators in Unity, KDE or Systray (GTK+ 3 library).')
-makedepends=('nodejs' 'pnpm' 'libxcrypt-compat' 'asar')
+makedepends=('git' 'nodejs' 'pnpm' 'libxcrypt-compat' 'asar')
 install=$_pkgname.install
 source=(
     "${_pkgname}.desktop"
@@ -21,12 +22,12 @@ sha256sums=(
     "ce855656fb0682d403685244c77dd2d90ec6efb207753fb7a6ddc1e9b6aa2c49"
     "SKIP"
 )
-options=('!lto')
+options=('!debug' '!lto')
 
 pkgver() {
     cd $srcdir/${_pkgname}
     ( set -o pipefail
-        git describe --long 2>/dev/null | sed 's/\([^-]*-g\)/r\1/;s/-/./g' | tr -d 'v' ||
+        git describe --long --tags --exclude=rolling --exclude=pre-release 2>/dev/null | sed 's/\([^-]*-g\)/r\1/;s/-/./g' | tr -d 'v' ||
         printf "r%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"
     )
 }

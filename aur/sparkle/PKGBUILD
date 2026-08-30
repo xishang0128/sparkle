@@ -1,22 +1,22 @@
 pkgname=sparkle
-pkgver=1.6.2
+pkgver=1.26.7
 pkgrel=1
-pkgdesc="Another Mihomo GUI."
+pkgdesc="Another Mihomo GUI"
 arch=('x86_64' 'aarch64')
 url="https://github.com/xishang0128/sparkle"
-license=('GPL3')
-conflicts=("$pkgname-git" "$pkgname-bin" "$pkgname-electron" "$pkgname-electron-bin" "$_pkgname-electron-git")
+license=('GPL-3.0-only')
+conflicts=("$pkgname-git" "$pkgname-bin" "$pkgname-rolling-bin" "$pkgname-electron" "$pkgname-electron-bin" "$pkgname-electron-git")
 depends=('alsa-lib' 'gtk3' 'libnotify' 'nss' 'libxss' 'libxtst' 'xdg-utils' 'at-spi2-core' 'util-linux-libs' 'libsecret')
 optdepends=('libappindicator-gtk3: Allow sparkle to extend a menu via Ayatana indicators in Unity, KDE or Systray (GTK+ 3 library).')
-makedepends=('nodejs' 'pnpm' 'libxcrypt-compat')
+makedepends=('nodejs' 'pnpm' 'libxcrypt-compat' 'libarchive')
 install=$pkgname.install
 source=(
     "${pkgname}-${pkgver}.tar.gz::${url}/archive/refs/tags/${pkgver}.tar.gz"
     "${pkgname}.sh"
 )
-sha256sums=("d2fe3633951f7e164bc2df4437decd86e880a516e318363601ea552989c0c73d"
+sha256sums=("28e4a721d1bc4cf25934eb7ddfd7309587b8ea5c4771baba1137b4b4ae77aaa2"
 "03eb601fe981716e90f9170eeb36a2e7938587f05a1bdaa09adadb1229c77a0a")
-options=('!lto')
+options=('!debug' '!lto')
 
 prepare(){
     cd $srcdir/${pkgname}-${pkgver}

@@ -83,3 +83,10 @@ jobs:
             bin/latest.yml
             bin/dist/*
           prerelease: true
+
+  aur:
+    if: needs.prepare.outputs.tag == 'rolling'
+    needs: [prepare, publish]
+    uses: ./.github/workflows/aur.yml
+    secrets:
+      AUR_SSH_PRIVATE_KEY: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
