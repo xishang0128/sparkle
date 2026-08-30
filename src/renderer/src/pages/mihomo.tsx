@@ -58,6 +58,7 @@ const Mihomo: React.FC = () => {
   const {
     core = 'mihomo',
     corePermissionMode = 'elevated',
+    serviceRunMode = 'auto',
     coreStartupMode = 'post-up',
     mihomoCpuPriority = 'PRIORITY_NORMAL'
   } = appConfig || {}
@@ -289,7 +290,20 @@ const Mihomo: React.FC = () => {
             <Tab key="service" title="系统服务" />
           </Tabs>
         </SettingItem>
-
+        {platform === 'linux' && corePermissionMode === 'service' && (
+          <SettingItem compatKey="legacy" title="服务核心运行方式" divider>
+            <Tabs
+              size="sm"
+              color="primary"
+              selectedKey={serviceRunMode}
+              onSelectionChange={(key) => handleConfigChangeWithRestart('serviceRunMode', key)}
+            >
+              <Tab key="auto" title="自动" />
+              <Tab key="sandbox" title="沙盒" />
+              <Tab key="direct" title="直接启动" />
+            </Tabs>
+          </SettingItem>
+        )}
         {corePermissionMode !== 'service' && (
           <SettingItem compatKey="legacy" title="启动检测方式" divider>
             <Tabs

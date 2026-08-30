@@ -377,6 +377,7 @@ export const getCoreStatus = async (): Promise<Record<string, unknown>> => {
 export interface ServiceCoreLaunchProfile {
   core_path?: string
   args?: string[]
+  mode?: 'auto' | 'sandbox' | 'direct'
   safe_paths?: string[]
   env?: Record<string, string | undefined>
   mihomo_cpu_priority?: Priority

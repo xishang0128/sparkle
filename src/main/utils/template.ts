@@ -62,6 +62,7 @@ export const defaultConfig: AppConfig = {
   showGroupSelectedProxy: false,
   autoLightweightMode: 'core',
   coreStartupMode: 'post-up',
+  serviceRunMode: 'auto',
   delayTestConcurrency: 50,
   delayTestUseGroupApi: false,
   delayTestUrlScope: 'group',

@@ -328,6 +328,7 @@ export async function startCore(detached = false): Promise<Promise<void>[]> {
   const {
     core = 'mihomo',
     corePermissionMode = 'elevated',
+    serviceRunMode = 'auto',
     coreStartupMode = 'post-up',
     autoSetDNSMode = 'none',
     diffWorkDir = false,
@@ -416,6 +417,7 @@ export async function startCore(detached = false): Promise<Promise<void>[]> {
     const serviceProfile: ServiceCoreLaunchProfile = {
       core_path: corePath,
       args: spawnArgs,
+      mode: serviceRunMode,
       safe_paths: safePaths,
       env,
       mihomo_cpu_priority: mihomoCpuPriority,
