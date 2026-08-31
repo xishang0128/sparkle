@@ -104,6 +104,7 @@ pacman:
     - --before-install=build/linux/preinst
     - --pacman-compression
     - zstd
+    - build/linux/sparkle.sh=/usr/bin/sparkle
   depends:
     - alsa-lib
     - gtk3

@@ -1,13 +1,15 @@
 #!/bin/bash
 
-if type update-alternatives 2>/dev/null >&1; then
-    # Remove previous link if it doesn't use update-alternatives
-    if [ -L '/usr/bin/sparkle' -a -e '/usr/bin/sparkle' -a "`readlink '/usr/bin/sparkle'`" != '/etc/alternatives/sparkle' ]; then
-        rm -f '/usr/bin/sparkle'
+if [ ! -f '/usr/bin/sparkle' ] || [ -L '/usr/bin/sparkle' ]; then
+    if type update-alternatives 2>/dev/null >&1; then
+        # Remove previous link if it doesn't use update-alternatives
+        if [ -L '/usr/bin/sparkle' -a -e '/usr/bin/sparkle' -a "`readlink '/usr/bin/sparkle'`" != '/etc/alternatives/sparkle' ]; then
+            rm -f '/usr/bin/sparkle'
+        fi
+        update-alternatives --install '/usr/bin/sparkle' 'sparkle' '/opt/sparkle/sparkle' 100 || ln -sf '/opt/sparkle/sparkle' '/usr/bin/sparkle'
+    else
+        ln -sf '/opt/sparkle/sparkle' '/usr/bin/sparkle'
     fi
-    update-alternatives --install '/usr/bin/sparkle' 'sparkle' '/opt/sparkle/sparkle' 100 || ln -sf '/opt/sparkle/sparkle' '/usr/bin/sparkle'
-else
-    ln -sf '/opt/sparkle/sparkle' '/usr/bin/sparkle'
 fi
 
 sed -i 's/Name=sparkle/Name=Sparkle/' '/usr/share/applications/sparkle.desktop'
