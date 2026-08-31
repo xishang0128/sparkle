@@ -1,4 +1,4 @@
-import { BrowserWindow, Notification, ipcMain, shell } from 'electron'
+import { BrowserWindow, Notification, clipboard, dialog, ipcMain, shell } from 'electron'
 import { getAppConfig } from '../config/app'
 
 export type AppNotificationVariant = 'default' | 'accent' | 'success' | 'warning' | 'danger'
@@ -25,6 +25,11 @@ ipcMain.on('app-notification-ready', (event) => {
   flushPendingToastNotifications(window)
 })
 
+ipcMain.on('app-notification-detail', (event, title: string, body: string) => {
+  const window = BrowserWindow.fromWebContents(event.sender)
+  if (window && isMainRendererWindow(window)) showNotificationDetail(title, body)
+})
+
 export async function showNotification(payload: AppNotificationPayload): Promise<void> {
   const notification = normalizeNotificationPayload(payload)
   let notificationMode: AppNotificationMode = 'system'
@@ -45,12 +50,20 @@ export async function showNotification(payload: AppNotificationPayload): Promise
     return
   }
 
+  const hasErrorDetail = notification.variant === 'danger' && Boolean(notification.body)
   const systemNotification = new Notification({
     title: notification.title,
     body: notification.body,
-    timeoutType: notification.persistent ? 'never' : 'default'
+    timeoutType: notification.persistent ? 'never' : 'default',
+    actions: hasErrorDetail ? [{ type: 'button', text: '查看详情' }] : undefined
   })
-  if (notification.url) {
+  if (hasErrorDetail) {
+    const showDetail = (): void => {
+      showNotificationDetail(notification.title, notification.body!)
+    }
+    systemNotification.on('action', showDetail)
+    systemNotification.on('click', showDetail)
+  } else if (notification.url) {
     systemNotification.on('click', () => {
       void shell.openExternal(notification.url!)
     })
@@ -111,6 +124,21 @@ function flushPendingToastNotifications(window: BrowserWindow): void {
 function isMainRendererWindow(window: BrowserWindow): boolean {
   const url = window.webContents.getURL()
   return !url.includes('floating.html') && !url.includes('traymenu.html')
+}
+
+function showNotificationDetail(title: string, body: string): void {
+  void dialog
+    .showMessageBox({
+      type: 'error',
+      title: '错误详情',
+      message: title,
+      detail: body,
+      buttons: ['关闭', '复制'],
+      noLink: true
+    })
+    .then(({ response }) => {
+      if (response === 1) clipboard.writeText(body)
+    })
 }
 
 function normalizeNotificationPayload(payload: AppNotificationPayload): AppNotificationPayload {

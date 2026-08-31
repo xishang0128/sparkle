@@ -113,12 +113,18 @@ async function showNotification(
     body: payload.body,
     requireInteraction: payload.persistent
   })
-  notification.onclick = payload.url
-    ? () => {
-        window.open(payload.url, '_blank', 'noopener,noreferrer')
-        notification.close()
-      }
-    : null
+  notification.onclick =
+    payload.variant === 'danger' && payload.body
+      ? () => {
+          window.electron.ipcRenderer.send('app-notification-detail', payload.title, payload.body)
+          notification.close()
+        }
+      : payload.url
+        ? () => {
+            window.open(payload.url, '_blank', 'noopener,noreferrer')
+            notification.close()
+          }
+        : null
   notification.onclose = payload.onClose ?? null
 }
 
