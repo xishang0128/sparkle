@@ -124,9 +124,36 @@ jobs:
       version: ${{ needs.prepare.outputs.version }}
       release_tag: ${{ needs.prepare.outputs.tag }}
 
-  publish:
+  update-version:
     if: needs.prepare.outputs.should_release == 'true'
     needs: [prepare, build]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Default Branch
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+
+      - name: Update Version
+        env:
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          RELEASE_VERSION: ${{ needs.prepare.outputs.version }}
+        shell: bash
+        run: |
+          jq --arg version "$RELEASE_VERSION" '.version = $version' package.json > tmp.json && mv tmp.json package.json
+          if git diff --quiet -- package.json; then
+            exit 0
+          fi
+
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+          git add package.json
+          git commit -m "update version to $RELEASE_VERSION"
+          git push origin "HEAD:$DEFAULT_BRANCH"
+
+  publish:
+    if: needs.prepare.outputs.should_release == 'true'
+    needs: [prepare, build, update-version]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -240,30 +267,3 @@ jobs:
             latest.yml
             bin/dist/*
           make_latest: true
-
-  update-version:
-    if: needs.prepare.outputs.should_release == 'true'
-    needs: [prepare, publish]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Default Branch
-        uses: actions/checkout@v6
-        with:
-          ref: ${{ github.event.repository.default_branch }}
-
-      - name: Update Version
-        env:
-          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
-          RELEASE_VERSION: ${{ needs.prepare.outputs.version }}
-        shell: bash
-        run: |
-          jq --arg version "$RELEASE_VERSION" '.version = $version' package.json > tmp.json && mv tmp.json package.json
-          if git diff --quiet -- package.json; then
-            exit 0
-          fi
-
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git config user.name "github-actions[bot]"
-          git add package.json
-          git commit -m "update version to $RELEASE_VERSION"
-          git push origin "HEAD:$DEFAULT_BRANCH"
