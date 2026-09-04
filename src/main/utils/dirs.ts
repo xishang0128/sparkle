@@ -5,6 +5,11 @@ import path from 'path'
 import { execSync } from 'child_process'
 import { getAppConfigSync } from '../config/app'
 import { checkCorePermissionPathSync } from '../core/permission-check'
+import {
+  systemCoreDefaultPath,
+  systemCoreOnlyBuild,
+  systemServicePath
+} from '../../shared/build-flags'
 
 export const homeDir = app.getPath('home')
 
@@ -94,6 +99,9 @@ export function serviceIpcPath(): string {
 }
 
 export function mihomoCoreDir(): string {
+  if (systemCoreOnlyBuild) {
+    return path.dirname(systemCorePath())
+  }
   return path.join(resourcesDir(), 'sidecar')
 }
 
@@ -115,10 +123,11 @@ export function mihomoCorePath(core: string): string {
 
 function systemCorePath(): string {
   const { systemCorePath = '' } = getAppConfigSync()
-  return systemCorePath
+  return systemCorePath || systemCoreDefaultPath
 }
 
 export function servicePath(): string {
+  if (systemCoreOnlyBuild) return systemServicePath
   const isWin = process.platform === 'win32'
   return path.join(resourcesFilesDir(), `sparkle-service${isWin ? '.exe' : ''}`)
 }
@@ -222,6 +231,10 @@ export function findSystemMihomo(): string[] {
   const isMac = process.platform === 'darwin'
   const foundPaths: string[] = []
   const searchNames = ['mihomo', 'clash']
+
+  if (systemCoreDefaultPath && existsSync(systemCoreDefaultPath)) {
+    foundPaths.push(systemCoreDefaultPath)
+  }
 
   for (const name of searchNames) {
     try {

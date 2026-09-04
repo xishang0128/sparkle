@@ -1,5 +1,6 @@
 import { ChildProcess, spawn } from 'child_process'
 import { dataDir, coreLogPath, mihomoCorePath } from '../utils/dirs'
+import { systemCoreOnlyBuild } from '../../shared/build-flags'
 import { generateProfile, getRuntimeConfig } from './factory'
 import {
   getAppConfig,
@@ -349,7 +350,7 @@ export async function startCore(detached = false): Promise<Promise<void>[]> {
   try {
     corePath = mihomoCorePath(core)
   } catch (error) {
-    if (core === 'system') {
+    if (core === 'system' && !systemCoreOnlyBuild) {
       await patchAppConfig({ core: 'mihomo' })
       return startCore(detached)
     }

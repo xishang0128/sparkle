@@ -12,6 +12,7 @@ import {
 import { dump, load } from 'js-yaml'
 import ConfirmModal from '../base/base-confirm'
 import { notify } from '@renderer/utils/notification'
+import { systemCoreOnlyBuild } from '../../../../shared/build-flags'
 type Language = 'yaml' | 'javascript' | 'css' | 'json' | 'text'
 const FILE_PERMISSION_ELEVATION_REQUIRED = 'FILE_PERMISSION_ELEVATION_REQUIRED'
 const TEXT_VIEWER_LINE_LIMIT = 20000
@@ -80,6 +81,10 @@ const Viewer: React.FC<Props> = (props) => {
       onClose()
     } catch (e) {
       if (!elevated && typeof e === 'string' && e.includes(FILE_PERMISSION_ELEVATION_REQUIRED)) {
+        if (systemCoreOnlyBuild) {
+          notify('当前文件没有写入权限，系统内核构建不支持提权保存', { variant: 'danger' })
+          return
+        }
         setShowPermissionConfirm(true)
         return
       }
@@ -130,7 +135,7 @@ const Viewer: React.FC<Props> = (props) => {
 
   return (
     <Modal>
-      {showPermissionConfirm && (
+      {!systemCoreOnlyBuild && showPermissionConfirm && (
         <ConfirmModal
           onChange={setShowPermissionConfirm}
           title="保存需要提权"

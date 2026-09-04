@@ -4,6 +4,7 @@ import path from 'path'
 import zlib from 'zlib'
 import { extract } from 'tar'
 import { execSync } from 'child_process'
+import { systemCoreOnlyBuild } from './build-env.ts'
 
 const cwd = process.cwd()
 const TEMP_DIR = path.join(cwd, 'node_modules/.temp')
@@ -15,6 +16,11 @@ if (process.argv.slice(2).length !== 0) {
 
 if (process.env.SKIP_PREPARE === '1') {
   console.log('Skipping prepare script...')
+  process.exit(0)
+}
+
+if (systemCoreOnlyBuild) {
+  console.log('[INFO]: System-core-only build: external resources are provided by subpackages')
   process.exit(0)
 }
 

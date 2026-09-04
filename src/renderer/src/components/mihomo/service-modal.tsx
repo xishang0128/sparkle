@@ -3,14 +3,15 @@ import { Button, Spinner, Card, CardBody, Chip, Divider } from '@heroui/react'
 import { Modal } from '@heroui-v3/react'
 import { serviceStatus, testServiceConnection } from '@renderer/utils/ipc'
 import { notify } from '@renderer/utils/notification'
+import { systemCoreOnlyBuild, systemServicePath } from '../../../../shared/build-flags'
 
 interface Props {
   onChange: (open: boolean) => void
   onInit: () => Promise<void>
-  onInstall: () => Promise<void>
-  onUninstall: () => Promise<void>
-  onStart: () => Promise<void>
-  onRestart: () => Promise<void>
+  onInstall?: () => Promise<void>
+  onUninstall?: () => Promise<void>
+  onStart?: () => Promise<void>
+  onRestart?: () => Promise<void>
 }
 
 type ServiceStatusType = Awaited<ReturnType<typeof serviceStatus>>
@@ -211,10 +212,18 @@ const ServiceModal: React.FC<Props> = (props) => {
 
                 <div className="text-xs text-default-500 space-y-2">
                   <div className="flex items-start gap-2">
-                    <span>提供系统代理设置和核心进程管理的提权功能</span>
+                    <span>
+                      {systemCoreOnlyBuild
+                        ? `使用系统服务：${systemServicePath}`
+                        : '提供系统代理设置和核心进程管理的提权功能'}
+                    </span>
                   </div>
                   <div className="flex items-start gap-2">
-                    <span>未安装状态下部分高级功能将无法使用</span>
+                    <span>
+                      {systemCoreOnlyBuild
+                        ? '服务生命周期由发行版 init 系统负责管理'
+                        : '未安装状态下部分高级功能将无法使用'}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -230,12 +239,24 @@ const ServiceModal: React.FC<Props> = (props) => {
                 关闭
               </Button>
 
-              {status === 'unknown' ? null : status === 'not-installed' ? (
+              {systemCoreOnlyBuild ? (
+                status === null || status === 'unknown' || status === 'not-installed' ? null : (
+                  <Button
+                    size="sm"
+                    color="primary"
+                    variant="flat"
+                    onPress={() => handleAction(onInit)}
+                    isLoading={loading}
+                  >
+                    {status === 'need-init' ? '初始化' : '重置认证'}
+                  </Button>
+                )
+              ) : status === 'unknown' ? null : status === 'not-installed' ? (
                 <Button
                   size="sm"
                   color="primary"
                   variant="shadow"
-                  onPress={() => handleAction(onInstall)}
+                  onPress={() => handleAction(onInstall!)}
                   isLoading={loading}
                 >
                   安装服务
@@ -255,7 +276,7 @@ const ServiceModal: React.FC<Props> = (props) => {
                     size="sm"
                     color="primary"
                     variant="flat"
-                    onPress={() => handleAction(onRestart)}
+                    onPress={() => handleAction(onRestart!)}
                     isLoading={loading}
                   >
                     重启
@@ -265,7 +286,7 @@ const ServiceModal: React.FC<Props> = (props) => {
                       size="sm"
                       color="success"
                       variant="shadow"
-                      onPress={() => handleAction(onStart, true)}
+                      onPress={() => handleAction(onStart!, true)}
                       isLoading={loading}
                     >
                       启动
@@ -275,7 +296,7 @@ const ServiceModal: React.FC<Props> = (props) => {
                     size="sm"
                     color="danger"
                     variant="flat"
-                    onPress={() => handleAction(onUninstall)}
+                    onPress={() => handleAction(onUninstall!)}
                     isLoading={loading}
                   >
                     卸载

@@ -4,6 +4,7 @@ import {
   isRunningAsAdmin as nativeIsRunningAsAdmin,
   runElevated
 } from '@uruhalushia/sparkle-native'
+import { systemCoreOnlyBuild, systemServicePath } from '../../shared/build-flags'
 
 const execFilePromise = promisify(execFile)
 
@@ -31,6 +32,10 @@ function appleScriptQuote(value: string): string {
 }
 
 export async function execWithElevation(command: string, args: string[]): Promise<void> {
+  if (systemCoreOnlyBuild && command !== systemServicePath) {
+    throw new Error('系统内核构建不支持提权操作')
+  }
+
   if (process.platform === 'win32') {
     try {
       if (await isRunningAsAdmin()) {

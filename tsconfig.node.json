@@ -5,10 +5,13 @@
     "scripts/**/*",
     "src/main/**/*",
     "src/preload/**/*",
+    "src/shared/*.ts",
     "src/shared/**/*.d.ts"
   ],
   "compilerOptions": {
+    "allowImportingTsExtensions": true,
     "composite": true,
+    "noEmit": true,
     "types": ["electron-vite/node"],
     "moduleResolution": "bundler"
   }

@@ -29,6 +29,7 @@ import EnvSetting from '@renderer/components/mihomo/env-setting'
 import AdvancedSetting from '@renderer/components/mihomo/advanced-settings'
 import LogSetting from '@renderer/components/mihomo/log-setting'
 import { notify } from '@renderer/utils/notification'
+import { systemCoreOnlyBuild } from '../../../shared/build-flags'
 
 let systemCorePathsCache: string[] | null = null
 let cachePromise: Promise<string[]> | null = null
@@ -142,7 +143,7 @@ const Mihomo: React.FC = () => {
 
   return (
     <BasePage title="内核设置" contentClassName="no-scrollbar">
-      {showPermissionModal && (
+      {!systemCoreOnlyBuild && showPermissionModal && (
         <PermissionModal
           onChange={setShowPermissionModal}
           onRevoke={async () => {
@@ -169,22 +170,26 @@ const Mihomo: React.FC = () => {
             await initService()
             notify('服务初始化成功')
           }}
-          onInstall={async () => {
-            await installService()
-            notify('服务安装成功')
-          }}
-          onUninstall={async () => {
-            await uninstallService()
-            notify('服务卸载成功')
-          }}
-          onStart={async () => {
-            await startService()
-            notify('服务启动成功')
-          }}
-          onRestart={async () => {
-            await restartService()
-            notify('服务重启成功')
-          }}
+          {...(!systemCoreOnlyBuild
+            ? {
+                onInstall: async () => {
+                  await installService()
+                  notify('服务安装成功')
+                },
+                onUninstall: async () => {
+                  await uninstallService()
+                  notify('服务卸载成功')
+                },
+                onStart: async () => {
+                  await startService()
+                  notify('服务启动成功')
+                },
+                onRestart: async () => {
+                  await restartService()
+                  notify('服务重启成功')
+                }
+              }
+            : {})}
         />
       )}
       <SettingCard>
@@ -192,7 +197,7 @@ const Mihomo: React.FC = () => {
           compatKey="legacy"
           title="内核版本"
           actions={
-            core === 'mihomo' || core === 'mihomo-alpha' ? (
+            !systemCoreOnlyBuild && (core === 'mihomo' || core === 'mihomo-alpha') ? (
               <Button
                 size="sm"
                 isIconOnly
@@ -206,21 +211,25 @@ const Mihomo: React.FC = () => {
           }
           divider
         >
-          <Select
-            aria-label="内核版本"
-            classNames={{ trigger: 'data-[hover=true]:bg-default-200' }}
-            className="w-37.5"
-            size="sm"
-            selectedKeys={new Set([core])}
-            disallowEmptySelection={true}
-            onSelectionChange={(v) =>
-              handleCoreChange(v.currentKey as 'mihomo' | 'mihomo-alpha' | 'system')
-            }
-          >
-            <SelectItem key="mihomo">内置稳定版</SelectItem>
-            <SelectItem key="mihomo-alpha">内置预览版</SelectItem>
-            <SelectItem key="system">使用系统内核</SelectItem>
-          </Select>
+          {systemCoreOnlyBuild ? (
+            <span className="text-sm text-foreground-600">系统内核</span>
+          ) : (
+            <Select
+              aria-label="内核版本"
+              classNames={{ trigger: 'data-[hover=true]:bg-default-200' }}
+              className="w-37.5"
+              size="sm"
+              selectedKeys={new Set([core])}
+              disallowEmptySelection={true}
+              onSelectionChange={(v) =>
+                handleCoreChange(v.currentKey as 'mihomo' | 'mihomo-alpha' | 'system')
+              }
+            >
+              <SelectItem key="mihomo">内置稳定版</SelectItem>
+              <SelectItem key="mihomo-alpha">内置预览版</SelectItem>
+              <SelectItem key="system">使用系统内核</SelectItem>
+            </Select>
+          )}
         </SettingItem>
         {core === 'system' && (
           <SettingItem compatKey="legacy" title="系统内核路径选择" divider>
@@ -317,11 +326,13 @@ const Mihomo: React.FC = () => {
             </Tabs>
           </SettingItem>
         )}
-        <SettingItem compatKey="legacy" title="提权状态" divider>
-          <Button size="sm" color="primary" onPress={() => setShowPermissionModal(true)}>
-            管理
-          </Button>
-        </SettingItem>
+        {!systemCoreOnlyBuild && (
+          <SettingItem compatKey="legacy" title="提权状态" divider>
+            <Button size="sm" color="primary" onPress={() => setShowPermissionModal(true)}>
+              管理
+            </Button>
+          </SettingItem>
+        )}
         <SettingItem compatKey="legacy" title="服务状态" divider>
           <Button size="sm" color="primary" onPress={() => setShowServiceModal(true)}>
             管理
