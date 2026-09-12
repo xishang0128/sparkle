@@ -16,7 +16,7 @@ source=("${_pkgname}.desktop" "${_pkgname}.sh")
 source_x86_64=("${_pkgname}-${pkgver}-x86_64.deb::${url}/releases/download/${pkgver}/sparkle-linux-${pkgver}-amd64.deb")
 source_aarch64=("${_pkgname}-${pkgver}-aarch64.deb::${url}/releases/download/${pkgver}/sparkle-linux-${pkgver}-arm64.deb")
 sha256sums=(
-    "b17d85f6d862285a53a24d0f8dedd08f1f3c852ba6a901fabc487177598803cc"
+    "9163b61e496487c06afa67318710c49fb755bded663520edbb89a934a8b25ee0"
     "ce855656fb0682d403685244c77dd2d90ec6efb207753fb7a6ddc1e9b6aa2c49"
 )
 sha256sums_x86_64=('0e3c8c91b206bbdfa517d57b8646184301214220d50e3b020f96d2fec593e6c2')
