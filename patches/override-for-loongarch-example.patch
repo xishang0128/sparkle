@@ -1,0 +1,13 @@
+diff --git a/pnpm-workspace.yaml b/pnpm-workspace.yaml
+index 60b0fc6..2a1f99b 100644
+--- a/pnpm-workspace.yaml
++++ b/pnpm-workspace.yaml
+@@ -7,6 +7,8 @@ allowBuilds:
+   meta-json-schema: true
+ overrides:
+   typescript-eslint: ^8.59.2
++  electron: 42.3.0
++  electron-builder: npm:@loongdotjs/electron-builder@26.15.6
+ patchedDependencies:
+   monaco-worker-manager@2.0.1: patches/monaco-worker-manager@2.0.1.patch
+ publicHoistPattern:

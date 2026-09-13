@@ -155,14 +155,7 @@ jobs:
             *) echo "Unsupported native target: ${{ matrix.os }}-${{ matrix.arch }}" && exit 1 ;;
           esac
 
-          if [[ "${{ matrix.arch }}" == "loong64" ]]; then
-            export ELECTRON_MIRROR="https://github.com/darkyzhou/electron-loong64/releases/download/"
-            export electron_use_remote_checksums=1
-            export ELECTRON_INSTALL_ARCH=loong64
-            SKIP_PREPARE=1 pnpm install $PNPM_TARGET_FLAGS --no-frozen-lockfile
-          else
-            SKIP_PREPARE=1 pnpm install $PNPM_TARGET_FLAGS
-          fi
+          SKIP_PREPARE=1 pnpm install $PNPM_TARGET_FLAGS
 
           verify_native_package() {
             node -e "require('node:module').createRequire(require.resolve(process.argv[1])).resolve(process.argv[2].trim() + '/package.json')" "$1" "$2"
