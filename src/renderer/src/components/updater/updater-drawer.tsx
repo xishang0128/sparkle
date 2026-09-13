@@ -1,9 +1,7 @@
 import { Button, Drawer, Label, Link, ProgressBar } from '@heroui-v3/react'
 import ReactMarkdown from 'react-markdown'
 import React, { useEffect, useRef, useState } from 'react'
-import { downloadAndInstallUpdate } from '@renderer/utils/ipc'
 import { FiX, FiDownload } from 'react-icons/fi'
-import { notify } from '@renderer/utils/notification'
 
 interface Props {
   version: string
@@ -23,7 +21,6 @@ const DRAWER_CLOSE_ANIMATION_MS = 700
 
 const UpdaterDrawer: React.FC<Props> = (props) => {
   const { version, tag, changelog, updateStatus, onCancel, onClose, reopenSignal } = props
-  const [downloading, setDownloading] = useState(false)
   const [isOpen, setIsOpen] = useState(true)
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -43,19 +40,8 @@ const UpdaterDrawer: React.FC<Props> = (props) => {
     setIsOpen(true)
   }, [reopenSignal])
 
-  const onUpdate = async (): Promise<void> => {
-    try {
-      setDownloading(true)
-      await downloadAndInstallUpdate(version, tag)
-    } catch (e) {
-      notify(e, { variant: 'danger' })
-      setDownloading(false)
-    }
-  }
-
   const handleCancel = (): void => {
     if (updateStatus?.downloading && onCancel) {
-      setDownloading(false)
       onCancel()
     } else {
       closeWithAnimation()
@@ -78,7 +64,7 @@ const UpdaterDrawer: React.FC<Props> = (props) => {
     }, DRAWER_CLOSE_ANIMATION_MS)
   }
 
-  const isDownloading = updateStatus?.downloading || downloading
+  const isDownloading = updateStatus?.downloading ?? false
   const releaseTag = tag ?? (version.includes('-rolling-') ? 'rolling' : version)
   const releaseUrl = `https://github.com/xishang0128/sparkle/releases/tag/${releaseTag}`
 
@@ -94,8 +80,8 @@ const UpdaterDrawer: React.FC<Props> = (props) => {
     >
       <Drawer.Content placement="right" className="top-12 h-[calc(100%-48px)] p-3 pl-0">
         <Drawer.Dialog className="updater-drawer h-full w-[min(460px,calc(100vw-32px))] max-w-none overflow-hidden rounded-2xl! border border-separator/70 bg-overlay p-0 shadow-overlay">
-          <Drawer.Header className="border-b border-separator/70 px-5 py-4">
-            <div className="flex min-w-0 items-center gap-3">
+          <Drawer.Header className="relative border-b border-separator/70 px-5 py-4 pr-14">
+            <div className="flex min-w-0 flex-1 items-start gap-3">
               <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-accent-soft text-accent-soft-foreground">
                 <FiDownload className="size-4.5" />
               </div>
@@ -103,18 +89,18 @@ const UpdaterDrawer: React.FC<Props> = (props) => {
                 <Drawer.Heading className="truncate text-base font-semibold">
                   {version} 版本就绪
                 </Drawer.Heading>
+                {!isDownloading && (
+                  <Link
+                    className="app-nodrag mt-2 inline-flex text-sm text-muted hover:text-foreground"
+                    href={releaseUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    前往 GitHub 下载
+                  </Link>
+                )}
               </div>
             </div>
-            {!isDownloading && (
-              <Link
-                className="app-nodrag shrink-0 text-sm"
-                href={releaseUrl}
-                target="_blank"
-                rel="noreferrer"
-              >
-                前往 GitHub 下载
-              </Link>
-            )}
           </Drawer.Header>
           <Drawer.Body className="h-full px-5 py-4 text-foreground">
             {updateStatus?.downloading && (
@@ -163,33 +149,34 @@ const UpdaterDrawer: React.FC<Props> = (props) => {
             )}
           </Drawer.Body>
           <Drawer.Footer className="border-t border-separator/70 px-5 py-4">
-            <Button
-              size="sm"
-              className="h-8 min-w-0 px-3 text-sm leading-none"
-              variant="secondary"
-              onPress={handleCancel}
-            >
-              {updateStatus?.downloading ? (
-                <>
+            {!updateStatus?.downloading && (
+              <p className="text-sm text-muted">
+                Linux 用户请通过系统包管理器完成更新。
+              </p>
+            )}
+            {updateStatus?.downloading && (
+              <>
+                <Button
+                  size="sm"
+                  className="h-8 min-w-0 px-3 text-sm leading-none"
+                  variant="secondary"
+                  onPress={handleCancel}
+                >
                   <FiX />
                   取消下载
-                </>
-              ) : (
-                '取消'
-              )}
-            </Button>
-            {!updateStatus?.downloading && (
-              <Button
-                size="sm"
-                className="h-8 min-w-0 px-3 text-sm leading-none"
-                isPending={downloading}
-                onPress={onUpdate}
-              >
-                <FiDownload />
-                立即更新
-              </Button>
+                </Button>
+                <Button
+                  size="sm"
+                  className="h-8 min-w-0 px-3 text-sm leading-none"
+                  variant="secondary"
+                  onPress={closeWithAnimation}
+                >
+                  关闭
+                </Button>
+              </>
             )}
           </Drawer.Footer>
+          <Drawer.CloseTrigger className="app-nodrag" />
         </Drawer.Dialog>
       </Drawer.Content>
     </Drawer.Backdrop>
