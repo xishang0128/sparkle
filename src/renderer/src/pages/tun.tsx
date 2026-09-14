@@ -135,6 +135,7 @@ const Tun: React.FC = () => {
               <Tab key="gvisor" title="gVisor" />
               <Tab key="mixed" title="Mixed" />
               <Tab key="system" title="System" />
+              <Tab key="mips" title="MIPS" />
             </Tabs>
           </SettingItem>
           {platform !== 'darwin' && (
