@@ -3,7 +3,6 @@ import AdmZip from 'adm-zip'
 import path from 'path'
 import zlib from 'zlib'
 import { extract } from 'tar'
-import { execSync } from 'child_process'
 import { systemCoreOnlyBuild } from './build-env.ts'
 
 const cwd = process.cwd()
@@ -193,7 +192,7 @@ async function resolveSidecar(binInfo: SidecarInfo) {
         const extractedFilePath = path.join(tempDir, extractedFile)
         fs.renameSync(extractedFilePath, sidecarPath)
         console.log(`[INFO]: "${name}" file renamed to "${sidecarPath}"`)
-        execSync(`chmod 755 ${sidecarPath}`)
+        fs.chmodSync(sidecarPath, 0o755)
         console.log(`[INFO]: "${name}" chmod binary finished`)
       } else {
         throw new Error(`Expected file not found in ${tempDir}`)
@@ -212,7 +211,7 @@ async function resolveSidecar(binInfo: SidecarInfo) {
           .pipe(writeStream)
           .on('finish', () => {
             console.log(`[INFO]: "${name}" gunzip finished`)
-            execSync(`chmod 755 ${sidecarPath}`)
+            fs.chmodSync(sidecarPath, 0o755)
             console.log(`[INFO]: "${name}" chmod binary finished`)
             resolve()
           })
@@ -245,7 +244,7 @@ async function resolveResource(binInfo: ResourceInfo) {
   await downloadFile(downloadURL, targetPath)
 
   if (needExecutable && platform !== 'win32') {
-    execSync(`chmod 755 ${targetPath}`)
+    fs.chmodSync(targetPath, 0o755)
     console.log(`[INFO]: ${file} chmod finished`)
   }
 
