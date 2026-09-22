@@ -194,7 +194,7 @@ const Viewer: React.FC<Props> = (props) => {
                 </Button>
               </Modal.Footer>
             )}
-            {type !== 'File' && <Modal.CloseTrigger className="app-nodrag" />}
+            <Modal.CloseTrigger className="app-nodrag" />
           </Modal.Dialog>
         </Modal.Container>
       </Modal.Backdrop>

@@ -429,6 +429,7 @@ const TrayIconCropModal: React.FC<Props> = (props) => {
                 确认
               </Button>
             </Modal.Footer>
+            <Modal.CloseTrigger className="app-nodrag" />
           </Modal.Dialog>
         </Modal.Container>
       </Modal.Backdrop>

@@ -1,4 +1,14 @@
 @layer components {
+  .modal__container[data-entering='true'] {
+    --tw-enter-scale: 1;
+    --tw-enter-translate-y: 8px;
+  }
+
+  .modal__container[data-exiting='true'] {
+    --tw-exit-scale: 1;
+    --tw-exit-translate-y: -4px;
+  }
+
   :where(.button[data-color], .chip[data-color], .badge[data-color], .tooltip[data-color]) {
     --app-color: var(--default);
     --app-color-foreground: var(--default-foreground);

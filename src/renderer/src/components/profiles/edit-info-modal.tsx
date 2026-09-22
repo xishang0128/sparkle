@@ -492,6 +492,7 @@ const EditInfoModal: React.FC<Props> = (props) => {
                 {item.id ? '保存' : '导入'}
               </Button>
             </Modal.Footer>
+            <Modal.CloseTrigger className="app-nodrag" />
           </Modal.Dialog>
         </Modal.Container>
       </Modal.Backdrop>

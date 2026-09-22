@@ -108,11 +108,9 @@ const UpdaterDrawer: React.FC<Props> = (props) => {
       isDismissable={!isDownloading}
       className="top-12 h-[calc(100%-48px)]"
     >
-      <Drawer.Content placement="right" className="top-12 h-[calc(100%-48px)] p-3 pl-0">
-        <Drawer.Dialog className="updater-drawer h-full w-[min(460px,calc(100vw-32px))] max-w-none overflow-hidden rounded-2xl! border border-separator/70 bg-overlay p-0 shadow-overlay">
-          <Drawer.Header
-            className={`border-b border-separator/70 px-5 py-4 ${isLinux ? 'relative pr-14' : ''}`}
-          >
+      <Drawer.Content placement="right" className="top-12 h-[calc(100%-48px)] p-2 pl-0">
+        <Drawer.Dialog className="updater-drawer h-full w-[min(460px,calc(100vw-32px))] max-w-none overflow-hidden rounded-xl! border border-default-200/70 bg-surface p-0 shadow-lg">
+          <Drawer.Header className="border-b border-default-200/70 px-4 py-3">
             <div
               className={`flex min-w-0 gap-3 ${isLinux ? 'flex-1 items-start' : 'items-center'}`}
             >
@@ -128,9 +126,9 @@ const UpdaterDrawer: React.FC<Props> = (props) => {
             </div>
             {!isLinux && releaseLink}
           </Drawer.Header>
-          <Drawer.Body className="h-full px-5 py-4 text-foreground">
+          <Drawer.Body className="h-full px-4 py-3 text-foreground">
             {updateStatus?.downloading && (
-              <div className="mb-4 rounded-xl border border-separator/70 bg-surface-secondary p-4">
+              <div className="mb-4 rounded-xl border border-default-200/70 bg-surface-secondary p-4">
                 <ProgressBar aria-label="下载进度" color="accent" size="sm" value={progress}>
                   <div className="mb-2 flex items-center justify-between gap-3">
                     <Label className="text-sm font-medium text-foreground">下载进度</Label>
@@ -174,7 +172,7 @@ const UpdaterDrawer: React.FC<Props> = (props) => {
               </div>
             )}
           </Drawer.Body>
-          <Drawer.Footer className="border-t border-separator/70 px-5 py-4">
+          <Drawer.Footer className="border-t border-default-200/70 px-4 py-3">
             {isLinux ? (
               <p className="text-sm text-muted">Linux 用户请通过系统包管理器完成更新。</p>
             ) : (
@@ -208,7 +206,7 @@ const UpdaterDrawer: React.FC<Props> = (props) => {
               </>
             )}
           </Drawer.Footer>
-          {isLinux && <Drawer.CloseTrigger className="app-nodrag" />}
+          {!isDownloading && <Drawer.CloseTrigger className="app-nodrag" />}
         </Drawer.Dialog>
       </Drawer.Content>
     </Drawer.Backdrop>

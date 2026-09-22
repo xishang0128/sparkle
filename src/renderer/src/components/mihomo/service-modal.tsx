@@ -138,10 +138,7 @@ const ServiceModal: React.FC<Props> = (props) => {
             </Modal.Header>
             <Modal.Body>
               <div className="space-y-4">
-                <Card
-                  className="border-none bg-linear-to-br from-default-50 to-default-100"
-                  data-shadow="sm"
-                >
+                <Card className="border border-default-200 bg-surface" data-shadow="sm">
                   <Card.Content className="py-4">
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-2">
@@ -217,17 +214,6 @@ const ServiceModal: React.FC<Props> = (props) => {
               </div>
             </Modal.Body>
             <Modal.Footer className="flex-col gap-2 sm:flex-row">
-              <Button
-                size="sm"
-                onPress={() => onChange(false)}
-                variant="ghost"
-                data-color="default"
-                className="sm:mr-auto"
-                isDisabled={loading}
-              >
-                关闭
-              </Button>
-
               {status === 'unknown' ? null : status === 'not-installed' ? (
                 <Button
                   size="sm"
@@ -235,6 +221,7 @@ const ServiceModal: React.FC<Props> = (props) => {
                   variant="primary"
                   data-color="primary"
                   data-shadow="true"
+                  className="min-w-20"
                   isPending={loading}
                   isDisabled={loading}
                 >
@@ -246,7 +233,8 @@ const ServiceModal: React.FC<Props> = (props) => {
                     size="sm"
                     onPress={() => handleAction(onInit)}
                     variant="secondary"
-                    data-color="primary"
+                    data-color="default"
+                    className="min-w-20"
                     isPending={loading}
                     isDisabled={loading}
                   >
@@ -257,7 +245,8 @@ const ServiceModal: React.FC<Props> = (props) => {
                     size="sm"
                     onPress={() => handleAction(onRestart)}
                     variant="secondary"
-                    data-color="primary"
+                    data-color="default"
+                    className="min-w-20"
                     isPending={loading}
                     isDisabled={loading}
                   >
@@ -269,6 +258,7 @@ const ServiceModal: React.FC<Props> = (props) => {
                       onPress={() => handleAction(onStart, true)}
                       variant="primary"
                       data-color="success"
+                      className="min-w-20"
                       data-shadow="true"
                       isPending={loading}
                       isDisabled={loading}
@@ -279,8 +269,9 @@ const ServiceModal: React.FC<Props> = (props) => {
                   <Button
                     size="sm"
                     onPress={() => handleAction(onUninstall)}
-                    variant="secondary"
+                    variant="primary"
                     data-color="danger"
+                    className="min-w-20"
                     isPending={loading}
                     isDisabled={loading}
                   >
@@ -289,6 +280,7 @@ const ServiceModal: React.FC<Props> = (props) => {
                 </>
               )}
             </Modal.Footer>
+            <Modal.CloseTrigger className="app-nodrag" />
           </Modal.Dialog>
         </Modal.Container>
       </Modal.Backdrop>

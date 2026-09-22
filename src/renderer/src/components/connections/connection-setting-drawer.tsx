@@ -64,12 +64,12 @@ const ConnectionSettingDrawer: React.FC<Props> = (props) => {
       variant="blur"
       className="top-12 h-[calc(100%-48px)]"
     >
-      <Drawer.Content placement="right" className="top-12 h-[calc(100%-48px)] p-3 pl-0">
-        <Drawer.Dialog className="flex h-full w-[min(460px,calc(100vw-32px))] max-w-none flex-col overflow-hidden rounded-2xl! border border-separator/70 bg-overlay p-0 shadow-overlay flag-emoji">
-          <Drawer.Header className="border-b border-separator/70 px-5 py-4">
+      <Drawer.Content placement="right" className="top-12 h-[calc(100%-48px)] p-2 pl-0">
+        <Drawer.Dialog className="flex h-full w-[min(460px,calc(100vw-32px))] max-w-none flex-col overflow-hidden rounded-xl! border border-default-200/70 bg-surface p-0 shadow-lg flag-emoji">
+          <Drawer.Header className="border-b border-default-200/70 px-4 py-3">
             <Drawer.Heading className="text-base font-semibold">连接设置</Drawer.Heading>
           </Drawer.Header>
-          <Drawer.Body className="no-scrollbar flex-1 overflow-y-auto px-5 py-3">
+          <Drawer.Body className="no-scrollbar flex-1 overflow-y-auto px-4 py-2">
             <div className="flex flex-col gap-1">
               <SettingItem title="显示应用图标" {...settingItemProps} divider>
                 <Switch

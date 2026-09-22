@@ -151,6 +151,7 @@ const EditFileModal: React.FC<Props> = (props) => {
                 </Button>
               </div>
             </Modal.Footer>
+            <Modal.CloseTrigger className="app-nodrag" />
           </Modal.Dialog>
         </Modal.Container>
       </Modal.Backdrop>

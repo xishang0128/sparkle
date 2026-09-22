@@ -101,6 +101,7 @@ const ConfirmModal: React.FC<Props> = (props) => {
               <div className="leading-relaxed">{description}</div>
             </Modal.Body>
             <Modal.Footer className="space-x-2">{renderButtons()}</Modal.Footer>
+            <Modal.CloseTrigger className="app-nodrag" />
           </Modal.Dialog>
         </Modal.Container>
       </Modal.Backdrop>

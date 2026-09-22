@@ -33,26 +33,18 @@ const ErrorDetailDrawer: React.FC<Props> = (props) => {
       variant="blur"
       className="top-12 h-[calc(100%-48px)]"
     >
-      <Drawer.Content placement="right" className="top-12 h-[calc(100%-48px)] p-3 pl-0">
-        <Drawer.Dialog className="flex h-full w-[min(520px,calc(100vw-32px))] max-w-none flex-col overflow-hidden rounded-2xl! border border-separator/70 bg-overlay p-0 shadow-overlay">
-          <Drawer.Header className="border-b border-separator/70 px-5 py-4">
+      <Drawer.Content placement="right" className="top-12 h-[calc(100%-48px)] p-2 pl-0">
+        <Drawer.Dialog className="flex h-full w-[min(520px,calc(100vw-32px))] max-w-none flex-col overflow-hidden rounded-xl! border border-default-200/70 bg-surface p-0 shadow-lg">
+          <Drawer.Header className="border-b border-default-200/70 px-4 py-3">
             <Drawer.Heading className="text-base font-semibold">错误详情</Drawer.Heading>
           </Drawer.Header>
-          <Drawer.Body className="no-scrollbar flex-1 overflow-y-auto px-5 py-4 text-foreground">
+          <Drawer.Body className="no-scrollbar flex-1 overflow-y-auto px-4 py-3 text-foreground">
             <div className="mb-3 text-sm font-medium">{props.title}</div>
             <pre className="select-text whitespace-pre-wrap wrap-break-word rounded-xl border border-separator/70 bg-surface-secondary p-4 font-mono text-xs leading-5">
               {props.body}
             </pre>
           </Drawer.Body>
-          <Drawer.Footer className="border-t border-separator/70 px-5 py-4">
-            <Button
-              size="sm"
-              variant="secondary"
-              className="h-8 min-w-0 px-3 text-sm leading-none"
-              onPress={() => props.onOpenChange(false)}
-            >
-              关闭
-            </Button>
+          <Drawer.Footer className="justify-end border-t border-default-200/70 px-4 py-3">
             <Button
               size="sm"
               className="h-8 min-w-0 px-3 text-sm leading-none"
@@ -62,6 +54,7 @@ const ErrorDetailDrawer: React.FC<Props> = (props) => {
               {copied ? '已复制' : '复制'}
             </Button>
           </Drawer.Footer>
+          <Drawer.CloseTrigger className="app-nodrag" />
         </Drawer.Dialog>
       </Drawer.Content>
     </Drawer.Backdrop>
