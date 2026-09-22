@@ -205,8 +205,11 @@ const Mihomo: React.FC = () => {
                   isPending={upgrading}
                   isDisabled={upgrading}
                 >
-                  {upgrading ? <Spinner size="sm" color="current" /> : null}
-                  <IoMdCloudDownload className="text-lg" />
+                  {upgrading ? (
+                    <Spinner size="sm" color="current" />
+                  ) : (
+                    <IoMdCloudDownload className="text-lg" />
+                  )}
                 </Button>
               ) : null
             }
