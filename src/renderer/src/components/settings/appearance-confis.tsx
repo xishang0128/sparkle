@@ -109,7 +109,9 @@ const AppearanceConfig: React.FC = () => {
               <Button isIconOnly size="sm" variant="ghost" data-color="default">
                 <IoIosHelpCircle className="text-lg" />
               </Button>
-              <Tooltip.Content>{'未禁用GPU加速的情况下，悬浮窗可能会导致应用崩溃'}</Tooltip.Content>
+              <Tooltip.Content>
+                {'未禁用 GPU 加速的情况下，悬浮窗可能会导致应用崩溃'}
+              </Tooltip.Content>
             </Tooltip>
           }
           divider

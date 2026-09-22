@@ -1,4 +1,4 @@
-import { RadioGroup, Radio, Label } from '@heroui/react'
+import { Tabs } from '@heroui/react'
 import React from 'react'
 import SettingCard from '../base/base-setting-card'
 import SettingItem from '../base/base-setting-item'
@@ -62,39 +62,32 @@ const SiderConfig: React.FC = () => {
             key={key}
             divider={index !== array.length - 1}
           >
-            <RadioGroup
-              orientation="horizontal"
-              value={cardStatus[key]}
-              className="app-radio-group"
-              onChange={(v) => {
+            <Tabs
+              selectedKey={cardStatus[key]}
+              onSelectionChange={(v) => {
                 patchAppConfig({ [key]: v as CardStatus })
               }}
+              data-color="primary"
+              data-size="sm"
+              data-full-width={false}
             >
-              <Radio value="col-span-2" className="app-radio">
-                <Radio.Content>
-                  <Radio.Control>
-                    <Radio.Indicator />
-                  </Radio.Control>
-                  <Label>大</Label>
-                </Radio.Content>
-              </Radio>
-              <Radio value="col-span-1" className="app-radio">
-                <Radio.Content>
-                  <Radio.Control>
-                    <Radio.Indicator />
-                  </Radio.Control>
-                  <Label>小</Label>
-                </Radio.Content>
-              </Radio>
-              <Radio value="hidden" className="app-radio">
-                <Radio.Content>
-                  <Radio.Control>
-                    <Radio.Indicator />
-                  </Radio.Control>
-                  <Label>隐藏</Label>
-                </Radio.Content>
-              </Radio>
-            </RadioGroup>
+              <Tabs.ListContainer>
+                <Tabs.List aria-label={`${titleMap[key]}显示方式`}>
+                  <Tabs.Tab key="col-span-2" id="col-span-2">
+                    大
+                    <Tabs.Indicator />
+                  </Tabs.Tab>
+                  <Tabs.Tab key="col-span-1" id="col-span-1">
+                    小
+                    <Tabs.Indicator />
+                  </Tabs.Tab>
+                  <Tabs.Tab key="hidden" id="hidden">
+                    隐藏
+                    <Tabs.Indicator />
+                  </Tabs.Tab>
+                </Tabs.List>
+              </Tabs.ListContainer>
+            </Tabs>
           </SettingItem>
         )
       })}

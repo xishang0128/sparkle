@@ -214,7 +214,7 @@
     color: var(--default-foreground);
   }
   .chip[data-outline='true'] {
-    background: transparent;
+    background-color: transparent !important;
     color: var(--app-color);
     border: 2px solid var(--app-color);
   }
@@ -559,6 +559,10 @@
     font-size: 1rem;
     font-weight: 400;
     color: var(--foreground);
+  }
+  .app-accordion .accordion__trigger:hover,
+  .app-accordion .accordion__trigger[data-hover='true'] {
+    background: transparent;
   }
   .app-accordion .accordion__body-inner {
     padding: 0.25rem 0;
