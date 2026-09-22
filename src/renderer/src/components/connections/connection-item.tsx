@@ -89,7 +89,7 @@ const ConnectionItemComponent: React.FC<Props> = ({
   }, [close, info.id])
 
   return (
-    <div className={`px-2 pb-2 ${index === 0 ? 'pt-2' : ''}`} style={{ minHeight: 80 }}>
+    <div className={`px-2 pb-1 ${index === 0 ? 'pt-1' : ''}`} style={{ minHeight: 68 }}>
       <Pressable onPress={handleCardPress}>
         <Card className="w-full" data-pressable="true" role="button" tabIndex={0}>
           <div className="w-full flex justify-between items-center">
@@ -103,7 +103,7 @@ const ConnectionItemComponent: React.FC<Props> = ({
             <div
               className={`w-full flex flex-col justify-start truncate relative ${displayIcon ? '-ml-2' : ''}`}
             >
-              <Card.Header className="pb-0 gap-1 flex items-center pr-12 relative">
+              <Card.Header className="relative flex items-center gap-1 pt-2 pr-12 pb-0">
                 <div className="ml-2 flex-1 text-ellipsis whitespace-nowrap overflow-hidden text-left">
                   <span style={{ textAlign: 'left' }}>
                     {hideProcess ? destination : `${processName} → ${destination}`}
@@ -126,7 +126,7 @@ const ConnectionItemComponent: React.FC<Props> = ({
                   )}
                 </Button>
               </Card.Header>
-              <Card.Footer className="pt-2">
+              <Card.Footer className="pt-1 pb-2">
                 <div className="flex gap-1 overflow-x-auto no-scrollbar">
                   <Chip
                     size="sm"

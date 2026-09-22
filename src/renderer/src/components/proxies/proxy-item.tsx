@@ -197,17 +197,17 @@ const ProxyItem: React.FC<Props> = (props) => {
           role="button"
           tabIndex={0}
         >
-          <Card.Content className="py-1.5 px-2">
+          <Card.Content className="overflow-hidden px-2 py-1">
             <div
               className={`flex ${proxyDisplayLayout === 'double' ? 'gap-1' : 'justify-between items-center'}`}
             >
               {proxyDisplayLayout === 'double' ? (
                 <>
                   <div className="flex flex-col gap-0 flex-1 min-w-0">
-                    <div className="text-ellipsis overflow-hidden whitespace-nowrap">
+                    <div className="text-ellipsis overflow-hidden whitespace-nowrap leading-5">
                       <div className="flag-emoji inline">{proxy.name}</div>
                     </div>
-                    <div className="text-[12px] text-foreground-500 leading-snug mt-0.5 overflow-hidden whitespace-nowrap text-ellipsis">
+                    <div className="text-[12px] text-foreground-500 leading-4 overflow-hidden whitespace-nowrap text-ellipsis">
                       <span>{proxy.type}</span>
                       {proxy.udp !== undefined && !shouldShowGroupSelectedProxy && (
                         <span className="ml-1 opacity-60"> UDP</span>

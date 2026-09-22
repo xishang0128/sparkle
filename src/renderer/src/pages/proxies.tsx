@@ -85,13 +85,15 @@ const GroupHeader = memo(function GroupHeader({
     <div className={`w-full pt-2 ${isLast && !isOpen ? 'pb-2' : ''} px-2`}>
       <Pressable onPress={() => onToggle(index, isOpen)}>
         <Card className="w-full" data-pressable="true" role="button" tabIndex={0}>
-          <Card.Content className="w-full h-14">
-            <div className="flex justify-between h-full">
-              <div className="flex text-ellipsis overflow-hidden whitespace-nowrap h-full">
+          <Card.Content
+            className={`h-14 w-full overflow-hidden py-2 pr-3 ${group.icon ? 'pl-2' : 'pl-3'}`}
+          >
+            <div className="flex h-full min-h-0 justify-between">
+              <div className="flex h-full min-w-0 items-center overflow-hidden whitespace-nowrap">
                 {group.icon ? (
                   <Avatar
-                    className="mr-2 h-8 w-8 shrink-0 bg-transparent overflow-visible! rounded-none!"
-                    size="sm"
+                    className="mr-3 h-10 w-10 shrink-0 bg-transparent overflow-visible! rounded-none!"
+                    size="md"
                   >
                     <Avatar.Image
                       className="object-contain"
@@ -103,11 +105,9 @@ const GroupHeader = memo(function GroupHeader({
                     />
                   </Avatar>
                 ) : null}
-                <div
-                  className={`flex flex-col h-full ${groupDisplayLayout === 'double' ? '' : 'justify-center'}`}
-                >
+                <div className="flex min-w-0 flex-col justify-center">
                   <div
-                    className={`text-ellipsis overflow-hidden whitespace-nowrap leading-tight ${groupDisplayLayout === 'double' ? 'text-md flex-5 flex items-center' : 'text-lg'}`}
+                    className={`truncate ${groupDisplayLayout === 'double' ? 'text-md leading-5' : 'text-lg leading-tight'}`}
                   >
                     <span className="flag-emoji inline-block">{group.name}</span>
                     {groupDisplayLayout === 'single' && (
@@ -120,14 +120,14 @@ const GroupHeader = memo(function GroupHeader({
                     )}
                   </div>
                   {groupDisplayLayout === 'double' && (
-                    <div className="text-ellipsis whitespace-nowrap text-[10px] text-foreground-500 leading-tight flex-3 flex items-center">
+                    <div className="truncate text-[10px] leading-4 text-foreground-500">
                       <span>{group.type}</span>
                       <span className="flag-emoji ml-1 inline-block">{group.now}</span>
                     </div>
                   )}
                 </div>
               </div>
-              <div className="flex items-center">
+              <div className="flex shrink-0 items-center">
                 <div
                   className="flex items-center"
                   onClick={(e) => e.stopPropagation()}
