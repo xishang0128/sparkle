@@ -72,7 +72,7 @@ const ProxyDetailTooltip: React.FC<Props> = ({ proxy, anchorEl, visible }) => {
     const h = panelRef.current.offsetHeight
     const clamped = Math.min(pos.top, vh - h - 8)
     setFinalTop(Math.max(8, clamped))
-  }, [pos, anchorEl])
+  }, [pos, anchorEl, proxy])
 
   if (!visible || !pos || !anchorEl) return null
 
@@ -96,9 +96,6 @@ const ProxyDetailTooltip: React.FC<Props> = ({ proxy, anchorEl, visible }) => {
   const n = history.length
   const barWidth = Math.min(10, n > 0 ? (SPARK_W - 8) / n - 2 : 10)
 
-  const arrowBorderColor = 'var(--color-separator)'
-  const arrowFillColor = 'var(--color-surface-secondary)'
-
   return createPortal(
     <div
       className="fixed pointer-events-none"
@@ -115,52 +112,30 @@ const ProxyDetailTooltip: React.FC<Props> = ({ proxy, anchorEl, visible }) => {
       }}
     >
       <div
-        className="absolute"
-        style={{
-          top: arrowTop,
-          [side === 'right' ? 'left' : 'right']: -7,
-          width: 0,
-          height: 0,
-          borderTop: '7px solid transparent',
-          borderBottom: '7px solid transparent',
-          ...(side === 'right'
-            ? { borderRight: `7px solid ${arrowBorderColor}` }
-            : { borderLeft: `7px solid ${arrowBorderColor}` })
-        }}
-      />
-      <div
-        className="absolute"
+        className={`absolute z-2 size-2.5 rotate-45 border-default-200/70 bg-surface-secondary ${side === 'right' ? 'border-b border-l' : 'border-t border-r'}`}
         style={{
           top: arrowTop + 1,
-          [side === 'right' ? 'left' : 'right']: -5,
-          width: 0,
-          height: 0,
-          zIndex: 1,
-          borderTop: '6px solid transparent',
-          borderBottom: '6px solid transparent',
-          ...(side === 'right'
-            ? { borderRight: `6px solid ${arrowFillColor}` }
-            : { borderLeft: `6px solid ${arrowFillColor}` })
+          [side === 'right' ? 'left' : 'right']: -4
         }}
       />
 
       <Surface
         ref={panelRef}
         variant="secondary"
-        className="relative z-1 overflow-hidden rounded-lg shadow-overlay border border-separator/30"
+        className="relative z-1 overflow-hidden rounded-xl shadow-md border border-default-200/70"
       >
-        <div className="flex items-center justify-between gap-2 px-3 pt-2.5 pb-2">
-          <span className="text-xs font-semibold flag-emoji truncate flex-1 leading-snug">
+        <div className="flex items-start justify-between gap-2 px-3 pt-2.5 pb-2">
+          <span className="text-xs font-semibold flag-emoji min-w-0 flex-1 whitespace-normal wrap-anywhere leading-5">
             {proxy.name}
           </span>
-          <Chip color={getDelayChipColor(delay)} variant="soft" size="sm">
+          <Chip className="shrink-0" color={getDelayChipColor(delay)} variant="soft" size="sm">
             {getDelayText(delay)}
           </Chip>
         </div>
 
-        <Separator variant="tertiary" />
+        <Separator className="mx-3 w-auto bg-default-200/70" />
 
-        <div className="px-3 py-2 grid grid-cols-[auto_1fr] gap-x-2 gap-y-1.5 items-center">
+        <div className="px-3 py-2 grid grid-cols-[auto_minmax(0,1fr)] gap-x-2 gap-y-1.5 items-center">
           <span className="text-[10px] text-muted">类型</span>
           <Chip className="justify-self-end" variant="soft" size="sm">
             {proxy.type}
@@ -181,7 +156,7 @@ const ProxyDetailTooltip: React.FC<Props> = ({ proxy, anchorEl, visible }) => {
               <span className="text-[10px] text-muted">UDP</span>
               <Chip
                 className="justify-self-end"
-                color={proxy.udp ? 'success' : 'danger'}
+                color={proxy.udp ? 'success' : 'default'}
                 variant="soft"
                 size="sm"
               >
@@ -194,7 +169,7 @@ const ProxyDetailTooltip: React.FC<Props> = ({ proxy, anchorEl, visible }) => {
               <span className="text-[10px] text-muted">TFO</span>
               <Chip
                 className="justify-self-end"
-                color={proxy.tfo ? 'success' : 'danger'}
+                color={proxy.tfo ? 'success' : 'default'}
                 variant="soft"
                 size="sm"
               >
@@ -207,7 +182,7 @@ const ProxyDetailTooltip: React.FC<Props> = ({ proxy, anchorEl, visible }) => {
               <span className="text-[10px] text-muted">XUDP</span>
               <Chip
                 className="justify-self-end"
-                color={proxy.xudp ? 'success' : 'danger'}
+                color={proxy.xudp ? 'success' : 'default'}
                 variant="soft"
                 size="sm"
               >
@@ -220,7 +195,7 @@ const ProxyDetailTooltip: React.FC<Props> = ({ proxy, anchorEl, visible }) => {
               <span className="text-[10px] text-muted">MPTCP</span>
               <Chip
                 className="justify-self-end"
-                color={proxy.mptcp ? 'success' : 'danger'}
+                color={proxy.mptcp ? 'success' : 'default'}
                 variant="soft"
                 size="sm"
               >
@@ -233,7 +208,7 @@ const ProxyDetailTooltip: React.FC<Props> = ({ proxy, anchorEl, visible }) => {
               <span className="text-[10px] text-muted">SING-MUX</span>
               <Chip
                 className="justify-self-end"
-                color={proxy.smux ? 'success' : 'danger'}
+                color={proxy.smux ? 'success' : 'default'}
                 variant="soft"
                 size="sm"
               >
@@ -246,7 +221,7 @@ const ProxyDetailTooltip: React.FC<Props> = ({ proxy, anchorEl, visible }) => {
               <span className="text-[10px] text-muted">UDP over TCP</span>
               <Chip
                 className="justify-self-end"
-                color={proxy.uot ? 'success' : 'danger'}
+                color={proxy.uot ? 'success' : 'default'}
                 variant="soft"
                 size="sm"
               >
@@ -265,7 +240,7 @@ const ProxyDetailTooltip: React.FC<Props> = ({ proxy, anchorEl, visible }) => {
           {group?.now && !group?.fixed && (
             <>
               <span className="text-[10px] text-muted">当前选择</span>
-              <span className="text-[10px] flag-emoji text-muted justify-self-end truncate">
+              <span className="text-[10px] flag-emoji text-muted min-w-0 text-right whitespace-normal wrap-anywhere">
                 {group.now}
               </span>
             </>
@@ -273,14 +248,14 @@ const ProxyDetailTooltip: React.FC<Props> = ({ proxy, anchorEl, visible }) => {
           {group?.fixed && (
             <>
               <span className="text-[10px] text-muted">固定选择</span>
-              <span className="text-[10px] flag-emoji text-muted justify-self-end truncate">
+              <span className="text-[10px] flag-emoji text-muted min-w-0 text-right whitespace-normal wrap-anywhere">
                 {group.fixed}
               </span>
             </>
           )}
         </div>
 
-        <Separator variant="tertiary" />
+        <Separator className="mx-3 w-auto bg-default-200/70" />
         <div className="px-3 pt-2 pb-2.5">
           <span className="text-[10px] text-muted block mb-1.5">历史延迟</span>
           {history.length > 0 ? (
