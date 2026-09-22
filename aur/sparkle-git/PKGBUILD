@@ -1,6 +1,6 @@
 pkgname=sparkle-git
 _pkgname=${pkgname%-git}
-pkgver=1.26.7.r17.g2fed67e
+pkgver=1.26.8.r13.g5536c68
 pkgrel=1
 pkgdesc="Another Mihomo GUI"
 arch=('x86_64' 'aarch64')
@@ -12,15 +12,15 @@ depends=('alsa-lib' 'gtk3' 'libnotify' 'nss' 'libxss' 'libxtst' 'xdg-utils' 'at-
 optdepends=('libappindicator-gtk3: Allow sparkle to extend a menu via Ayatana indicators in Unity, KDE or Systray (GTK+ 3 library).')
 makedepends=('git' 'nodejs' 'pnpm' 'jq' 'libxcrypt-compat' 'libarchive')
 install=$_pkgname.install
-source=("${_pkgname}.sh" "git+$url.git")
+source=("${_pkgname}.sh" "${_pkgname}::git+$url.git")
 sha256sums=("03eb601fe981716e90f9170eeb36a2e7938587f05a1bdaa09adadb1229c77a0a" "SKIP")
 options=('!debug' '!lto')
 
 pkgver() {
-    cd $srcdir/${_pkgname}
+    cd "${srcdir}/${_pkgname}"
     ( set -o pipefail
-        git describe --long --tags --exclude=rolling --exclude=pre-release 2>/dev/null | sed 's/\([^-]*-g\)/r\1/;s/-/./g' | tr -d 'v' ||
-        printf "r%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"
+        git describe --long --tags --abbrev=7 --exclude=rolling --exclude=pre-release 2>/dev/null | sed 's/\([^-]*-g\)/r\1/;s/-/./g;s/^v//' ||
+        printf "r%s.g%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short=7 HEAD)"
     )
 }
 

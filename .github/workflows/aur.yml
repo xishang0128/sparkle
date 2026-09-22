@@ -37,7 +37,22 @@ jobs:
       - name: Configure Git
         run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
 
+      - name: Check Package Changes
+        id: changes
+        env:
+          PACKAGE: ${{ matrix.package }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          files=$(git diff-tree --root --no-commit-id --name-only -r --first-parent -m HEAD -- "aur/${PACKAGE}/")
+          if [[ "$PACKAGE" == sparkle-rolling-bin || -n "$files" ]]; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Update Package Metadata
+        if: steps.changes.outputs.changed == 'true'
         id: package
         env:
           GH_TOKEN: ${{ github.token }}
@@ -60,13 +75,13 @@ jobs:
               -e "s/^sha256sums_aarch64=.*/sha256sums_aarch64=('${arm64_sha256}')/" \
               "$pkgbuild"
           else
-            pkgver=$(git describe --long --tags --exclude=rolling --exclude=pre-release | sed 's/\([^-]*-g\)/r\1/;s/-/./g' | tr -d v)
-            sed -i "s/^pkgver=.*/pkgver=${pkgver}/" "$pkgbuild"
+            pkgver=$(source "$pkgbuild"; printf '%s' "$pkgver")
           fi
 
           echo "pkgver=$pkgver" >> "$GITHUB_OUTPUT"
 
       - name: Generate Package Metadata
+        if: steps.changes.outputs.changed == 'true'
         env:
           PACKAGE: ${{ matrix.package }}
         shell: bash
@@ -77,6 +92,7 @@ jobs:
           runuser -u builder -- bash -c "cd 'aur/${PACKAGE}' && makepkg --printsrcinfo > .SRCINFO"
 
       - name: Publish AUR Package
+        if: steps.changes.outputs.changed == 'true'
         uses: KSXGitHub/github-actions-deploy-aur@084b0d9b15415bf9cdb65d44dad1efe37a354050
         with:
           pkgname: ${{ matrix.package }}
