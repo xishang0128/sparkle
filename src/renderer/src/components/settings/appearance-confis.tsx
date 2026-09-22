@@ -457,8 +457,11 @@ const AppearanceConfig: React.FC = () => {
                 isPending={fetching}
                 isDisabled={fetching}
               >
-                {fetching ? <Spinner size="sm" color="current" /> : null}
-                <IoMdCloudDownload className="text-lg" />
+                {fetching ? (
+                  <Spinner size="sm" color="current" />
+                ) : (
+                  <IoMdCloudDownload className="text-lg" />
+                )}
               </Button>
               <Button
                 size="sm"
