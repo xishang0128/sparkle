@@ -60,8 +60,18 @@ function isInstalled(): boolean {
   }
 }
 
+function ensureExecutable(): void {
+  if (platform === 'win32') {
+    return
+  }
+
+  const executablePath = path.join(distPath, platformPath)
+  fs.chmodSync(executablePath, 0o755)
+}
+
 async function main(): Promise<void> {
   if (isInstalled()) {
+    ensureExecutable()
     return
   }
 
@@ -92,6 +102,7 @@ async function main(): Promise<void> {
     fs.renameSync(srcTypeDefPath, targetTypeDefPath)
   }
 
+  ensureExecutable()
   await fs.promises.writeFile(pathFile, platformPath)
 }
 

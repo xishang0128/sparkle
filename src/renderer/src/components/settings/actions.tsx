@@ -1,4 +1,5 @@
-import { Button, Tooltip } from '@heroui/react'
+import { Button, Spinner, Tooltip } from '@heroui/react'
+
 import SettingCard from '../base/base-setting-card'
 import SettingItem from '../base/base-setting-item'
 import {
@@ -102,14 +103,18 @@ const Actions: React.FC = () => {
       )}
       <SettingCard>
         <SettingItem compatKey="legacy" title="打开引导页面" divider>
-          <Button size="sm" onPress={() => startTour(navigate)}>
+          <Button
+            size="sm"
+            onPress={() => startTour(navigate)}
+            variant="primary"
+            data-color="default"
+          >
             打开引导页面
           </Button>
         </SettingItem>
         <SettingItem compatKey="legacy" title="检查更新" divider>
           <Button
             size="sm"
-            isLoading={checkingUpdate}
             onPress={async () => {
               try {
                 setCheckingUpdate(true)
@@ -137,23 +142,33 @@ const Actions: React.FC = () => {
                 setCheckingUpdate(false)
               }
             }}
+            variant="primary"
+            data-color="default"
+            isPending={checkingUpdate}
+            isDisabled={checkingUpdate}
           >
-            检查更新
+            {checkingUpdate ? <Spinner size="sm" color="current" /> : null}检查更新
           </Button>
         </SettingItem>
         <SettingItem
           compatKey="legacy"
           title="重置软件"
           actions={
-            <Tooltip content="删除所有配置，将软件恢复初始状态">
-              <Button isIconOnly size="sm" variant="light">
+            <Tooltip delay={0}>
+              <Button isIconOnly size="sm" variant="ghost" data-color="default">
                 <IoIosHelpCircle className="text-lg" />
               </Button>
+              <Tooltip.Content>{'删除所有配置，将软件恢复初始状态'}</Tooltip.Content>
             </Tooltip>
           }
           divider
         >
-          <Button size="sm" onPress={() => setConfirmOpen(true)}>
+          <Button
+            size="sm"
+            onPress={() => setConfirmOpen(true)}
+            variant="primary"
+            data-color="default"
+          >
             重置软件
           </Button>
         </SettingItem>
@@ -161,15 +176,21 @@ const Actions: React.FC = () => {
           compatKey="legacy"
           title="清除缓存"
           actions={
-            <Tooltip content="清除软件渲染进程缓存">
-              <Button isIconOnly size="sm" variant="light">
+            <Tooltip delay={0}>
+              <Button isIconOnly size="sm" variant="ghost" data-color="default">
                 <IoIosHelpCircle className="text-lg" />
               </Button>
+              <Tooltip.Content>{'清除软件渲染进程缓存'}</Tooltip.Content>
             </Tooltip>
           }
           divider
         >
-          <Button size="sm" onPress={() => localStorage.clear()}>
+          <Button
+            size="sm"
+            onPress={() => localStorage.clear()}
+            variant="primary"
+            data-color="default"
+          >
             清除缓存
           </Button>
         </SettingItem>
@@ -177,15 +198,21 @@ const Actions: React.FC = () => {
           compatKey="legacy"
           title="创建堆快照"
           actions={
-            <Tooltip content="创建主进程堆快照，用于排查内存问题">
-              <Button isIconOnly size="sm" variant="light">
+            <Tooltip delay={0}>
+              <Button isIconOnly size="sm" variant="ghost" data-color="default">
                 <IoIosHelpCircle className="text-lg" />
               </Button>
+              <Tooltip.Content>{'创建主进程堆快照，用于排查内存问题'}</Tooltip.Content>
             </Tooltip>
           }
           divider
         >
-          <Button size="sm" onPress={handleCreateHeapSnapshot}>
+          <Button
+            size="sm"
+            onPress={handleCreateHeapSnapshot}
+            variant="primary"
+            data-color="default"
+          >
             创建堆快照
           </Button>
         </SettingItem>
@@ -193,20 +220,21 @@ const Actions: React.FC = () => {
           compatKey="legacy"
           title="保留内核退出"
           actions={
-            <Tooltip content="完全退出软件，只保留内核进程">
-              <Button isIconOnly size="sm" variant="light">
+            <Tooltip delay={0}>
+              <Button isIconOnly size="sm" variant="ghost" data-color="default">
                 <IoIosHelpCircle className="text-lg" />
               </Button>
+              <Tooltip.Content>{'完全退出软件，只保留内核进程'}</Tooltip.Content>
             </Tooltip>
           }
           divider
         >
-          <Button size="sm" onPress={quitWithoutCore}>
+          <Button size="sm" onPress={quitWithoutCore} variant="primary" data-color="default">
             退出
           </Button>
         </SettingItem>
         <SettingItem compatKey="legacy" title="退出应用" divider>
-          <Button size="sm" onPress={quitApp}>
+          <Button size="sm" onPress={quitApp} variant="primary" data-color="default">
             退出应用
           </Button>
         </SettingItem>

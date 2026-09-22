@@ -1,4 +1,5 @@
-import { Button, Card, CardBody, CardFooter, Tooltip } from '@heroui/react'
+import { Button, Tooltip, Card } from '@heroui/react'
+
 import React from 'react'
 import { MdFormatOverline } from 'react-icons/md'
 import { useLocation, useNavigate } from 'react-router-dom'
@@ -31,24 +32,26 @@ const OverrideCard: React.FC<Props> = (props) => {
   if (iconOnly) {
     return (
       <div className={`${overrideCardStatus} flex justify-center`}>
-        <Tooltip content="覆写" placement="right">
+        <Tooltip delay={0}>
           <Button
             size="sm"
             isIconOnly
-            color={match ? 'primary' : 'default'}
-            variant={match ? 'solid' : 'light'}
             onPress={() => {
               navigate('/override')
             }}
+            variant={match ? 'primary' : 'ghost'}
+            data-color={match ? 'primary' : 'default'}
           >
             <MdFormatOverline className="text-[20px]" />
           </Button>
+          <Tooltip.Content placement="right">{'覆写'}</Tooltip.Content>
         </Tooltip>
       </div>
     )
   }
   return (
     <div
+      ref={setNodeRef}
       style={{
         position: 'relative',
         transform: CSS.Transform.toString(transform),
@@ -58,19 +61,22 @@ const OverrideCard: React.FC<Props> = (props) => {
       className={`${overrideCardStatus} override-card`}
     >
       <Card
-        fullWidth
-        ref={setNodeRef}
         {...attributes}
         {...listeners}
-        className={`${match ? 'bg-primary' : 'hover:bg-primary/30'} ${isDragging ? `${disableAnimation ? '' : 'scale-[0.95]'} tap-highlight-transparent` : ''}`}
+        className={[
+          'w-full',
+          `${match ? 'bg-primary' : 'hover:bg-primary/30'} ${isDragging ? `${disableAnimation ? '' : 'scale-[0.95]'} tap-highlight-transparent` : ''}`
+        ]
+          .filter(Boolean)
+          .join(' ')}
       >
-        <CardBody className="pb-1 pt-0 px-0 overflow-y-visible">
+        <Card.Content className="pb-1 pt-0 px-0 overflow-y-visible">
           <div className="flex justify-between">
             <Button
               isIconOnly
+              variant="secondary"
+              data-color="default"
               className="bg-transparent pointer-events-none"
-              variant="flat"
-              color="default"
             >
               <MdFormatOverline
                 color="default"
@@ -78,14 +84,14 @@ const OverrideCard: React.FC<Props> = (props) => {
               />
             </Button>
           </div>
-        </CardBody>
-        <CardFooter className="pt-1">
+        </Card.Content>
+        <Card.Footer className="pt-1">
           <h3
             className={`text-md font-bold ${match ? 'text-primary-foreground' : 'text-foreground'}`}
           >
             覆写
           </h3>
-        </CardFooter>
+        </Card.Footer>
       </Card>
     </div>
   )

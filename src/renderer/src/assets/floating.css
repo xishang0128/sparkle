@@ -1,7 +1,7 @@
 @import 'tailwindcss';
-@plugin './hero.mjs';
-@import '@heroui-v3/styles';
-@source '../../../../node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}';
+@import '@heroui/styles';
+@import './app-theme.css';
+@import './app-controls.css';
 @custom-variant dark (&:is(.dark *));
 
 .floating-text {

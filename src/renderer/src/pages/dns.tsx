@@ -1,4 +1,5 @@
-import { Button, Tab, Input, Switch, Tabs, Tooltip } from '@heroui/react'
+import { Button, Input, Tooltip, Switch, Tabs } from '@heroui/react'
+
 import BasePage from '@renderer/components/base/base-page'
 import SettingCard from '@renderer/components/base/base-setting-card'
 import SettingItem from '@renderer/components/base/base-setting-item'
@@ -114,16 +115,6 @@ const DNS: React.FC = () => {
         changed && (
           <Button
             size="sm"
-            className="app-nodrag"
-            color="primary"
-            isDisabled={
-              values && values.enhancedMode === 'fake-ip'
-                ? Boolean(fakeIPRangeError) ||
-                  (values.ipv6 && Boolean(fakeIPRange6Error)) ||
-                  Boolean(fakeIPFilterError) ||
-                  hasDnsErrors
-                : hasDnsErrors
-            }
             onPress={() => {
               const hostsObject =
                 values.useHosts && values.hosts && values.hosts.length > 0
@@ -150,6 +141,17 @@ const DNS: React.FC = () => {
                 hosts: hostsObject
               })
             }}
+            variant="primary"
+            data-color="primary"
+            className="app-nodrag"
+            isDisabled={
+              values && values.enhancedMode === 'fake-ip'
+                ? Boolean(fakeIPRangeError) ||
+                  (values.ipv6 && Boolean(fakeIPRange6Error)) ||
+                  Boolean(fakeIPFilterError) ||
+                  hasDnsErrors
+                : hasDnsErrors
+            }
           >
             保存
           </Button>
@@ -161,74 +163,100 @@ const DNS: React.FC = () => {
           <Switch
             size="sm"
             isSelected={values.ipv6}
-            onValueChange={(v) => {
+            onChange={(v) => {
               setValues({ ...values, ipv6: v })
             }}
-          />
+            aria-label="IPv6"
+          >
+            <Switch.Content>
+              <Switch.Control>
+                <Switch.Thumb />
+              </Switch.Control>
+            </Switch.Content>
+          </Switch>
         </SettingItem>
         <SettingItem compatKey="legacy" title="域名映射模式" divider>
           <Tabs
-            size="sm"
-            color="primary"
             selectedKey={values.enhancedMode}
             onSelectionChange={(key: Key) => setValues({ ...values, enhancedMode: key as DnsMode })}
+            data-color="primary"
+            data-size="sm"
+            data-full-width={false}
           >
-            <Tab key="fake-ip" title="虚假 IP" />
-            <Tab key="redir-host" title="真实 IP" />
-            <Tab key="normal" title="取消映射" />
+            <Tabs.ListContainer>
+              <Tabs.List aria-label="选项">
+                <Tabs.Tab key="fake-ip" id="fake-ip">
+                  虚假 IP
+                  <Tabs.Indicator />
+                </Tabs.Tab>
+                <Tabs.Tab key="redir-host" id="redir-host">
+                  真实 IP
+                  <Tabs.Indicator />
+                </Tabs.Tab>
+                <Tabs.Tab key="normal" id="normal">
+                  取消映射
+                  <Tabs.Indicator />
+                </Tabs.Tab>
+              </Tabs.List>
+            </Tabs.ListContainer>
           </Tabs>
         </SettingItem>
         {values.enhancedMode === 'fake-ip' && (
           <>
             <SettingItem compatKey="legacy" title="虚假 IP 范围 (IPv4)" divider>
-              <Tooltip
-                content={fakeIPRangeError}
-                placement="right"
-                isOpen={!!fakeIPRangeError}
-                showArrow={true}
-                color="danger"
-                offset={15}
-              >
-                <Input
-                  size="sm"
-                  className={
-                    `w-[40%] ` +
-                    (fakeIPRangeError ? 'border-red-500 ring-1 ring-red-500 rounded-lg' : '')
-                  }
-                  placeholder="例：198.18.0.1/16"
-                  value={values.fakeIPRange}
-                  onValueChange={(v) => {
-                    setValues({ ...values, fakeIPRange: v })
-                    const r = isValidIPv4Cidr(v)
-                    setFakeIPRangeError(r.ok ? null : (r.error ?? '格式错误'))
-                  }}
-                />
+              <Tooltip isOpen={!!fakeIPRangeError} delay={0}>
+                <Tooltip.Trigger>
+                  <Input
+                    placeholder="例：198.18.0.1/16"
+                    value={values.fakeIPRange}
+                    onChange={(event) => {
+                      const v = event.target.value
+                      setValues({ ...values, fakeIPRange: v })
+                      const r = isValidIPv4Cidr(v)
+                      setFakeIPRangeError(r.ok ? null : (r.error ?? '格式错误'))
+                    }}
+                    className={
+                      `w-[40%] ` +
+                      (fakeIPRangeError ? 'border-red-500 ring-1 ring-red-500 rounded-lg' : '')
+                    }
+                    fullWidth
+                  />
+                </Tooltip.Trigger>
+                <Tooltip.Content placement="right" showArrow={true} offset={15} data-color="danger">
+                  <Tooltip.Arrow />
+                  {fakeIPRangeError}
+                </Tooltip.Content>
               </Tooltip>
             </SettingItem>
             {values.ipv6 && (
               <SettingItem compatKey="legacy" title="虚假 IP 范围 (IPv6)" divider>
-                <Tooltip
-                  content={fakeIPRange6Error}
-                  placement="right"
-                  isOpen={!!fakeIPRange6Error}
-                  showArrow={true}
-                  color="danger"
-                  offset={10}
-                >
-                  <Input
-                    size="sm"
-                    className={
-                      `w-[40%] ` +
-                      (fakeIPRange6Error ? 'border-red-500 ring-1 ring-red-500 rounded-lg' : '')
-                    }
-                    placeholder="例：fc00::/18"
-                    value={values.fakeIPRange6}
-                    onValueChange={(v) => {
-                      setValues({ ...values, fakeIPRange6: v })
-                      const r = isValidIPv6Cidr(v)
-                      setFakeIPRange6Error(r.ok ? null : (r.error ?? '格式错误'))
-                    }}
-                  />
+                <Tooltip isOpen={!!fakeIPRange6Error} delay={0}>
+                  <Tooltip.Trigger>
+                    <Input
+                      placeholder="例：fc00::/18"
+                      value={values.fakeIPRange6}
+                      onChange={(event) => {
+                        const v = event.target.value
+                        setValues({ ...values, fakeIPRange6: v })
+                        const r = isValidIPv6Cidr(v)
+                        setFakeIPRange6Error(r.ok ? null : (r.error ?? '格式错误'))
+                      }}
+                      className={
+                        `w-[40%] ` +
+                        (fakeIPRange6Error ? 'border-red-500 ring-1 ring-red-500 rounded-lg' : '')
+                      }
+                      fullWidth
+                    />
+                  </Tooltip.Trigger>
+                  <Tooltip.Content
+                    placement="right"
+                    showArrow={true}
+                    offset={10}
+                    data-color="danger"
+                  >
+                    <Tooltip.Arrow />
+                    {fakeIPRange6Error}
+                  </Tooltip.Content>
                 </Tooltip>
               </SettingItem>
             )}

@@ -1,4 +1,4 @@
-import { Button, Drawer, Label, Link, ProgressBar } from '@heroui-v3/react'
+import { Button, Drawer, Label, Link, ProgressBar } from '@heroui/react'
 import ReactMarkdown from 'react-markdown'
 import React, { useEffect, useRef, useState } from 'react'
 import { downloadAndInstallUpdate } from '@renderer/utils/ipc'
@@ -176,9 +176,7 @@ const UpdaterDrawer: React.FC<Props> = (props) => {
           </Drawer.Body>
           <Drawer.Footer className="border-t border-separator/70 px-5 py-4">
             {isLinux ? (
-              <p className="text-sm text-muted">
-                Linux 用户请通过系统包管理器完成更新。
-              </p>
+              <p className="text-sm text-muted">Linux 用户请通过系统包管理器完成更新。</p>
             ) : (
               <>
                 <Button

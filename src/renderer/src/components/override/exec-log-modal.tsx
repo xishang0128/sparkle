@@ -1,4 +1,4 @@
-import { Modal, Separator } from '@heroui-v3/react'
+import { Modal, Separator } from '@heroui/react'
 import React, { useEffect, useState } from 'react'
 import { getOverride } from '@renderer/utils/ipc'
 import { useAppConfig } from '@renderer/hooks/use-app-config'

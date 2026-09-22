@@ -1,29 +1,35 @@
 import React from 'react'
-import { cn, Switch, SwitchProps } from '@heroui/react'
-import './border-switch.css'
+import { cn, Switch, type SwitchProps } from '@heroui/react'
 
 interface SiderSwitchProps extends SwitchProps {
   isShowBorder?: boolean
+  onValueChange?: (selected: boolean) => void
 }
 
-const BorderSwitch: React.FC<SiderSwitchProps> = (props) => {
-  const { isShowBorder = false, classNames, ...switchProps } = props
-
-  return (
-    <Switch
-      className="border-switch px-2"
-      classNames={{
-        wrapper: cn('border-2', {
-          'border-transparent': !isShowBorder,
-          'border-primary-foreground': isShowBorder
-        }),
-        thumb: cn('absolute z-4', 'transform -translate-x-[2px]'),
-        ...classNames
-      }}
-      size="sm"
-      {...switchProps}
-    />
-  )
-}
+const BorderSwitch: React.FC<SiderSwitchProps> = ({
+  isShowBorder = false,
+  onValueChange,
+  className,
+  ...switchProps
+}) => (
+  <Switch
+    {...switchProps}
+    className={cn('border-switch flex-row items-center px-2', className)}
+    size="sm"
+    onChange={onValueChange}
+    aria-label="启用"
+  >
+    <Switch.Content aria-label="启用">
+      <Switch.Control
+        className={cn(
+          'border-2',
+          isShowBorder ? 'border-primary-foreground' : 'border-transparent'
+        )}
+      >
+        <Switch.Thumb />
+      </Switch.Control>
+    </Switch.Content>
+  </Switch>
+)
 
 export default BorderSwitch

@@ -1,4 +1,4 @@
-import { Label, Modal, Separator, Switch } from '@heroui-v3/react'
+import { Label, Modal, Separator, Switch } from '@heroui/react'
 import React, { useEffect, useState, useCallback, useRef } from 'react'
 import { BaseEditor } from '../base/base-editor-lazy'
 import {
@@ -124,31 +124,37 @@ const ConfigViewer: React.FC<Props> = ({ onClose }) => {
                 />
               )}
             </Modal.Body>
-            <Modal.Footer className="pt-0 pb-0 flex flex-wrap items-center justify-between gap-3">
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-                <Switch size="md" isSelected={isDiff} onChange={setIsDiff}>
-                  <Switch.Content>
+            <Modal.Footer className="flex flex-wrap items-center justify-start gap-3 py-0">
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
+                <Switch
+                  size="sm"
+                  isSelected={isDiff}
+                  onChange={setIsDiff}
+                  aria-label="对比当前配置"
+                >
+                  <Switch.Content className="gap-2 whitespace-nowrap">
                     <Switch.Control>
                       <Switch.Thumb />
                     </Switch.Control>
-                    <Label>对比当前配置</Label>
+                    <Label className="opacity-100">对比当前配置</Label>
                   </Switch.Content>
                 </Switch>
-                <Separator orientation="vertical" />
+                <Separator className="h-4 self-center bg-default-200" orientation="vertical" />
                 <Switch
                   size="sm"
                   isDisabled={!isDiff}
                   isSelected={sideBySide}
                   onChange={setSideBySide}
+                  aria-label="侧边显示"
                 >
-                  <Switch.Content>
+                  <Switch.Content className="gap-2 whitespace-nowrap">
                     <Switch.Control>
                       <Switch.Thumb />
                     </Switch.Control>
-                    <Label>侧边显示</Label>
+                    <Label className="opacity-100">侧边显示</Label>
                   </Switch.Content>
                 </Switch>
-                <Separator orientation="vertical" />
+                <Separator className="h-4 self-center bg-default-200" orientation="vertical" />
                 <Switch
                   size="sm"
                   isDisabled={!isDiff}
@@ -156,15 +162,16 @@ const ConfigViewer: React.FC<Props> = ({ onClose }) => {
                   onChange={(value) => {
                     setCompareTarget(value ? 'raw' : 'profile')
                   }}
+                  aria-label="显示原始文本"
                 >
-                  <Switch.Content>
+                  <Switch.Content className="gap-2 whitespace-nowrap">
                     <Switch.Control>
                       <Switch.Thumb />
                     </Switch.Control>
-                    <Label>显示原始文本</Label>
+                    <Label className="opacity-100">显示原始文本</Label>
                   </Switch.Content>
                 </Switch>
-                <Separator orientation="vertical" />
+                <Separator className="h-4 self-center bg-default-200" orientation="vertical" />
                 <Switch
                   size="sm"
                   isDisabled={!isDiff}
@@ -172,12 +179,13 @@ const ConfigViewer: React.FC<Props> = ({ onClose }) => {
                   onChange={(value) => {
                     setCompareTarget(value ? 'override' : 'profile')
                   }}
+                  aria-label="显示覆写后文本"
                 >
-                  <Switch.Content>
+                  <Switch.Content className="gap-2 whitespace-nowrap">
                     <Switch.Control>
                       <Switch.Thumb />
                     </Switch.Control>
-                    <Label>显示覆写后文本</Label>
+                    <Label className="opacity-100">显示覆写后文本</Label>
                   </Switch.Content>
                 </Switch>
               </div>

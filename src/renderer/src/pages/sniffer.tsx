@@ -1,4 +1,5 @@
 import { Button, Input, Switch } from '@heroui/react'
+
 import BasePage from '@renderer/components/base/base-page'
 import SettingCard from '@renderer/components/base/base-setting-card'
 import SettingItem from '@renderer/components/base/base-setting-item'
@@ -85,8 +86,6 @@ const Sniffer: React.FC = () => {
         changed && (
           <Button
             size="sm"
-            className="app-nodrag"
-            color="primary"
             onPress={() =>
               onSave({
                 sniffer: {
@@ -101,6 +100,9 @@ const Sniffer: React.FC = () => {
                 }
               })
             }
+            variant="primary"
+            data-color="primary"
+            className="app-nodrag"
           >
             保存
           </Button>
@@ -112,7 +114,7 @@ const Sniffer: React.FC = () => {
           <Switch
             size="sm"
             isSelected={values.overrideDestination}
-            onValueChange={(v) => {
+            onChange={(v) => {
               setValues({
                 ...values,
                 overrideDestination: v,
@@ -126,51 +128,81 @@ const Sniffer: React.FC = () => {
                 }
               })
             }}
-          />
+            aria-label="覆盖连接地址"
+          >
+            <Switch.Content>
+              <Switch.Control>
+                <Switch.Thumb />
+              </Switch.Control>
+            </Switch.Content>
+          </Switch>
         </SettingItem>
         <SettingItem compatKey="legacy" title="对真实 IP 映射嗅探" divider>
           <Switch
             size="sm"
             isSelected={values.forceDNSMapping}
-            onValueChange={(v) => {
+            onChange={(v) => {
               setValues({ ...values, forceDNSMapping: v })
             }}
-          />
+            aria-label="对真实 IP 映射嗅探"
+          >
+            <Switch.Content>
+              <Switch.Control>
+                <Switch.Thumb />
+              </Switch.Control>
+            </Switch.Content>
+          </Switch>
         </SettingItem>
         <SettingItem compatKey="legacy" title="对未映射 IP 地址嗅探" divider>
           <Switch
             size="sm"
             isSelected={values.parsePureIP}
-            onValueChange={(v) => {
+            onChange={(v) => {
               setValues({ ...values, parsePureIP: v })
             }}
-          />
+            aria-label="对未映射 IP 地址嗅探"
+          >
+            <Switch.Content>
+              <Switch.Control>
+                <Switch.Thumb />
+              </Switch.Control>
+            </Switch.Content>
+          </Switch>
         </SettingItem>
         <SettingItem compatKey="legacy" title="HTTP 端口嗅探" divider>
           <Input
-            size="sm"
-            className="w-[50%]"
             placeholder="端口号，使用逗号分割多个值"
             value={values.sniff.HTTP?.ports.join(',')}
-            onValueChange={(v) => handleSniffPortChange('HTTP', v)}
+            onChange={(event) => {
+              const v = event.target.value
+              handleSniffPortChange('HTTP', v)
+            }}
+            className="w-[50%]"
+            fullWidth
           />
         </SettingItem>
         <SettingItem compatKey="legacy" title="TLS 端口嗅探" divider>
           <Input
-            size="sm"
-            className="w-[50%]"
             placeholder="端口号，使用逗号分割多个值"
             value={values.sniff.TLS?.ports.join(',')}
-            onValueChange={(v) => handleSniffPortChange('TLS', v)}
+            onChange={(event) => {
+              const v = event.target.value
+              handleSniffPortChange('TLS', v)
+            }}
+            className="w-[50%]"
+            fullWidth
           />
         </SettingItem>
         <SettingItem compatKey="legacy" title="QUIC 端口嗅探" divider>
           <Input
-            size="sm"
-            className="w-[50%]"
             placeholder="端口号，使用逗号分割多个值"
             value={values.sniff.QUIC?.ports.join(',')}
-            onValueChange={(v) => handleSniffPortChange('QUIC', v)}
+            onChange={(event) => {
+              const v = event.target.value
+              handleSniffPortChange('QUIC', v)
+            }}
+            className="w-[50%]"
+            fullWidth
           />
         </SettingItem>
         <EditableList

@@ -1,14 +1,14 @@
 import {
-  Button,
-  Checkbox,
   Chip,
-  Divider,
+  Button,
+  InputGroup,
+  Spinner,
+  Separator,
+  Checkbox,
   Dropdown,
-  DropdownItem,
-  DropdownMenu,
-  DropdownTrigger,
-  Input
+  Label
 } from '@heroui/react'
+
 import BasePage from '@renderer/components/base/base-page'
 import ProfileItem from '@renderer/components/profiles/profile-item'
 import EditInfoModal from '@renderer/components/profiles/edit-info-modal'
@@ -70,10 +70,17 @@ const Profiles: React.FC = () => {
     useSubStore ? subStoreCollections : (): undefined => {}
   )
   const subStoreMenuItems = useMemo(() => {
-    const items: { icon?: ReactNode; key: string; children: ReactNode; divider: boolean }[] = [
+    const items: {
+      icon?: ReactNode
+      key: string
+      children: ReactNode
+      textValue: string
+      divider: boolean
+    }[] = [
       {
         key: 'open-substore',
         children: '访问 Sub-Store',
+        textValue: '访问 Sub-Store',
         icon: <SubStoreIcon className="text-lg" />,
         divider:
           (Boolean(subs) && subs.length > 0) || (Boolean(collections) && collections.length > 0)
@@ -83,14 +90,22 @@ const Profiles: React.FC = () => {
       subs.forEach((sub, index) => {
         items.push({
           key: `sub-${sub.name}`,
+          textValue: sub.displayName || sub.name,
           children: (
             <div className="flex justify-between">
               <div>{sub.displayName || sub.name}</div>
               <div>
                 {sub.tag?.map((tag) => {
                   return (
-                    <Chip key={tag} size="sm" className="ml-1" radius="sm">
-                      {tag}
+                    <Chip
+                      key={tag}
+                      size="sm"
+                      data-color="default"
+                      variant="primary"
+                      data-radius="sm"
+                      className={['ml-1'].filter(Boolean).join(' ')}
+                    >
+                      <Chip.Label>{tag}</Chip.Label>
                     </Chip>
                   )
                 })}
@@ -106,14 +121,22 @@ const Profiles: React.FC = () => {
       collections.forEach((sub) => {
         items.push({
           key: `collection-${sub.name}`,
+          textValue: sub.displayName || sub.name,
           children: (
             <div className="flex justify-between">
               <div>{sub.displayName || sub.name}</div>
               <div>
                 {sub.tag?.map((tag) => {
                   return (
-                    <Chip key={tag} size="sm" className="ml-1" radius="sm">
-                      {tag}
+                    <Chip
+                      key={tag}
+                      size="sm"
+                      data-color="default"
+                      variant="primary"
+                      data-radius="sm"
+                      className={['ml-1'].filter(Boolean).join(' ')}
+                    >
+                      <Chip.Label>{tag}</Chip.Label>
                     </Chip>
                   )
                 })}
@@ -250,8 +273,6 @@ const Profiles: React.FC = () => {
         <>
           <Button
             size="sm"
-            className="app-nodrag"
-            variant="light"
             isIconOnly
             onPress={async () => {
               setUpdating(true)
@@ -266,18 +287,22 @@ const Profiles: React.FC = () => {
               }
               setUpdating(false)
             }}
+            variant="ghost"
+            data-color="default"
+            className="app-nodrag"
           >
             <IoMdRefresh className={`text-lg ${updating ? 'animate-spin' : ''}`} />
           </Button>
           <Button
             size="sm"
-            className="app-nodrag"
-            variant="light"
             isIconOnly
             onPress={() => {
               setIsSettingDrawerOpen(true)
               setSettingDrawerReopenSignal((signal) => signal + 1)
             }}
+            variant="ghost"
+            data-color="default"
+            className="app-nodrag"
           >
             <MdTune className="text-lg" />
           </Button>
@@ -307,46 +332,56 @@ const Profiles: React.FC = () => {
       )}
       <div className="sticky profiles-sticky top-0 z-40">
         <div className="flex p-2">
-          <Input
-            size="sm"
-            value={url}
-            onValueChange={setUrl}
-            onKeyUp={handleInputKeyUp}
-            endContent={
-              <>
-                <Button
-                  size="sm"
-                  isIconOnly
-                  variant="light"
-                  className="z-10"
-                  onPress={() => {
-                    navigator.clipboard.readText().then((text) => {
-                      setUrl(text)
-                    })
-                  }}
-                >
-                  <MdContentPaste className="text-lg" />
-                </Button>
-                <Checkbox
-                  className="whitespace-nowrap"
-                  checked={useProxy}
-                  onValueChange={setUseProxy}
-                >
-                  代理
-                </Checkbox>
-              </>
-            }
-          />
+          <InputGroup fullWidth>
+            <InputGroup.Input
+              value={url}
+              onKeyUp={handleInputKeyUp}
+              onChange={(event) => setUrl(event.target.value)}
+            />
+            <InputGroup.Suffix>
+              {
+                <>
+                  <Button
+                    size="sm"
+                    isIconOnly
+                    onPress={() => {
+                      navigator.clipboard.readText().then((text) => {
+                        setUrl(text)
+                      })
+                    }}
+                    variant="ghost"
+                    data-color="default"
+                    className="z-10"
+                  >
+                    <MdContentPaste className="text-lg" />
+                  </Button>
+                  <Checkbox
+                    className="whitespace-nowrap"
+                    isSelected={useProxy}
+                    onChange={setUseProxy}
+                  >
+                    <Checkbox.Content>
+                      <Checkbox.Control>
+                        <Checkbox.Indicator />
+                      </Checkbox.Control>
+                      <Label>代理</Label>
+                    </Checkbox.Content>
+                  </Checkbox>
+                </>
+              }
+            </InputGroup.Suffix>
+          </InputGroup>
 
           <Button
             size="sm"
-            color="primary"
-            className="ml-2"
-            isDisabled={isUrlEmpty}
-            isLoading={importing}
             onPress={() => handleImport(url)}
+            variant="primary"
+            data-color="primary"
+            className="ml-2"
+            isPending={importing}
+            isDisabled={isUrlEmpty || importing}
           >
-            导入
+            {importing ? <Spinner size="sm" color="current" /> : null}导入
           </Button>
           {useSubStore && (
             <Dropdown
@@ -355,129 +390,170 @@ const Profiles: React.FC = () => {
                 mutateCollections()
               }}
             >
-              <DropdownTrigger>
+              <>
                 <Button
-                  isLoading={subStoreImporting}
-                  className="ml-2 substore-import"
                   size="sm"
                   isIconOnly
-                  color="primary"
+                  variant="primary"
+                  data-color="primary"
+                  className="ml-2 substore-import"
+                  isPending={subStoreImporting}
+                  isDisabled={subStoreImporting}
                 >
+                  {subStoreImporting ? <Spinner size="sm" color="current" /> : null}
                   <SubStoreIcon className="text-lg" />
                 </Button>
-              </DropdownTrigger>
-              <DropdownMenu
-                className="max-h-[calc(100vh-200px)] overflow-y-auto"
-                onAction={async (key) => {
-                  if (key === 'open-substore') {
-                    navigate('/substore')
-                  } else if (key.toString().startsWith('sub-')) {
-                    setSubStoreImporting(true)
-                    try {
-                      const sub = subs.find(
-                        (sub) => sub.name === key.toString().replace('sub-', '')
-                      )
-                      await addProfileItem({
-                        name: sub?.displayName || sub?.name || '',
-                        substore: !useCustomSubStore,
-                        type: 'remote',
-                        url: useCustomSubStore
-                          ? `${customSubStoreUrl}/download/${key.toString().replace('sub-', '')}?target=ClashMeta`
-                          : `/download/${key.toString().replace('sub-', '')}`,
-                        useProxy
-                      })
-                    } catch (e) {
-                      notify(e, { variant: 'danger' })
-                    } finally {
-                      setSubStoreImporting(false)
+              </>
+              <Dropdown.Popover>
+                <Dropdown.Menu
+                  className="max-h-[calc(100vh-200px)] overflow-y-auto"
+                  onAction={async (key) => {
+                    if (key === 'open-substore') {
+                      navigate('/substore')
+                    } else if (key.toString().startsWith('sub-')) {
+                      setSubStoreImporting(true)
+                      try {
+                        const sub = subs.find(
+                          (sub) => sub.name === key.toString().replace('sub-', '')
+                        )
+                        await addProfileItem({
+                          name: sub?.displayName || sub?.name || '',
+                          substore: !useCustomSubStore,
+                          type: 'remote',
+                          url: useCustomSubStore
+                            ? `${customSubStoreUrl}/download/${key.toString().replace('sub-', '')}?target=ClashMeta`
+                            : `/download/${key.toString().replace('sub-', '')}`,
+                          useProxy
+                        })
+                      } catch (e) {
+                        notify(e, { variant: 'danger' })
+                      } finally {
+                        setSubStoreImporting(false)
+                      }
+                    } else if (key.toString().startsWith('collection-')) {
+                      setSubStoreImporting(true)
+                      try {
+                        const collection = collections.find(
+                          (collection) =>
+                            collection.name === key.toString().replace('collection-', '')
+                        )
+                        await addProfileItem({
+                          name: collection?.displayName || collection?.name || '',
+                          type: 'remote',
+                          substore: !useCustomSubStore,
+                          url: useCustomSubStore
+                            ? `${customSubStoreUrl}/download/collection/${key.toString().replace('collection-', '')}?target=ClashMeta`
+                            : `/download/collection/${key.toString().replace('collection-', '')}`,
+                          useProxy
+                        })
+                      } catch (e) {
+                        notify(e, { variant: 'danger' })
+                      } finally {
+                        setSubStoreImporting(false)
+                      }
                     }
-                  } else if (key.toString().startsWith('collection-')) {
-                    setSubStoreImporting(true)
-                    try {
-                      const collection = collections.find(
-                        (collection) =>
-                          collection.name === key.toString().replace('collection-', '')
-                      )
-                      await addProfileItem({
-                        name: collection?.displayName || collection?.name || '',
+                  }}
+                >
+                  {subStoreMenuItems.map((item) => (
+                    <Dropdown.Item
+                      key={item.key}
+                      id={item.key}
+                      data-divider={item.divider}
+                      className="app-dropdown-item"
+                      textValue={item.textValue}
+                    >
+                      {item?.icon}
+                      <Label>{item.children}</Label>
+                    </Dropdown.Item>
+                  ))}
+                </Dropdown.Menu>
+              </Dropdown.Popover>
+            </Dropdown>
+          )}
+          <Dropdown>
+            <>
+              <Button
+                size="sm"
+                isIconOnly
+                variant="primary"
+                data-color="primary"
+                className="ml-2 new-profile"
+              >
+                <FaPlus />
+              </Button>
+            </>
+            <Dropdown.Popover>
+              <Dropdown.Menu
+                onAction={async (key) => {
+                  switch (key) {
+                    case 'open': {
+                      try {
+                        const files = await getFilePath(['yml', 'yaml'])
+                        if (files?.length) {
+                          const content = await readTextFile(files[0])
+                          const fileName = files[0].split('/').pop()?.split('\\').pop()
+                          await addProfileItem({ name: fileName, type: 'local', file: content })
+                        }
+                      } catch (e) {
+                        notify(e, { variant: 'danger' })
+                      }
+                      break
+                    }
+                    case 'new': {
+                      {
+                        await addProfileItem({
+                          name: '\u65B0\u914D\u7F6E',
+                          type: 'local',
+                          file: 'proxies: []\nproxy-groups: []\nrules: []'
+                        })
+                      }
+                      break
+                    }
+                    case 'import': {
+                      const newRemoteProfile: ProfileItem = {
+                        id: '',
+                        name: '',
                         type: 'remote',
-                        substore: !useCustomSubStore,
-                        url: useCustomSubStore
-                          ? `${customSubStoreUrl}/download/collection/${key.toString().replace('collection-', '')}?target=ClashMeta`
-                          : `/download/collection/${key.toString().replace('collection-', '')}`,
-                        useProxy
-                      })
-                    } catch (e) {
-                      notify(e, { variant: 'danger' })
-                    } finally {
-                      setSubStoreImporting(false)
+                        url: '',
+                        useProxy: false,
+                        autoUpdate: true
+                      }
+                      setEditingItem(newRemoteProfile)
+                      setShowEditModal(true)
+                      break
                     }
                   }
                 }}
               >
-                {subStoreMenuItems.map((item) => (
-                  <DropdownItem startContent={item?.icon} key={item.key} showDivider={item.divider}>
-                    {item.children}
-                  </DropdownItem>
-                ))}
-              </DropdownMenu>
-            </Dropdown>
-          )}
-          <Dropdown>
-            <DropdownTrigger>
-              <Button className="ml-2 new-profile" size="sm" isIconOnly color="primary">
-                <FaPlus />
-              </Button>
-            </DropdownTrigger>
-            <DropdownMenu
-              onAction={async (key) => {
-                switch (key) {
-                  case 'open': {
-                    try {
-                      const files = await getFilePath(['yml', 'yaml'])
-                      if (files?.length) {
-                        const content = await readTextFile(files[0])
-                        const fileName = files[0].split('/').pop()?.split('\\').pop()
-                        await addProfileItem({ name: fileName, type: 'local', file: content })
-                      }
-                    } catch (e) {
-                      notify(e, { variant: 'danger' })
-                    }
-                    break
-                  }
-                  case 'new': {
-                    {
-                      await addProfileItem({
-                        name: '新配置',
-                        type: 'local',
-                        file: 'proxies: []\nproxy-groups: []\nrules: []'
-                      })
-                    }
-                    break
-                  }
-                  case 'import': {
-                    const newRemoteProfile: ProfileItem = {
-                      id: '',
-                      name: '',
-                      type: 'remote',
-                      url: '',
-                      useProxy: false,
-                      autoUpdate: true
-                    }
-                    setEditingItem(newRemoteProfile)
-                    setShowEditModal(true)
-                    break
-                  }
-                }
-              }}
-            >
-              <DropdownItem key="open">打开本地配置</DropdownItem>
-              <DropdownItem key="new">新建本地配置</DropdownItem>
-              <DropdownItem key="import">导入远程配置</DropdownItem>
-            </DropdownMenu>
+                <Dropdown.Item
+                  key="open"
+                  id="open"
+                  className="app-dropdown-item"
+                  textValue="打开本地配置"
+                >
+                  <Label>打开本地配置</Label>
+                </Dropdown.Item>
+                <Dropdown.Item
+                  key="new"
+                  id="new"
+                  className="app-dropdown-item"
+                  textValue="新建本地配置"
+                >
+                  <Label>新建本地配置</Label>
+                </Dropdown.Item>
+                <Dropdown.Item
+                  key="import"
+                  id="import"
+                  className="app-dropdown-item"
+                  textValue="导入远程配置"
+                >
+                  <Label>导入远程配置</Label>
+                </Dropdown.Item>
+              </Dropdown.Menu>
+            </Dropdown.Popover>
           </Dropdown>
         </div>
-        <Divider />
+        <Separator />
       </div>
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
         <div

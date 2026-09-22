@@ -1,4 +1,5 @@
-import { Card, CardBody, CardHeader } from '@heroui/react'
+import { Card } from '@heroui/react'
+
 import React, { useEffect, useState } from 'react'
 
 const colorMap: Record<LogLevel, string> = {
@@ -36,18 +37,16 @@ const LogItemComponent: React.FC<Props> = (props) => {
 
   return (
     <div
-      className={`px-2 pb-2 transition-[opacity,transform] duration-300 ease-out ${
-        entered ? 'translate-y-0 opacity-100' : 'translate-y-2 opacity-0'
-      } ${index === 0 ? 'pt-2' : ''}`}
+      className={`px-2 pb-2 transition-[opacity,transform] duration-300 ease-out ${entered ? 'translate-y-0 opacity-100' : 'translate-y-2 opacity-0'} ${index === 0 ? 'pt-2' : ''}`}
     >
       <Card className={animateOnMount ? 'ring-1 ring-primary/12' : ''}>
-        <CardHeader className="pb-0 pt-1">
+        <Card.Header className="pb-0 pt-1">
           <div className={`mr-2 text-lg font-bold ${colorMap[type]}`}>
             {props.type.toUpperCase()}
           </div>
           <small className="text-foreground-500">{time}</small>
-        </CardHeader>
-        <CardBody className="select-text pt-0 text-sm">{payload}</CardBody>
+        </Card.Header>
+        <Card.Content className="select-text pt-0 text-sm">{payload}</Card.Content>
       </Card>
     </div>
   )

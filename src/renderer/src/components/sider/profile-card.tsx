@@ -1,5 +1,5 @@
-import { Button, Card, CardBody, CardFooter, Chip, Tooltip } from '@heroui/react'
-import { Meter } from '@heroui-v3/react'
+import { Button, Tooltip, Card, Chip, Meter } from '@heroui/react'
+
 import { useProfileConfig } from '@renderer/hooks/use-profile-config'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { calcTraffic } from '@renderer/utils/calc'
@@ -61,18 +61,19 @@ const ProfileCard: React.FC<Props> = (props) => {
   if (iconOnly) {
     return (
       <div className={`${profileCardStatus} flex justify-center`}>
-        <Tooltip content="订阅管理" placement="right">
+        <Tooltip delay={0}>
           <Button
             size="sm"
             isIconOnly
-            color={match ? 'primary' : 'default'}
-            variant={match ? 'solid' : 'light'}
             onPress={() => {
               navigate('/profiles')
             }}
+            variant={match ? 'primary' : 'ghost'}
+            data-color={match ? 'primary' : 'default'}
           >
             <TiFolder className="text-[20px]" />
           </Button>
+          <Tooltip.Content placement="right">{'订阅管理'}</Tooltip.Content>
         </Tooltip>
       </div>
     )
@@ -80,6 +81,7 @@ const ProfileCard: React.FC<Props> = (props) => {
 
   return (
     <div
+      ref={setNodeRef}
       style={{
         position: 'relative',
         transform: CSS.Transform.toString(transform),
@@ -91,19 +93,17 @@ const ProfileCard: React.FC<Props> = (props) => {
       {showRuntimeConfig && <ConfigViewer onClose={() => setShowRuntimeConfig(false)} />}
       {profileCardStatus === 'col-span-2' ? (
         <Card
-          fullWidth
-          ref={setNodeRef}
           {...attributes}
           {...listeners}
-          className={`${match ? 'bg-primary' : 'hover:bg-primary/30'} ${isDragging ? `${disableAnimation ? '' : 'scale-[0.95]'} tap-highlight-transparent` : ''}`}
+          className={[
+            'w-full',
+            `${match ? 'bg-primary' : 'hover:bg-primary/30'} ${isDragging ? `${disableAnimation ? '' : 'scale-[0.95]'} tap-highlight-transparent` : ''}`
+          ]
+            .filter(Boolean)
+            .join(' ')}
         >
-          <CardBody className="pb-1">
-            <div
-              ref={setNodeRef}
-              {...attributes}
-              {...listeners}
-              className="flex justify-between h-8"
-            >
+          <Card.Content className="pb-1">
+            <div className="flex justify-between h-8">
               <h3
                 title={info?.name}
                 className={`text-ellipsis whitespace-nowrap overflow-hidden text-md font-bold leading-8 ${match ? 'text-primary-foreground' : 'text-foreground'} `}
@@ -114,34 +114,37 @@ const ProfileCard: React.FC<Props> = (props) => {
                 <Button
                   isIconOnly
                   size="sm"
-                  variant="light"
-                  color="default"
                   onPress={() => {
                     setShowRuntimeConfig(true)
                   }}
+                  variant="ghost"
+                  data-color="default"
                 >
                   <CgLoadbarDoc
                     className={`text-[24px] ${match ? 'text-primary-foreground' : 'text-foreground'}`}
                   />
                 </Button>
                 {info.type === 'remote' && (
-                  <Tooltip delay={1000} placement="left" content={dayjs(info.updated).fromNow()}>
+                  <Tooltip delay={1000}>
                     <Button
                       isIconOnly
                       size="sm"
-                      disabled={updating}
-                      variant="light"
-                      color="default"
                       onPress={async () => {
                         setUpdating(true)
                         await addProfileItem(info)
                         setUpdating(false)
                       }}
+                      variant="ghost"
+                      data-color="default"
+                      isDisabled={updating}
                     >
                       <IoMdRefresh
                         className={`text-[24px] ${match ? 'text-primary-foreground' : 'text-foreground'} ${updating ? 'animate-spin' : ''}`}
                       />
                     </Button>
+                    <Tooltip.Content placement="left">
+                      {dayjs(info.updated).fromNow()}
+                    </Tooltip.Content>
                   </Tooltip>
                 )}
               </div>
@@ -154,40 +157,48 @@ const ProfileCard: React.FC<Props> = (props) => {
                 {profileDisplayDate === 'expire' ? (
                   <Button
                     size="sm"
-                    variant="light"
-                    className={`h-5 p-1 m-0 ${match ? 'text-primary-foreground' : 'text-foreground'}`}
                     onPress={async () => {
                       await patchAppConfig({ profileDisplayDate: 'update' })
                     }}
+                    variant="ghost"
+                    data-color="default"
+                    className={`h-5 p-1 m-0 ${match ? 'text-primary-foreground' : 'text-foreground'}`}
                   >
                     {extra.expire ? dayjs.unix(extra.expire).format('YYYY-MM-DD') : '长期有效'}
                   </Button>
                 ) : (
                   <Button
                     size="sm"
-                    variant="light"
-                    className={`h-5 p-1 m-0 ${match ? 'text-primary-foreground' : 'text-foreground'}`}
                     onPress={async () => {
                       await patchAppConfig({ profileDisplayDate: 'expire' })
                     }}
+                    variant="ghost"
+                    data-color="default"
+                    className={`h-5 p-1 m-0 ${match ? 'text-primary-foreground' : 'text-foreground'}`}
                   >
                     {dayjs(info.updated).fromNow()}
                   </Button>
                 )}
               </div>
             )}
-          </CardBody>
-          <CardFooter className="pt-0">
+          </Card.Content>
+          <Card.Footer className="pt-0">
             {info.type === 'remote' && !extra && (
               <div
                 className={`w-full mt-2 flex justify-between ${match ? 'text-primary-foreground' : 'text-foreground'}`}
               >
                 <Chip
                   size="sm"
-                  variant="bordered"
-                  className={`${match ? 'text-primary-foreground border-primary-foreground' : 'border-primary text-primary'}`}
+                  data-color="default"
+                  variant="tertiary"
+                  data-outline="true"
+                  className={[
+                    `${match ? 'text-primary-foreground border-primary-foreground' : 'border-primary text-primary'}`
+                  ]
+                    .filter(Boolean)
+                    .join(' ')}
                 >
-                  远程
+                  <Chip.Label>远程</Chip.Label>
                 </Chip>
                 <small>{dayjs(info.updated).fromNow()}</small>
               </div>
@@ -198,10 +209,16 @@ const ProfileCard: React.FC<Props> = (props) => {
               >
                 <Chip
                   size="sm"
-                  variant="bordered"
-                  className={`${match ? 'text-primary-foreground border-primary-foreground' : 'border-primary text-primary'}`}
+                  data-color="default"
+                  variant="tertiary"
+                  data-outline="true"
+                  className={[
+                    `${match ? 'text-primary-foreground border-primary-foreground' : 'border-primary text-primary'}`
+                  ]
+                    .filter(Boolean)
+                    .join(' ')}
                 >
-                  本地
+                  <Chip.Label>本地</Chip.Label>
                 </Chip>
               </div>
             )}
@@ -224,23 +241,26 @@ const ProfileCard: React.FC<Props> = (props) => {
                 </Meter.Track>
               </Meter>
             )}
-          </CardFooter>
+          </Card.Footer>
         </Card>
       ) : (
         <Card
-          fullWidth
-          ref={setNodeRef}
           {...attributes}
           {...listeners}
-          className={`${match ? 'bg-primary' : 'hover:bg-primary/30'} ${isDragging ? `${disableAnimation ? '' : 'scale-[0.95]'} tap-highlight-transparent` : ''}`}
+          className={[
+            'w-full',
+            `${match ? 'bg-primary' : 'hover:bg-primary/30'} ${isDragging ? `${disableAnimation ? '' : 'scale-[0.95]'} tap-highlight-transparent` : ''}`
+          ]
+            .filter(Boolean)
+            .join(' ')}
         >
-          <CardBody className="pb-1 pt-0 px-0 overflow-y-visible">
+          <Card.Content className="pb-1 pt-0 px-0 overflow-y-visible">
             <div className="flex justify-between">
               <Button
                 isIconOnly
+                variant="secondary"
+                data-color="default"
                 className="bg-transparent pointer-events-none"
-                variant="flat"
-                color="default"
               >
                 <TiFolder
                   color="default"
@@ -249,26 +269,26 @@ const ProfileCard: React.FC<Props> = (props) => {
               </Button>
               <Button
                 isIconOnly
-                className="bg-transparent"
-                variant="flat"
-                color="default"
                 onPress={() => {
                   setShowRuntimeConfig(true)
                 }}
+                variant="secondary"
+                data-color="default"
+                className="bg-transparent"
               >
                 <CgLoadbarDoc
                   className={`text-[24px] ${match ? 'text-primary-foreground' : 'text-foreground'}`}
                 />
               </Button>
             </div>
-          </CardBody>
-          <CardFooter className="pt-1">
+          </Card.Content>
+          <Card.Footer className="pt-1">
             <h3
               className={`text-md font-bold ${match ? 'text-primary-foreground' : 'text-foreground'}`}
             >
               订阅管理
             </h3>
-          </CardFooter>
+          </Card.Footer>
         </Card>
       )}
     </div>

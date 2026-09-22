@@ -1,4 +1,5 @@
-import { Button, Input, Switch, Tab, Tabs } from '@heroui/react'
+import { Button, Spinner, Input, Switch, Tabs } from '@heroui/react'
+
 import BasePage from '@renderer/components/base/base-page'
 import SettingCard from '@renderer/components/base/base-setting-card'
 import SettingItem from '@renderer/components/base/base-setting-item'
@@ -61,8 +62,6 @@ const Tun: React.FC = () => {
           changed && (
             <Button
               size="sm"
-              className="app-nodrag"
-              color="primary"
               onPress={() =>
                 onSave({
                   tun: {
@@ -79,6 +78,9 @@ const Tun: React.FC = () => {
                   }
                 })
               }
+              variant="primary"
+              data-color="primary"
+              className="app-nodrag"
             >
               保存
             </Button>
@@ -90,8 +92,6 @@ const Tun: React.FC = () => {
             <SettingItem compatKey="legacy" title="重设防火墙" divider>
               <Button
                 size="sm"
-                color="primary"
-                isLoading={loading}
                 onPress={async () => {
                   setLoading(true)
                   try {
@@ -104,60 +104,103 @@ const Tun: React.FC = () => {
                     setLoading(false)
                   }
                 }}
+                variant="primary"
+                data-color="primary"
+                isPending={loading}
+                isDisabled={loading}
               >
-                重设防火墙
+                {loading ? <Spinner size="sm" color="current" /> : null}重设防火墙
               </Button>
             </SettingItem>
           )}
           {platform === 'darwin' && (
             <SettingItem compatKey="legacy" title="自动设置系统 DNS" divider>
               <Tabs
-                size="sm"
-                color="primary"
                 selectedKey={autoSetDNSMode}
                 onSelectionChange={async (key: Key) => {
                   await patchAppConfig({ autoSetDNSMode: key as 'none' | 'exec' | 'service' })
                 }}
+                data-color="primary"
+                data-size="sm"
+                data-full-width={false}
               >
-                <Tab key="none" title="不自动设置" />
-                <Tab key="exec" title="执行命令" />
-                <Tab key="service" title="服务模式" />
+                <Tabs.ListContainer>
+                  <Tabs.List aria-label="选项">
+                    <Tabs.Tab key="none" id="none">
+                      不自动设置
+                      <Tabs.Indicator />
+                    </Tabs.Tab>
+                    <Tabs.Tab key="exec" id="exec">
+                      执行命令
+                      <Tabs.Indicator />
+                    </Tabs.Tab>
+                    <Tabs.Tab key="service" id="service">
+                      服务模式
+                      <Tabs.Indicator />
+                    </Tabs.Tab>
+                  </Tabs.List>
+                </Tabs.ListContainer>
               </Tabs>
             </SettingItem>
           )}
           <SettingItem compatKey="legacy" title="Tun 模式堆栈" divider>
             <Tabs
-              size="sm"
-              color="primary"
               selectedKey={values.stack}
               onSelectionChange={(key: Key) => setValues({ ...values, stack: key as TunStack })}
+              data-color="primary"
+              data-size="sm"
+              data-full-width={false}
             >
-              <Tab key="gvisor" title="gVisor" />
-              <Tab key="mixed" title="Mixed" />
-              <Tab key="system" title="System" />
-              <Tab key="mips" title="MIPS" />
+              <Tabs.ListContainer>
+                <Tabs.List aria-label="选项">
+                  <Tabs.Tab key="gvisor" id="gvisor">
+                    gVisor
+                    <Tabs.Indicator />
+                  </Tabs.Tab>
+                  <Tabs.Tab key="mixed" id="mixed">
+                    Mixed
+                    <Tabs.Indicator />
+                  </Tabs.Tab>
+                  <Tabs.Tab key="system" id="system">
+                    System
+                    <Tabs.Indicator />
+                  </Tabs.Tab>
+                  <Tabs.Tab key="mips" id="mips">
+                    MIPS
+                    <Tabs.Indicator />
+                  </Tabs.Tab>
+                </Tabs.List>
+              </Tabs.ListContainer>
             </Tabs>
           </SettingItem>
           {platform !== 'darwin' && (
             <>
               <SettingItem compatKey="legacy" title="Tun 网卡名称" divider>
                 <Input
-                  size="sm"
-                  className="w-25"
                   value={values.device}
-                  onValueChange={(v) => {
+                  onChange={(event) => {
+                    const v = event.target.value
                     setValues({ ...values, device: v })
                   }}
+                  className="w-25"
+                  fullWidth
                 />
               </SettingItem>
               <SettingItem compatKey="legacy" title="严格路由" divider>
                 <Switch
                   size="sm"
                   isSelected={values.strictRoute}
-                  onValueChange={(v) => {
+                  onChange={(v) => {
                     setValues({ ...values, strictRoute: v })
                   }}
-                />
+                  aria-label="严格路由"
+                >
+                  <Switch.Content>
+                    <Switch.Control>
+                      <Switch.Thumb />
+                    </Switch.Control>
+                  </Switch.Content>
+                </Switch>
               </SettingItem>
             </>
           )}
@@ -165,64 +208,94 @@ const Tun: React.FC = () => {
             <Switch
               size="sm"
               isSelected={values.autoRoute}
-              onValueChange={(v) => {
+              onChange={(v) => {
                 setValues({ ...values, autoRoute: v })
               }}
-            />
+              aria-label="自动设置路由规则"
+            >
+              <Switch.Content>
+                <Switch.Control>
+                  <Switch.Thumb />
+                </Switch.Control>
+              </Switch.Content>
+            </Switch>
           </SettingItem>
           {platform === 'linux' && (
             <SettingItem compatKey="legacy" title="自动设置TCP重定向" divider>
               <Switch
                 size="sm"
                 isSelected={values.autoRedirect}
-                onValueChange={(v) => {
+                onChange={(v) => {
                   setValues({ ...values, autoRedirect: v })
                 }}
-              />
+                aria-label="自动设置 TCP 重定向"
+              >
+                <Switch.Content>
+                  <Switch.Control>
+                    <Switch.Thumb />
+                  </Switch.Control>
+                </Switch.Content>
+              </Switch>
             </SettingItem>
           )}
           <SettingItem compatKey="legacy" title="自动选择流量出口" divider>
             <Switch
               size="sm"
               isSelected={values.autoDetectInterface}
-              onValueChange={(v) => {
+              onChange={(v) => {
                 setValues({ ...values, autoDetectInterface: v })
               }}
-            />
+              aria-label="自动选择流量出口"
+            >
+              <Switch.Content>
+                <Switch.Control>
+                  <Switch.Thumb />
+                </Switch.Control>
+              </Switch.Content>
+            </Switch>
           </SettingItem>
           <SettingItem compatKey="legacy" title="ICMP 转发" divider>
             <Switch
               size="sm"
               isSelected={!values.disableIcmpForwarding}
-              onValueChange={(v) => {
+              onChange={(v) => {
                 setValues({ ...values, disableIcmpForwarding: !v })
               }}
-            />
+              aria-label="ICMP 转发"
+            >
+              <Switch.Content>
+                <Switch.Control>
+                  <Switch.Thumb />
+                </Switch.Control>
+              </Switch.Content>
+            </Switch>
           </SettingItem>
           <SettingItem compatKey="legacy" title="MTU" divider>
             <Input
-              size="sm"
               type="number"
-              className="w-25"
               value={values.mtu.toString()}
               min={1}
-              onValueChange={(v) => {
+              onChange={(event) => {
+                const v = event.target.value
                 setValues({
                   ...values,
                   mtu: Math.min(Math.max(parseInt(v) || 1500, 1), 65535)
                 })
               }}
+              className="w-25"
+              fullWidth
             />
           </SettingItem>
           <SettingItem compatKey="legacy" title="DNS 劫持，使用逗号分割多个值" divider>
             <Input
-              size="sm"
-              className="w-[50%]"
               value={values.dnsHijack.join(',')}
-              onValueChange={(v) => {
+              onChange={(event) => {
+                const v = event.target.value
                 const arr = v !== '' ? v.split(',') : []
                 setValues({ ...values, dnsHijack: arr })
               }}
+              className="w-[50%]"
+              fullWidth
             />
           </SettingItem>
           <EditableList

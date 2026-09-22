@@ -1,12 +1,5 @@
-import {
-  Button,
-  Divider,
-  Dropdown,
-  DropdownItem,
-  DropdownMenu,
-  DropdownTrigger,
-  Input
-} from '@heroui/react'
+import { Button, InputGroup, Spinner, Separator, Dropdown, Label } from '@heroui/react'
+
 import BasePage from '@renderer/components/base/base-page'
 import { getFilePath, readTextFile } from '@renderer/utils/ipc'
 import { useEffect, useRef, useState } from 'react'
@@ -175,23 +168,25 @@ const Override: React.FC = () => {
         <>
           <Button
             size="sm"
-            variant="light"
             isIconOnly
-            className="app-nodrag"
             onPress={() => {
               open('https://mihomo.party/docs/guide/override')
             }}
+            variant="ghost"
+            data-color="default"
+            className="app-nodrag"
           >
             <HiOutlineDocumentText className="text-lg" />
           </Button>
           <Button
-            className="app-nodrag"
             isIconOnly
-            variant="light"
             size="sm"
             onPress={() => {
               open('https://github.com/mihomo-party-org/override-hub')
             }}
+            variant="ghost"
+            data-color="default"
+            className="app-nodrag"
           >
             <RiArchiveLine className="text-lg" />
           </Button>
@@ -200,95 +195,127 @@ const Override: React.FC = () => {
     >
       <div className="sticky top-0 z-40">
         <div className="flex p-2">
-          <Input
-            size="sm"
-            value={url}
-            onValueChange={setUrl}
-            endContent={
-              <Button
-                size="sm"
-                isIconOnly
-                variant="light"
-                onPress={() => {
-                  navigator.clipboard.readText().then((text) => {
-                    setUrl(text)
-                  })
-                }}
-              >
-                <MdContentPaste className="text-lg" />
-              </Button>
-            }
-          />
+          <InputGroup fullWidth>
+            <InputGroup.Input value={url} onChange={(event) => setUrl(event.target.value)} />
+            <InputGroup.Suffix>
+              {
+                <Button
+                  size="sm"
+                  isIconOnly
+                  onPress={() => {
+                    navigator.clipboard.readText().then((text) => {
+                      setUrl(text)
+                    })
+                  }}
+                  variant="ghost"
+                  data-color="default"
+                >
+                  <MdContentPaste className="text-lg" />
+                </Button>
+              }
+            </InputGroup.Suffix>
+          </InputGroup>
           <Button
             size="sm"
-            color="primary"
-            className="ml-2"
-            isDisabled={url === ''}
-            isLoading={importing}
             onPress={handleImport}
+            variant="primary"
+            data-color="primary"
+            className="ml-2"
+            isPending={importing}
+            isDisabled={url === '' || importing}
           >
-            导入
+            {importing ? <Spinner size="sm" color="current" /> : null}导入
           </Button>
           <Dropdown>
-            <DropdownTrigger>
-              <Button className="ml-2" size="sm" isIconOnly color="primary">
+            <>
+              <Button size="sm" isIconOnly variant="primary" data-color="primary" className="ml-2">
                 <FaPlus />
               </Button>
-            </DropdownTrigger>
-            <DropdownMenu
-              onAction={async (key) => {
-                if (key === 'open') {
-                  try {
-                    const files = await getFilePath(['js', 'yaml'])
-                    if (files?.length) {
-                      const content = await readTextFile(files[0])
-                      const fileName = files[0].split('/').pop()?.split('\\').pop()
-                      await addOverrideItem({
-                        name: fileName,
-                        type: 'local',
-                        file: content,
-                        ext: fileName?.endsWith('.js') ? 'js' : 'yaml'
-                      })
+            </>
+            <Dropdown.Popover>
+              <Dropdown.Menu
+                onAction={async (key) => {
+                  if (key === 'open') {
+                    try {
+                      const files = await getFilePath(['js', 'yaml'])
+                      if (files?.length) {
+                        const content = await readTextFile(files[0])
+                        const fileName = files[0].split('/').pop()?.split('\\').pop()
+                        await addOverrideItem({
+                          name: fileName,
+                          type: 'local',
+                          file: content,
+                          ext: fileName?.endsWith('.js') ? 'js' : 'yaml'
+                        })
+                      }
+                    } catch (e) {
+                      notify(e, { variant: 'danger' })
                     }
-                  } catch (e) {
-                    notify(e, { variant: 'danger' })
+                  } else if (key === 'new-yaml') {
+                    await addOverrideItem({
+                      name: '\u65B0\u5EFA YAML',
+                      type: 'local',
+                      file: '# https://mihomo.party/docs/guide/override/yaml',
+                      ext: 'yaml'
+                    })
+                  } else if (key === 'new-js') {
+                    await addOverrideItem({
+                      name: '\u65B0\u5EFA JS',
+                      type: 'local',
+                      file: '// https://mihomo.party/docs/guide/override/javascript\nfunction main(config) {\n  return config\n}',
+                      ext: 'js'
+                    })
+                  } else if (key === 'import') {
+                    const newRemoteOverride: OverrideItem = {
+                      id: '',
+                      name: '',
+                      type: 'remote',
+                      url: '',
+                      ext: 'yaml',
+                      updated: Date.now()
+                    }
+                    setEditingItem(newRemoteOverride)
+                    setShowEditModal(true)
                   }
-                } else if (key === 'new-yaml') {
-                  await addOverrideItem({
-                    name: '新建 YAML',
-                    type: 'local',
-                    file: '# https://mihomo.party/docs/guide/override/yaml',
-                    ext: 'yaml'
-                  })
-                } else if (key === 'new-js') {
-                  await addOverrideItem({
-                    name: '新建 JS',
-                    type: 'local',
-                    file: '// https://mihomo.party/docs/guide/override/javascript\nfunction main(config) {\n  return config\n}',
-                    ext: 'js'
-                  })
-                } else if (key === 'import') {
-                  const newRemoteOverride: OverrideItem = {
-                    id: '',
-                    name: '',
-                    type: 'remote',
-                    url: '',
-                    ext: 'yaml',
-                    updated: Date.now()
-                  }
-                  setEditingItem(newRemoteOverride)
-                  setShowEditModal(true)
-                }
-              }}
-            >
-              <DropdownItem key="open">打开本地覆写</DropdownItem>
-              <DropdownItem key="import">导入远程覆写</DropdownItem>
-              <DropdownItem key="new-yaml">新建 YAML</DropdownItem>
-              <DropdownItem key="new-js">新建 JavaScript</DropdownItem>
-            </DropdownMenu>
+                }}
+              >
+                <Dropdown.Item
+                  key="open"
+                  id="open"
+                  className="app-dropdown-item"
+                  textValue="打开本地覆写"
+                >
+                  <Label>打开本地覆写</Label>
+                </Dropdown.Item>
+                <Dropdown.Item
+                  key="import"
+                  id="import"
+                  className="app-dropdown-item"
+                  textValue="导入远程覆写"
+                >
+                  <Label>导入远程覆写</Label>
+                </Dropdown.Item>
+                <Dropdown.Item
+                  key="new-yaml"
+                  id="new-yaml"
+                  className="app-dropdown-item"
+                  textValue="新建 YAML"
+                >
+                  <Label>新建 YAML</Label>
+                </Dropdown.Item>
+                <Dropdown.Item
+                  key="new-js"
+                  id="new-js"
+                  className="app-dropdown-item"
+                  textValue="新建 JavaScript"
+                >
+                  <Label>新建 JavaScript</Label>
+                </Dropdown.Item>
+              </Dropdown.Menu>
+            </Dropdown.Popover>
           </Dropdown>
         </div>
-        <Divider />
+        <Separator />
       </div>
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
         <div

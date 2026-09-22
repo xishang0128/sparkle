@@ -1,4 +1,4 @@
-import { Toast } from '@heroui-v3/react'
+import { Toast } from '@heroui/react'
 import { useEffect, useState } from 'react'
 import ErrorDetailDrawer from './error-detail-drawer'
 import {

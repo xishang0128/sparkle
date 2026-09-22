@@ -1,72 +1,59 @@
+import { InputGroup } from '@heroui/react'
 import React, { useEffect, useRef, useState } from 'react'
-import { Input, InputProps } from '@heroui/react'
 import { FaSearch } from 'react-icons/fa'
 
-type CollapseInputProps = InputProps
+interface CollapseInputProps {
+  value: string
+  onValueChange: (value: string) => void
+}
 
-const CollapseInput: React.FC<CollapseInputProps> = (props) => {
-  const { value, onChange, onValueChange, ...inputProps } = props
+const CollapseInput: React.FC<CollapseInputProps> = ({ value, onValueChange }) => {
   const inputRef = useRef<HTMLInputElement>(null)
   const composingRef = useRef(false)
-  const [internalValue, setInternalValue] = useState<string>((value as string) ?? '')
+  const [internalValue, setInternalValue] = useState(value)
 
   useEffect(() => {
-    if (!composingRef.current) {
-      setInternalValue((value as string) ?? '')
-    }
+    if (!composingRef.current) setInternalValue(value)
   }, [value])
 
   return (
-    <div className="flex">
-      <Input
-        size="sm"
+    <InputGroup className="w-auto cursor-pointer gap-0 bg-transparent p-0 hover:bg-content2">
+      <InputGroup.Input
         ref={inputRef}
-        {...inputProps}
+        aria-label="搜索节点"
         value={internalValue}
+        className={`flex-none w-0 focus:w-37.5 focus:ml-2 ${internalValue ? 'w-37.5 ml-2' : ''} transition-all duration-200`}
         onCompositionStart={() => {
           composingRef.current = true
         }}
-        onCompositionEnd={(e) => {
+        onCompositionEnd={(event) => {
           composingRef.current = false
-          const val = (e.target as HTMLInputElement).value
-          setInternalValue(val)
-          onValueChange?.(val)
-          onChange?.(e as unknown as React.ChangeEvent<HTMLInputElement>)
+          const nextValue = event.currentTarget.value
+          setInternalValue(nextValue)
+          onValueChange(nextValue)
         }}
-        onChange={(e) => {
-          const val = e.target.value
-          setInternalValue(val)
-          if (!composingRef.current) {
-            onChange?.(e)
-            onValueChange?.(val)
-          }
+        onChange={(event) => {
+          const nextValue = event.target.value
+          setInternalValue(nextValue)
+          if (!composingRef.current) onValueChange(nextValue)
         }}
-        style={{ paddingInlineEnd: 0 }}
-        classNames={{
-          inputWrapper: 'cursor-pointer bg-transparent p-0 data-[hover=true]:bg-content2',
-          input: `w-0 focus:w-[150px] focus:ml-2 ${internalValue ? 'w-[150px] ml-2' : ''} transition-all duration-200`
-        }}
-        endContent={
-          <div
-            className="cursor-pointer p-2 text-lg text-foreground-500"
-            onClick={(e) => {
-              e.stopPropagation()
-              if (inputRef.current?.offsetWidth != 0) {
-                inputRef.current?.blur()
-              } else {
-                inputRef.current?.focus()
-              }
-            }}
-          >
-            <FaSearch />
-          </div>
-        }
-        onClick={(e) => {
-          e.stopPropagation()
-          inputRef.current?.focus()
-        }}
+        onClick={(event) => event.stopPropagation()}
       />
-    </div>
+      <InputGroup.Suffix>
+        <button
+          type="button"
+          aria-label="展开或收起节点搜索"
+          className="cursor-pointer p-2 text-lg text-foreground-500"
+          onClick={(event) => {
+            event.stopPropagation()
+            if (inputRef.current?.offsetWidth !== 0) inputRef.current?.blur()
+            else inputRef.current?.focus()
+          }}
+        >
+          <FaSearch />
+        </button>
+      </InputGroup.Suffix>
+    </InputGroup>
   )
 }
 

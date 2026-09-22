@@ -1,5 +1,6 @@
-import { Button, Card, CardBody, Chip } from '@heroui/react'
-import { Avatar } from '@heroui-v3/react'
+import { Chip, Button, Spinner, Card, Avatar } from '@heroui/react'
+import { Pressable } from 'react-aria'
+
 import BasePage from '@renderer/components/base/base-page'
 import { useAppConfig } from '@renderer/hooks/use-app-config'
 import {
@@ -82,89 +83,99 @@ const GroupHeader = memo(function GroupHeader({
 }: GroupHeaderProps) {
   return (
     <div className={`w-full pt-2 ${isLast && !isOpen ? 'pb-2' : ''} px-2`}>
-      <Card as="div" isPressable fullWidth onPress={() => onToggle(index, isOpen)}>
-        <CardBody className="w-full h-14">
-          <div className="flex justify-between h-full">
-            <div className="flex text-ellipsis overflow-hidden whitespace-nowrap h-full">
-              {group.icon ? (
-                <Avatar
-                  className="mr-2 h-8 w-8 shrink-0 bg-transparent overflow-visible! rounded-none!"
-                  size="sm"
-                >
-                  <Avatar.Image
-                    className="object-contain"
-                    src={
-                      group.icon.startsWith('<svg')
-                        ? `data:image/svg+xml;utf8,${group.icon}`
-                        : localStorage.getItem(group.icon) || group.icon
-                    }
-                  />
-                </Avatar>
-              ) : null}
-              <div
-                className={`flex flex-col h-full ${
-                  groupDisplayLayout === 'double' ? '' : 'justify-center'
-                }`}
-              >
+      <Pressable onPress={() => onToggle(index, isOpen)}>
+        <Card className="w-full" data-pressable="true" role="button" tabIndex={0}>
+          <Card.Content className="w-full h-14">
+            <div className="flex justify-between h-full">
+              <div className="flex text-ellipsis overflow-hidden whitespace-nowrap h-full">
+                {group.icon ? (
+                  <Avatar
+                    className="mr-2 h-8 w-8 shrink-0 bg-transparent overflow-visible! rounded-none!"
+                    size="sm"
+                  >
+                    <Avatar.Image
+                      className="object-contain"
+                      src={
+                        group.icon.startsWith('<svg')
+                          ? `data:image/svg+xml;utf8,${group.icon}`
+                          : localStorage.getItem(group.icon) || group.icon
+                      }
+                    />
+                  </Avatar>
+                ) : null}
                 <div
-                  className={`text-ellipsis overflow-hidden whitespace-nowrap leading-tight ${
-                    groupDisplayLayout === 'double' ? 'text-md flex-5 flex items-center' : 'text-lg'
-                  }`}
+                  className={`flex flex-col h-full ${groupDisplayLayout === 'double' ? '' : 'justify-center'}`}
                 >
-                  <span className="flag-emoji inline-block">{group.name}</span>
-                  {groupDisplayLayout === 'single' && (
-                    <>
-                      <div className="inline ml-2 text-sm text-foreground-500">{group.type}</div>
-                      <div className="inline flag-emoji ml-2 text-sm text-foreground-500">
-                        {group.now}
-                      </div>
-                    </>
+                  <div
+                    className={`text-ellipsis overflow-hidden whitespace-nowrap leading-tight ${groupDisplayLayout === 'double' ? 'text-md flex-5 flex items-center' : 'text-lg'}`}
+                  >
+                    <span className="flag-emoji inline-block">{group.name}</span>
+                    {groupDisplayLayout === 'single' && (
+                      <>
+                        <div className="inline ml-2 text-sm text-foreground-500">{group.type}</div>
+                        <div className="inline flag-emoji ml-2 text-sm text-foreground-500">
+                          {group.now}
+                        </div>
+                      </>
+                    )}
+                  </div>
+                  {groupDisplayLayout === 'double' && (
+                    <div className="text-ellipsis whitespace-nowrap text-[10px] text-foreground-500 leading-tight flex-3 flex items-center">
+                      <span>{group.type}</span>
+                      <span className="flag-emoji ml-1 inline-block">{group.now}</span>
+                    </div>
                   )}
                 </div>
-                {groupDisplayLayout === 'double' && (
-                  <div className="text-ellipsis whitespace-nowrap text-[10px] text-foreground-500 leading-tight flex-3 flex items-center">
-                    <span>{group.type}</span>
-                    <span className="flag-emoji ml-1 inline-block">{group.now}</span>
-                  </div>
-                )}
               </div>
-            </div>
-            <div className="flex items-center">
-              <div
-                className="flex items-center"
-                onClick={(e) => e.stopPropagation()}
-                onPointerDown={(e) => e.stopPropagation()}
-                onKeyDown={(e) => e.stopPropagation()}
-              >
-                <Chip size="sm" className="my-1 mr-2">
-                  {group.all.length}
-                </Chip>
-                <CollapseInput
-                  value={searchValue}
-                  onValueChange={(v) => onUpdateSearch(index, v)}
-                />
-                <Button variant="light" size="sm" isIconOnly onPress={() => onScrollToProxy(index)}>
-                  <FaLocationCrosshairs className="text-lg text-foreground-500" />
-                </Button>
-                <Button
-                  variant="light"
-                  isLoading={delaying}
-                  size="sm"
-                  isIconOnly
-                  onPress={() => onGroupDelay(index)}
+              <div className="flex items-center">
+                <div
+                  className="flex items-center"
+                  onClick={(e) => e.stopPropagation()}
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onKeyDown={(e) => e.stopPropagation()}
                 >
-                  <MdOutlineSpeed className="text-lg text-foreground-500" />
-                </Button>
+                  <Chip
+                    size="sm"
+                    data-color="default"
+                    variant="primary"
+                    className={['my-1 mr-2'].filter(Boolean).join(' ')}
+                  >
+                    <Chip.Label>{group.all.length}</Chip.Label>
+                  </Chip>
+                  <CollapseInput
+                    value={searchValue}
+                    onValueChange={(v) => onUpdateSearch(index, v)}
+                  />
+                  <Button
+                    size="sm"
+                    isIconOnly
+                    onPress={() => onScrollToProxy(index)}
+                    variant="ghost"
+                    data-color="default"
+                  >
+                    <FaLocationCrosshairs className="text-lg text-foreground-500" />
+                  </Button>
+                  <Button
+                    size="sm"
+                    isIconOnly
+                    onPress={() => onGroupDelay(index)}
+                    variant="ghost"
+                    data-color="default"
+                    isPending={delaying}
+                    isDisabled={delaying}
+                  >
+                    {delaying ? <Spinner size="sm" color="current" /> : null}
+                    <MdOutlineSpeed className="text-lg text-foreground-500" />
+                  </Button>
+                </div>
+                <IoIosArrowBack
+                  className={`transition duration-200 ml-2 h-8 text-lg text-foreground-500 flex items-center ${isOpen ? '-rotate-90' : ''}`}
+                />
               </div>
-              <IoIosArrowBack
-                className={`transition duration-200 ml-2 h-8 text-lg text-foreground-500 flex items-center ${
-                  isOpen ? '-rotate-90' : ''
-                }`}
-              />
             </div>
-          </div>
-        </CardBody>
-      </Card>
+          </Card.Content>
+        </Card>
+      </Pressable>
     </div>
   )
 })
@@ -676,9 +687,7 @@ const Proxies: React.FC = () => {
           pCols === 'auto'
             ? 'sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5'
             : ''
-        } ${
-          groupIndex === gc.length - 1 && innerIndex === gc[groupIndex] - 1 ? 'pb-2' : ''
-        } gap-2 pt-2 mx-2`}
+        } ${groupIndex === gc.length - 1 && innerIndex === gc[groupIndex] - 1 ? 'pb-2' : ''} gap-2 pt-2 mx-2`}
       >
         {items}
       </div>
@@ -694,12 +703,13 @@ const Proxies: React.FC = () => {
         <Button
           size="sm"
           isIconOnly
-          variant="light"
-          className="app-nodrag"
           onPress={() => {
             setIsSettingDrawerOpen(true)
             setSettingDrawerReopenSignal((signal) => signal + 1)
           }}
+          variant="ghost"
+          data-color="default"
+          className="app-nodrag"
         >
           <MdTune className="text-lg" />
         </Button>

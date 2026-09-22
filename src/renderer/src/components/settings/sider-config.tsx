@@ -1,7 +1,7 @@
+import { RadioGroup, Radio, Label } from '@heroui/react'
 import React from 'react'
 import SettingCard from '../base/base-setting-card'
 import SettingItem from '../base/base-setting-item'
-import { RadioGroup, Radio } from '@heroui/react'
 import { useAppConfig } from '@renderer/hooks/use-app-config'
 const titleMap = {
   sysproxyCardStatus: '系统代理',
@@ -65,13 +65,35 @@ const SiderConfig: React.FC = () => {
             <RadioGroup
               orientation="horizontal"
               value={cardStatus[key]}
-              onValueChange={(v) => {
+              className="app-radio-group"
+              onChange={(v) => {
                 patchAppConfig({ [key]: v as CardStatus })
               }}
             >
-              <Radio value="col-span-2">大</Radio>
-              <Radio value="col-span-1">小</Radio>
-              <Radio value="hidden">隐藏</Radio>
+              <Radio value="col-span-2" className="app-radio">
+                <Radio.Content>
+                  <Radio.Control>
+                    <Radio.Indicator />
+                  </Radio.Control>
+                  <Label>大</Label>
+                </Radio.Content>
+              </Radio>
+              <Radio value="col-span-1" className="app-radio">
+                <Radio.Content>
+                  <Radio.Control>
+                    <Radio.Indicator />
+                  </Radio.Control>
+                  <Label>小</Label>
+                </Radio.Content>
+              </Radio>
+              <Radio value="hidden" className="app-radio">
+                <Radio.Content>
+                  <Radio.Control>
+                    <Radio.Indicator />
+                  </Radio.Control>
+                  <Label>隐藏</Label>
+                </Radio.Content>
+              </Radio>
             </RadioGroup>
           </SettingItem>
         )

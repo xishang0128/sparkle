@@ -1,4 +1,5 @@
 import { Button } from '@heroui/react'
+
 import BasePage from '@renderer/components/base/base-page'
 // import { CgWebsite } from 'react-icons/cg'
 import { IoLogoGithub } from 'react-icons/io5'
@@ -19,36 +20,38 @@ const Settings: React.FC = () => {
       header={
         <>
           {/* <Button
-            isIconOnly
-            size="sm"
-            variant="light"
-            title="官方文档"
-            className="app-nodrag"
-            onPress={() => {
-              window.open('https://')
-            }}
-          >
-            <CgWebsite className="text-lg" />
-          </Button> */}
+              isIconOnly
+              size="sm"
+              variant="light"
+              title="官方文档"
+              className="app-nodrag"
+              onPress={() => {
+                window.open('https://')
+              }}
+            >
+              <CgWebsite className="text-lg" />
+            </Button> */}
           <Button
             isIconOnly
             size="sm"
-            variant="light"
-            className="app-nodrag"
             onPress={() => {
               window.open('https://github.com/xishang0128/sparkle')
             }}
+            variant="ghost"
+            data-color="default"
+            className="app-nodrag"
           >
             <IoLogoGithub className="text-lg" />
           </Button>
           <Button
             isIconOnly
             size="sm"
-            variant="light"
-            className="app-nodrag"
             onPress={() => {
               window.open('https://t.me/atri0828')
             }}
+            variant="ghost"
+            data-color="default"
+            className="app-nodrag"
           >
             <FaTelegramPlane className="text-lg" />
           </Button>

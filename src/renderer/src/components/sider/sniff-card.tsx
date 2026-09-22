@@ -1,4 +1,5 @@
-import { Button, Card, CardBody, CardFooter, Tooltip } from '@heroui/react'
+import { Button, Tooltip, Card } from '@heroui/react'
+
 import BorderSwitch from '@renderer/components/base/border-swtich'
 import { RiScan2Fill } from 'react-icons/ri'
 import { useLocation, useNavigate } from 'react-router-dom'
@@ -45,18 +46,19 @@ const SniffCard: React.FC<Props> = (props) => {
   if (iconOnly) {
     return (
       <div className={`${sniffCardStatus} ${!controlSniff ? 'hidden' : ''} flex justify-center`}>
-        <Tooltip content="域名嗅探" placement="right">
+        <Tooltip delay={0}>
           <Button
             size="sm"
             isIconOnly
-            color={match ? 'primary' : 'default'}
-            variant={match ? 'solid' : 'light'}
             onPress={() => {
               navigate('/sniffer')
             }}
+            variant={match ? 'primary' : 'ghost'}
+            data-color={match ? 'primary' : 'default'}
           >
             <RiScan2Fill className="text-[20px]" />
           </Button>
+          <Tooltip.Content placement="right">{'域名嗅探'}</Tooltip.Content>
         </Tooltip>
       </div>
     )
@@ -64,6 +66,7 @@ const SniffCard: React.FC<Props> = (props) => {
 
   return (
     <div
+      ref={setNodeRef}
       style={{
         position: 'relative',
         transform: CSS.Transform.toString(transform),
@@ -73,19 +76,22 @@ const SniffCard: React.FC<Props> = (props) => {
       className={`${sniffCardStatus} ${!controlSniff ? 'hidden' : ''} sniff-card`}
     >
       <Card
-        fullWidth
-        ref={setNodeRef}
         {...attributes}
         {...listeners}
-        className={`${match ? 'bg-primary' : 'hover:bg-primary/30'} ${isDragging ? `${disableAnimation ? '' : 'scale-[0.95]'} tap-highlight-transparent` : ''}`}
+        className={[
+          'w-full',
+          `${match ? 'bg-primary' : 'hover:bg-primary/30'} ${isDragging ? `${disableAnimation ? '' : 'scale-[0.95]'} tap-highlight-transparent` : ''}`
+        ]
+          .filter(Boolean)
+          .join(' ')}
       >
-        <CardBody className="pb-1 pt-0 px-0 overflow-y-visible">
+        <Card.Content className="pb-1 pt-0 px-0 overflow-y-visible">
           <div className="flex justify-between">
             <Button
               isIconOnly
+              variant="secondary"
+              data-color="default"
               className="bg-transparent pointer-events-none"
-              variant="flat"
-              color="default"
             >
               <RiScan2Fill
                 color="default"
@@ -98,14 +104,14 @@ const SniffCard: React.FC<Props> = (props) => {
               onValueChange={onChange}
             />
           </div>
-        </CardBody>
-        <CardFooter className="pt-1">
+        </Card.Content>
+        <Card.Footer className="pt-1">
           <h3
             className={`text-md font-bold ${match ? 'text-primary-foreground' : 'text-foreground'}`}
           >
             域名嗅探
           </h3>
-        </CardFooter>
+        </Card.Footer>
       </Card>
     </div>
   )

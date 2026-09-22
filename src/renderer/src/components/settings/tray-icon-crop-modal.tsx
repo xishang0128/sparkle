@@ -1,4 +1,4 @@
-import { Button, FieldError, Input, Label, Modal, Slider, Tabs, TextField } from '@heroui-v3/react'
+import { Button, FieldError, Input, Label, Modal, Slider, Tabs, TextField } from '@heroui/react'
 import {
   cropImageElementToPngDataURL,
   type ImageColorPreset,
@@ -330,6 +330,7 @@ const TrayIconCropModal: React.FC<Props> = (props) => {
                   <div className="flex w-full flex-col gap-2">
                     <Label className="text-xs text-default-600">样式</Label>
                     <Tabs
+                      data-size="sm"
                       selectedKey={colorMode}
                       onSelectionChange={(key) => setColorMode(String(key) as ColorMode)}
                     >

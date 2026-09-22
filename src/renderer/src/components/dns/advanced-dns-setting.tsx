@@ -1,8 +1,8 @@
+import { Switch } from '@heroui/react'
 import React, { useState } from 'react'
 import SettingCard from '../base/base-setting-card'
 import SettingItem from '../base/base-setting-item'
 import EditableList from '../base/base-list-editor'
-import { Switch } from '@heroui/react'
 import { isValidDnsServer, isValidDomainWildcard } from '@renderer/utils/validate'
 
 interface AdvancedDnsSettingProps {
@@ -75,8 +75,15 @@ const AdvancedDnsSetting: React.FC<AdvancedDnsSettingProps> = ({
           size="sm"
           isSelected={respectRules}
           isDisabled={proxyServerNameserver.length === 0}
-          onValueChange={onRespectRulesChange}
-        />
+          onChange={onRespectRulesChange}
+          aria-label="连接遵守规则"
+        >
+          <Switch.Content>
+            <Switch.Control>
+              <Switch.Thumb />
+            </Switch.Control>
+          </Switch.Content>
+        </Switch>
       </SettingItem>
       <EditableList
         title="直连解析服务器"
@@ -225,10 +232,32 @@ const AdvancedDnsSetting: React.FC<AdvancedDnsSettingProps> = ({
         objectMode="record"
       />
       <SettingItem compatKey="legacy" title="使用系统 Hosts" divider>
-        <Switch size="sm" isSelected={useSystemHosts} onValueChange={onUseSystemHostsChange} />
+        <Switch
+          size="sm"
+          isSelected={useSystemHosts}
+          onChange={onUseSystemHostsChange}
+          aria-label="使用系统 Hosts"
+        >
+          <Switch.Content>
+            <Switch.Control>
+              <Switch.Thumb />
+            </Switch.Control>
+          </Switch.Content>
+        </Switch>
       </SettingItem>
       <SettingItem compatKey="legacy" title="自定义 Hosts">
-        <Switch size="sm" isSelected={useHosts} onValueChange={onUseHostsChange} />
+        <Switch
+          size="sm"
+          isSelected={useHosts}
+          onChange={onUseHostsChange}
+          aria-label="自定义 Hosts"
+        >
+          <Switch.Content>
+            <Switch.Control>
+              <Switch.Thumb />
+            </Switch.Control>
+          </Switch.Content>
+        </Switch>
       </SettingItem>
       {useHosts && (
         <EditableList

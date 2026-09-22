@@ -1,4 +1,5 @@
 import { Button } from '@heroui/react'
+
 import React, { useState, useEffect } from 'react'
 import UpdaterDrawer from './updater-drawer'
 import { GrUpgrade } from 'react-icons/gr'
@@ -111,13 +112,14 @@ const UpdaterButton: React.FC<Props> = (props) => {
         <Button
           isIconOnly
           aria-label="查看更新"
-          className={iconOnly ? 'app-nodrag' : 'fixed right-11.25 app-nodrag'}
-          color="danger"
           size={iconOnly ? 'md' : 'sm'}
           onPress={() => {
             setOpenDrawer(true)
             setDrawerReopenSignal((signal) => signal + 1)
           }}
+          variant="primary"
+          data-color="danger"
+          className={iconOnly ? 'app-nodrag' : 'fixed right-11.25 app-nodrag'}
         >
           <GrUpgrade />
         </Button>

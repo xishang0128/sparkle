@@ -1,5 +1,5 @@
-import { Button, Label, Modal, Switch } from '@heroui-v3/react'
-import { Spinner } from '@heroui/react'
+import { Spinner, Button, Label, Modal, Switch } from '@heroui/react'
+
 import React, { useEffect, useState } from 'react'
 import { BaseEditor } from '../base/base-editor-lazy'
 import { getProfileStr, setProfileStr } from '@renderer/utils/ipc'
@@ -106,7 +106,7 @@ const EditFileModal: React.FC<Props> = (props) => {
             <Modal.Body className="h-full">
               {isLoading ? (
                 <div className="flex h-full items-center justify-center">
-                  <Spinner size="lg" />
+                  <Spinner size="lg" color="accent" />
                 </div>
               ) : (
                 <BaseEditor
@@ -120,7 +120,7 @@ const EditFileModal: React.FC<Props> = (props) => {
             </Modal.Body>
             <Modal.Footer className="flex justify-between pt-0 pb-0">
               <div className="flex items-center space-x-2">
-                <Switch size="sm" isSelected={isDiff} onChange={setIsDiff}>
+                <Switch size="sm" isSelected={isDiff} onChange={setIsDiff} aria-label="启用">
                   <Switch.Content>
                     <Switch.Control>
                       <Switch.Thumb />
@@ -128,7 +128,12 @@ const EditFileModal: React.FC<Props> = (props) => {
                     <Label>显示修改</Label>
                   </Switch.Content>
                 </Switch>
-                <Switch size="sm" isSelected={sideBySide} onChange={setSideBySide}>
+                <Switch
+                  size="sm"
+                  isSelected={sideBySide}
+                  onChange={setSideBySide}
+                  aria-label="启用"
+                >
                   <Switch.Content>
                     <Switch.Control>
                       <Switch.Thumb />

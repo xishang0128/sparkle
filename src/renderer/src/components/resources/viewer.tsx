@@ -1,5 +1,5 @@
-import { Button, Modal } from '@heroui-v3/react'
-import { Spinner } from '@heroui/react'
+import { Spinner, Button, Modal } from '@heroui/react'
+
 import React, { useEffect, useState } from 'react'
 import { BaseEditor } from '../base/base-editor-lazy'
 import { TextViewer } from '../base/text-viewer'
@@ -171,7 +171,7 @@ const Viewer: React.FC<Props> = (props) => {
             <Modal.Body className="h-full">
               {isLoading ? (
                 <div className="flex h-full items-center justify-center">
-                  <Spinner size="lg" />
+                  <Spinner size="lg" color="accent" />
                 </div>
               ) : useTextViewer ? (
                 <TextViewer value={currData} />

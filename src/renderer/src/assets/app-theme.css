@@ -1,0 +1,155 @@
+/* HeroUI 3 tokens with the existing Sparkle palette and geometry. */
+@layer base {
+  :root,
+  .light,
+  [data-theme='light'] {
+    color-scheme: light;
+    --background: hsl(0 0% 100%);
+    --foreground: hsl(201.82 24.44% 8.82%);
+    --surface: hsl(0 0% 100%);
+    --surface-foreground: hsl(201.82 24.44% 8.82%);
+    --surface-secondary: hsl(240 4.76% 95.88%);
+    --surface-secondary-foreground: hsl(240 3.7% 15.88%);
+    --surface-tertiary: hsl(240 5.88% 90%);
+    --surface-tertiary-foreground: hsl(240 5.26% 26.08%);
+    --accent: hsl(212.02 100% 46.67%);
+    --accent-foreground: hsl(0 0% 100%);
+    --secondary: hsl(270 66.67% 47.06%);
+    --secondary-foreground: hsl(0 0% 100%);
+    --default: hsl(240 4.88% 83.92%);
+    --default-foreground: hsl(0 0% 0%);
+    --success: hsl(145.96 79.46% 43.92%);
+    --success-foreground: hsl(0 0% 0%);
+    --warning: hsl(37.03 91.27% 55.1%);
+    --warning-foreground: hsl(0 0% 0%);
+    --danger: hsl(339.2 90.36% 51.18%);
+    --danger-foreground: hsl(0 0% 100%);
+    --default-50: hsl(0 0% 98.04%);
+    --default-100: hsl(240 4.76% 95.88%);
+    --default-200: hsl(240 5.88% 90%);
+    --default-300: hsl(240 4.88% 83.92%);
+    --default-400: hsl(240 5.03% 64.9%);
+    --default-500: hsl(240 3.83% 46.08%);
+    --default-600: hsl(240 5.2% 33.92%);
+    --default-700: hsl(240 5.26% 26.08%);
+    --border: rgb(17 17 17 / 0.15);
+    --app-shadow-sm:
+      0px 0px 5px 0px rgb(0 0 0 / 0.02), 0px 2px 10px 0px rgb(0 0 0 / 0.06),
+      0px 0px 1px 0px rgb(0 0 0 / 0.3);
+    --app-shadow-md:
+      0px 0px 15px 0px rgb(0 0 0 / 0.03), 0px 2px 30px 0px rgb(0 0 0 / 0.08),
+      0px 0px 1px 0px rgb(0 0 0 / 0.3);
+    --app-shadow-lg:
+      0px 0px 30px 0px rgb(0 0 0 / 0.04), 0px 30px 60px 0px rgb(0 0 0 / 0.12),
+      0px 0px 1px 0px rgb(0 0 0 / 0.3);
+  }
+  .dark,
+  [data-theme='dark'] {
+    color-scheme: dark;
+    --background: hsl(0 0% 0%);
+    --foreground: hsl(210 5.56% 92.94%);
+    --surface: hsl(240 5.88% 10%);
+    --surface-foreground: hsl(0 0% 98.04%);
+    --surface-secondary: hsl(240 3.7% 15.88%);
+    --surface-secondary-foreground: hsl(240 4.76% 95.88%);
+    --surface-tertiary: hsl(240 5.26% 26.08%);
+    --surface-tertiary-foreground: hsl(240 5.88% 90%);
+    --accent: hsl(212.02 100% 46.67%);
+    --accent-foreground: hsl(0 0% 100%);
+    --secondary: hsl(270 59.26% 57.65%);
+    --secondary-foreground: hsl(0 0% 100%);
+    --default: hsl(240 5.26% 26.08%);
+    --default-foreground: hsl(0 0% 100%);
+    --success: hsl(145.96 79.46% 43.92%);
+    --success-foreground: hsl(0 0% 0%);
+    --warning: hsl(37.03 91.27% 55.1%);
+    --warning-foreground: hsl(0 0% 0%);
+    --danger: hsl(339.2 90.36% 51.18%);
+    --danger-foreground: hsl(0 0% 100%);
+    --default-50: hsl(240 5.88% 10%);
+    --default-100: hsl(240 3.7% 15.88%);
+    --default-200: hsl(240 5.26% 26.08%);
+    --default-300: hsl(240 5.2% 33.92%);
+    --default-400: hsl(240 3.83% 46.08%);
+    --default-500: hsl(240 5.03% 64.9%);
+    --default-600: hsl(240 4.88% 83.92%);
+    --default-700: hsl(240 5.88% 90%);
+    --border: rgb(255 255 255 / 0.15);
+    --app-shadow-sm:
+      0px 0px 5px 0px rgb(0 0 0 / 0.05), 0px 2px 10px 0px rgb(0 0 0 / 0.2),
+      inset 0px 0px 1px 0px rgb(255 255 255 / 0.15);
+    --app-shadow-md:
+      0px 0px 15px 0px rgb(0 0 0 / 0.06), 0px 2px 30px 0px rgb(0 0 0 / 0.22),
+      inset 0px 0px 1px 0px rgb(255 255 255 / 0.15);
+    --app-shadow-lg:
+      0px 0px 30px 0px rgb(0 0 0 / 0.07), 0px 30px 60px 0px rgb(0 0 0 / 0.26),
+      inset 0px 0px 1px 0px rgb(255 255 255 / 0.15);
+  }
+  :root,
+  .light,
+  .dark,
+  [data-theme] {
+    color: var(--foreground);
+    background-color: var(--background);
+    --radius: 12px;
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 14px;
+    --radius-xl: 14px;
+    --radius-2xl: 14px;
+    --radius-3xl: 14px;
+    --radius-4xl: 14px;
+    --field-radius: var(--radius-sm);
+    --overlay: var(--surface);
+    --overlay-foreground: var(--surface-foreground);
+    --overlay-shadow: var(--app-shadow-md);
+    --surface-shadow: var(--app-shadow-md);
+    --muted: var(--default-500);
+    --field-background: var(--default-100);
+    --field-foreground: var(--foreground);
+    --field-placeholder: var(--muted);
+    --field-hover: var(--default-200);
+    --field-focus: var(--field-hover);
+    --field-border: transparent;
+    --field-border-hover: transparent;
+    --field-border-focus: transparent;
+    --field-shadow: 0 1px 2px rgb(0 0 0 / 0.05);
+    --segment: var(--accent);
+    --segment-foreground: var(--accent-foreground);
+    --separator: var(--border);
+    --focus: var(--accent);
+    --link: var(--foreground);
+    --disabled-opacity: 0.5;
+  }
+}
+
+/* Application utility colors, backed by the same tokens as native controls. */
+@theme inline {
+  --color-primary: var(--accent);
+  --color-primary-foreground: var(--accent-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-content1: var(--surface);
+  --color-content2: var(--surface-secondary);
+  --color-divider: var(--border);
+  --color-default-50: var(--default-50);
+  --color-default-100: var(--default-100);
+  --color-default-200: var(--default-200);
+  --color-default-300: var(--default-300);
+  --color-default-400: var(--default-400);
+  --color-default-500: var(--default-500);
+  --color-default-600: var(--default-600);
+  --color-default-700: var(--default-700);
+  --color-foreground-400: var(--default-400);
+  --color-foreground-500: var(--default-500);
+  --color-foreground-700: var(--default-700);
+  --shadow-small: var(--app-shadow-sm);
+  --shadow-medium: var(--app-shadow-md);
+  --shadow-large: var(--app-shadow-lg);
+  --text-tiny: 0.75rem;
+  --text-tiny--line-height: 1rem;
+  --text-small: 0.875rem;
+  --text-small--line-height: 1.25rem;
+  --text-medium: 1rem;
+  --text-large: 1.125rem;
+}

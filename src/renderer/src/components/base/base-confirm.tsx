@@ -1,5 +1,5 @@
 import React from 'react'
-import { Button, Modal } from '@heroui-v3/react'
+import { Button, Modal } from '@heroui/react'
 import { useAppConfig } from '@renderer/hooks/use-app-config'
 
 export interface ConfirmButton {

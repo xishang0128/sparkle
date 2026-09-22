@@ -1,4 +1,4 @@
-import { Drawer, Input, InputGroup, ListBox, Select, Switch } from '@heroui-v3/react'
+import { Drawer, Input, InputGroup, ListBox, Select, Switch } from '@heroui/react'
 import React, { useState, useEffect, useRef } from 'react'
 import SettingItem from '../base/base-setting-item'
 import { SettingTabs, settingItemProps } from '../base/base-controls'
@@ -189,6 +189,7 @@ const ProxySettingDrawer: React.FC<Props> = (props) => {
               </SettingItem>
               <SettingItem title="显示二级分组选中节点" {...settingItemProps} divider>
                 <Switch
+                  size="sm"
                   aria-label="显示二级分组选中节点"
                   isSelected={showGroupSelectedProxy}
                   onChange={(v) => {
@@ -204,6 +205,7 @@ const ProxySettingDrawer: React.FC<Props> = (props) => {
               </SettingItem>
               <SettingItem title="悬停显示节点详情" {...settingItemProps} divider>
                 <Switch
+                  size="sm"
                   aria-label="悬停显示节点详情"
                   isSelected={showProxyDetailTooltip}
                   onChange={(v) => {
@@ -219,6 +221,7 @@ const ProxySettingDrawer: React.FC<Props> = (props) => {
               </SettingItem>
               <SettingItem title="记住代理组展开状态" {...settingItemProps} divider>
                 <Switch
+                  size="sm"
                   aria-label="记住代理组展开状态"
                   isSelected={rememberProxyGroupOpenState}
                   onChange={(v) => {
@@ -234,6 +237,7 @@ const ProxySettingDrawer: React.FC<Props> = (props) => {
               </SettingItem>
               <SettingItem title="切换节点时断开连接" {...settingItemProps} divider>
                 <Switch
+                  size="sm"
                   aria-label="切换节点时断开连接"
                   isSelected={autoCloseConnection}
                   onChange={(v) => {
@@ -295,6 +299,7 @@ const ProxySettingDrawer: React.FC<Props> = (props) => {
               </SettingItem>
               <SettingItem title="使用策略组 API 测速" {...settingItemProps} divider>
                 <Switch
+                  size="sm"
                   aria-label="使用策略组 API 测速"
                   isSelected={delayTestUseGroupApi}
                   onChange={(v) => {

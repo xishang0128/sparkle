@@ -1,4 +1,5 @@
-import { Button, Card, CardBody, CardFooter, Chip, Tooltip } from '@heroui/react'
+import { Button, Tooltip, Chip, Card } from '@heroui/react'
+
 import { MdOutlineAltRoute } from 'react-icons/md'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useSortable } from '@dnd-kit/sortable'
@@ -34,24 +35,26 @@ const RuleCard: React.FC<Props> = (props) => {
   if (iconOnly) {
     return (
       <div className={`${ruleCardStatus} flex justify-center`}>
-        <Tooltip content="规则" placement="right">
+        <Tooltip delay={0}>
           <Button
             size="sm"
             isIconOnly
-            color={match ? 'primary' : 'default'}
-            variant={match ? 'solid' : 'light'}
             onPress={() => {
               navigate('/rules')
             }}
+            variant={match ? 'primary' : 'ghost'}
+            data-color={match ? 'primary' : 'default'}
           >
             <MdOutlineAltRoute className="text-[20px]" />
           </Button>
+          <Tooltip.Content placement="right">{'规则'}</Tooltip.Content>
         </Tooltip>
       </div>
     )
   }
   return (
     <div
+      ref={setNodeRef}
       style={{
         position: 'relative',
         transform: CSS.Transform.toString(transform),
@@ -61,19 +64,22 @@ const RuleCard: React.FC<Props> = (props) => {
       className={`${ruleCardStatus} rule-card`}
     >
       <Card
-        fullWidth
-        ref={setNodeRef}
         {...attributes}
         {...listeners}
-        className={`${match ? 'bg-primary' : 'hover:bg-primary/30'} ${isDragging ? `${disableAnimation ? '' : 'scale-[0.95]'} tap-highlight-transparent` : ''}`}
+        className={[
+          'w-full',
+          `${match ? 'bg-primary' : 'hover:bg-primary/30'} ${isDragging ? `${disableAnimation ? '' : 'scale-[0.95]'} tap-highlight-transparent` : ''}`
+        ]
+          .filter(Boolean)
+          .join(' ')}
       >
-        <CardBody className="pb-1 pt-0 px-0 overflow-y-visible">
+        <Card.Content className="pb-1 pt-0 px-0 overflow-y-visible">
           <div className="flex justify-between">
             <Button
               isIconOnly
+              variant="secondary"
+              data-color="default"
               className="bg-transparent pointer-events-none"
-              variant="flat"
-              color="default"
             >
               <MdOutlineAltRoute
                 color="default"
@@ -81,32 +87,30 @@ const RuleCard: React.FC<Props> = (props) => {
               />
             </Button>
             <Chip
-              classNames={
-                match
-                  ? {
-                      base: 'border-primary-foreground',
-                      content: 'text-primary-foreground'
-                    }
-                  : {
-                      base: 'border-primary',
-                      content: 'text-primary'
-                    }
-              }
               size="sm"
-              variant="bordered"
-              className="mr-2 mt-2"
+              data-color="default"
+              variant="tertiary"
+              data-outline="true"
+              className={[
+                'mr-2 mt-2',
+                match
+                  ? 'border-primary-foreground text-primary-foreground'
+                  : 'border-primary text-primary'
+              ]
+                .filter(Boolean)
+                .join(' ')}
             >
-              {rules?.rules?.length ?? 0}
+              <Chip.Label>{rules?.rules?.length ?? 0}</Chip.Label>
             </Chip>
           </div>
-        </CardBody>
-        <CardFooter className="pt-1">
+        </Card.Content>
+        <Card.Footer className="pt-1">
           <h3
             className={`text-md font-bold ${match ? 'text-primary-foreground' : 'text-foreground'}`}
           >
             规则
           </h3>
-        </CardFooter>
+        </Card.Footer>
       </Card>
     </div>
   )

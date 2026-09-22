@@ -1,7 +1,8 @@
+import { Button, Tooltip, InputGroup, Select, Switch, Tabs, ListBox } from '@heroui/react'
+
 import React, { useState, useEffect } from 'react'
 import SettingCard from '../base/base-setting-card'
 import SettingItem from '../base/base-setting-item'
-import { Button, Input, Select, SelectItem, Switch, Tab, Tabs, Tooltip } from '@heroui/react'
 import { useAppConfig } from '@renderer/hooks/use-app-config'
 import {
   copyEnv,
@@ -52,44 +53,56 @@ const AdvancedSettings: React.FC = () => {
         compatKey="legacy"
         title="GitHub API Token"
         actions={
-          <Tooltip content="用于 GitHub 更新检查、下载和 Gist 同步；留空时使用匿名请求">
-            <Button aria-label="说明" isIconOnly size="sm" variant="light">
+          <Tooltip delay={0}>
+            <Button aria-label="说明" isIconOnly size="sm" variant="ghost" data-color="default">
               <IoIosHelpCircle className="text-lg" />
             </Button>
+            <Tooltip.Content>
+              {'用于 GitHub 更新检查、下载和 Gist 同步；留空时使用匿名请求'}
+            </Tooltip.Content>
           </Tooltip>
         }
         divider
       >
-        <Input
-          size="sm"
-          className="w-60"
-          type={githubTokenVisible ? 'text' : 'password'}
-          value={githubToken}
-          placeholder="GitHub Personal Access Token"
-          onValueChange={(value) => {
-            void patchAppConfig({ githubToken: value })
-          }}
-          endContent={
-            <Button
-              aria-label={githubTokenVisible ? '隐藏 GitHub Token' : '显示 GitHub Token'}
-              isIconOnly
-              size="sm"
-              variant="light"
-              onPress={() => setGithubTokenVisible((visible) => !visible)}
-            >
-              {githubTokenVisible ? <BiHide className="text-lg" /> : <BiShow className="text-lg" />}
-            </Button>
-          }
-        />
+        <InputGroup className="w-60" fullWidth>
+          <InputGroup.Input
+            type={githubTokenVisible ? 'text' : 'password'}
+            value={githubToken}
+            placeholder="GitHub Personal Access Token"
+            onChange={(event) => {
+              const value = event.target.value
+              void patchAppConfig({ githubToken: value })
+            }}
+          />
+          <InputGroup.Suffix>
+            {
+              <Button
+                aria-label={githubTokenVisible ? '隐藏 GitHub Token' : '显示 GitHub Token'}
+                isIconOnly
+                size="sm"
+                onPress={() => setGithubTokenVisible((visible) => !visible)}
+                variant="ghost"
+                data-color="default"
+              >
+                {githubTokenVisible ? (
+                  <BiHide className="text-lg" />
+                ) : (
+                  <BiShow className="text-lg" />
+                )}
+              </Button>
+            }
+          </InputGroup.Suffix>
+        </InputGroup>
       </SettingItem>
       <SettingItem
         compatKey="legacy"
         title="自动开启轻量模式"
         actions={
-          <Tooltip content="关闭窗口指定时间后自动进入轻量模式">
-            <Button isIconOnly size="sm" variant="light">
+          <Tooltip delay={0}>
+            <Button isIconOnly size="sm" variant="ghost" data-color="default">
               <IoIosHelpCircle className="text-lg" />
             </Button>
+            <Tooltip.Content>{'关闭窗口指定时间后自动进入轻量模式'}</Tooltip.Content>
           </Tooltip>
         }
         divider
@@ -97,17 +110,22 @@ const AdvancedSettings: React.FC = () => {
         <Switch
           size="sm"
           isSelected={autoLightweight}
-          onValueChange={(v) => {
+          onChange={(v) => {
             patchAppConfig({ autoLightweight: v })
           }}
-        />
+          aria-label="自动开启轻量模式"
+        >
+          <Switch.Content>
+            <Switch.Control>
+              <Switch.Thumb />
+            </Switch.Control>
+          </Switch.Content>
+        </Switch>
       </SettingItem>
       {autoLightweight && (
         <>
           <SettingItem compatKey="legacy" title="轻量模式行为" divider>
             <Tabs
-              size="sm"
-              color="primary"
               selectedKey={autoLightweightMode}
               onSelectionChange={(v) => {
                 patchAppConfig({ autoLightweightMode: v as 'core' | 'tray' })
@@ -115,26 +133,40 @@ const AdvancedSettings: React.FC = () => {
                   patchAppConfig({ autoLightweightDelay: Math.max(autoLightweightDelay, 5) })
                 }
               }}
+              data-color="primary"
+              data-size="sm"
+              data-full-width={false}
             >
-              <Tab key="core" title="仅保留内核" />
-              <Tab key="tray" title="仅关闭渲染进程" />
+              <Tabs.ListContainer>
+                <Tabs.List aria-label="选项">
+                  <Tabs.Tab key="core" id="core">
+                    仅保留内核
+                    <Tabs.Indicator />
+                  </Tabs.Tab>
+                  <Tabs.Tab key="tray" id="tray">
+                    仅关闭渲染进程
+                    <Tabs.Indicator />
+                  </Tabs.Tab>
+                </Tabs.List>
+              </Tabs.ListContainer>
             </Tabs>
           </SettingItem>
           <SettingItem compatKey="legacy" title="自动开启轻量模式延时" divider>
-            <Input
-              size="sm"
-              className="w-25"
-              type="number"
-              endContent="秒"
-              value={autoLightweightDelay.toString()}
-              onValueChange={async (v: string) => {
-                let num = parseInt(v)
-                if (isNaN(num)) num = 0
-                const minDelay = autoLightweightMode === 'core' ? 5 : 0
-                if (num < minDelay) num = minDelay
-                await patchAppConfig({ autoLightweightDelay: num })
-              }}
-            />
+            <InputGroup className="w-25" fullWidth>
+              <InputGroup.Input
+                type="number"
+                value={autoLightweightDelay.toString()}
+                onChange={async (event) => {
+                  const v = event.target.value
+                  let num = parseInt(v)
+                  if (isNaN(num)) num = 0
+                  const minDelay = autoLightweightMode === 'core' ? 5 : 0
+                  if (num < minDelay) num = minDelay
+                  await patchAppConfig({ autoLightweightDelay: num })
+                }}
+              />
+              <InputGroup.Suffix>{'秒'}</InputGroup.Suffix>
+            </InputGroup>
           </SettingItem>
         </>
       )}
@@ -144,11 +176,12 @@ const AdvancedSettings: React.FC = () => {
         actions={envType.map((type) => (
           <Button
             key={type}
-            title={type}
+            aria-label={type}
             isIconOnly
             size="sm"
-            variant="light"
             onPress={() => copyEnv(type)}
+            variant="ghost"
+            data-color="default"
           >
             <BiCopy className="text-lg" />
           </Button>
@@ -157,13 +190,11 @@ const AdvancedSettings: React.FC = () => {
       >
         <Select
           aria-label="环境变量类型"
-          classNames={{ trigger: 'data-[hover=true]:bg-default-200' }}
-          className="w-37.5"
-          size="sm"
           selectionMode="multiple"
-          selectedKeys={new Set(envType)}
-          disallowEmptySelection={true}
-          onSelectionChange={async (v) => {
+          className={['w-37.5'].filter(Boolean).join(' ')}
+          data-size="sm"
+          value={Array.from(new Set(envType))}
+          onChange={async (v) => {
             try {
               await patchAppConfig({
                 envType: Array.from(v) as ('bash' | 'fish' | 'cmd' | 'powershell' | 'nushell')[]
@@ -173,18 +204,41 @@ const AdvancedSettings: React.FC = () => {
             }
           }}
         >
-          <SelectItem key="bash">Bash</SelectItem>
-          <SelectItem key="fish">Fish</SelectItem>
-          <SelectItem key="cmd">CMD</SelectItem>
-          <SelectItem key="powershell">PowerShell</SelectItem>
-          <SelectItem key="nushell">NuShell</SelectItem>
+          <Select.Trigger className="data-[hover=true]:bg-default-200">
+            <Select.Value />
+            <Select.Indicator />
+          </Select.Trigger>
+          <Select.Popover>
+            <ListBox>
+              <ListBox.Item key="bash" id="bash" textValue="Bash">
+                Bash
+                <ListBox.ItemIndicator />
+              </ListBox.Item>
+              <ListBox.Item key="fish" id="fish" textValue="Fish">
+                Fish
+                <ListBox.ItemIndicator />
+              </ListBox.Item>
+              <ListBox.Item key="cmd" id="cmd" textValue="CMD">
+                CMD
+                <ListBox.ItemIndicator />
+              </ListBox.Item>
+              <ListBox.Item key="powershell" id="powershell" textValue="PowerShell">
+                PowerShell
+                <ListBox.ItemIndicator />
+              </ListBox.Item>
+              <ListBox.Item key="nushell" id="nushell" textValue="NuShell">
+                NuShell
+                <ListBox.ItemIndicator />
+              </ListBox.Item>
+            </ListBox>
+          </Select.Popover>
         </Select>
       </SettingItem>
       <SettingItem compatKey="legacy" title="接管 DNS 设置" divider>
         <Switch
           size="sm"
           isSelected={controlDns}
-          onValueChange={async (v) => {
+          onChange={async (v) => {
             try {
               await patchAppConfig({ controlDns: v })
               await patchControledMihomoConfig({})
@@ -193,13 +247,20 @@ const AdvancedSettings: React.FC = () => {
               notify(e, { variant: 'danger' })
             }
           }}
-        />
+          aria-label="接管 DNS 设置"
+        >
+          <Switch.Content>
+            <Switch.Control>
+              <Switch.Thumb />
+            </Switch.Control>
+          </Switch.Content>
+        </Switch>
       </SettingItem>
       <SettingItem compatKey="legacy" title="接管域名嗅探设置" divider>
         <Switch
           size="sm"
           isSelected={controlSniff}
-          onValueChange={async (v) => {
+          onChange={async (v) => {
             try {
               await patchAppConfig({ controlSniff: v })
               await patchControledMihomoConfig({})
@@ -208,16 +269,26 @@ const AdvancedSettings: React.FC = () => {
               notify(e, { variant: 'danger' })
             }
           }}
-        />
+          aria-label="接管域名嗅探设置"
+        >
+          <Switch.Content>
+            <Switch.Control>
+              <Switch.Thumb />
+            </Switch.Control>
+          </Switch.Content>
+        </Switch>
       </SettingItem>
       <SettingItem
         compatKey="legacy"
         title="断网时停止内核"
         actions={
-          <Tooltip content="开启后，应用会在检测到网络断开时自动停止内核，并在网络恢复后自动重启内核">
-            <Button isIconOnly size="sm" variant="light">
+          <Tooltip delay={0}>
+            <Button isIconOnly size="sm" variant="ghost" data-color="default">
               <IoIosHelpCircle className="text-lg" />
             </Button>
+            <Tooltip.Content>
+              {'开启后，应用会在检测到网络断开时自动停止内核，并在网络恢复后自动重启内核'}
+            </Tooltip.Content>
           </Tooltip>
         }
         divider
@@ -225,7 +296,7 @@ const AdvancedSettings: React.FC = () => {
         <Switch
           size="sm"
           isSelected={networkDetection}
-          onValueChange={(v) => {
+          onChange={(v) => {
             patchAppConfig({ networkDetection: v })
             if (v) {
               startNetworkDetection()
@@ -233,7 +304,14 @@ const AdvancedSettings: React.FC = () => {
               stopNetworkDetection()
             }
           }}
-        />
+          aria-label="断网时停止内核"
+        >
+          <Switch.Content>
+            <Switch.Control>
+              <Switch.Thumb />
+            </Switch.Control>
+          </Switch.Content>
+        </Switch>
       </SettingItem>
       {networkDetection && (
         <>
@@ -242,38 +320,41 @@ const AdvancedSettings: React.FC = () => {
               {interval !== networkDetectionInterval && (
                 <Button
                   size="sm"
-                  color="primary"
-                  className="mr-2"
                   onPress={async () => {
                     await patchAppConfig({ networkDetectionInterval: interval })
                     await startNetworkDetection()
                   }}
+                  variant="primary"
+                  data-color="primary"
+                  className="mr-2"
                 >
                   确认
                 </Button>
               )}
-              <Input
-                size="sm"
-                type="number"
-                className="w-25"
-                endContent="秒"
-                value={interval.toString()}
-                min={1}
-                onValueChange={(v) => {
-                  setInterval(Math.max(parseInt(v) || 10, 1))
-                }}
-              />
+              <InputGroup className="w-25" fullWidth>
+                <InputGroup.Input
+                  type="number"
+                  value={interval.toString()}
+                  min={1}
+                  onChange={(event) => {
+                    const v = event.target.value
+                    setInterval(Math.max(parseInt(v) || 10, 1))
+                  }}
+                />
+                <InputGroup.Suffix>{'秒'}</InputGroup.Suffix>
+              </InputGroup>
             </div>
           </SettingItem>
           <SettingItem compatKey="legacy" title="绕过检测的接口">
             {bypass.length != networkDetectionBypass.length && (
               <Button
                 size="sm"
-                color="primary"
                 onPress={async () => {
                   await patchAppConfig({ networkDetectionBypass: bypass })
                   await startNetworkDetection()
                 }}
+                variant="primary"
+                data-color="primary"
               >
                 确认
               </Button>
@@ -286,10 +367,11 @@ const AdvancedSettings: React.FC = () => {
         {pauseSSIDInput.join('') !== pauseSSIDArray.join('') && (
           <Button
             size="sm"
-            color="primary"
             onPress={() => {
               patchAppConfig({ pauseSSID: pauseSSIDInput })
             }}
+            variant="primary"
+            data-color="primary"
           >
             确认
           </Button>

@@ -1,6 +1,7 @@
+import { Chip, Card, Separator, Button, Spinner, Modal } from '@heroui/react'
+
 import React, { useEffect, useState } from 'react'
-import { Button, Card, CardBody, CardHeader, Chip, Divider } from '@heroui/react'
-import { Modal } from '@heroui-v3/react'
+
 import { useAppConfig } from '@renderer/hooks/use-app-config'
 import {
   checkCorePermission,
@@ -20,9 +21,17 @@ interface Props {
 const PermissionModal: React.FC<Props> = (props) => {
   const { onChange, onRevoke, onGrant } = props
   useAppConfig()
-  const [loading, setLoading] = useState<{ mihomo?: boolean; 'mihomo-alpha'?: boolean }>({})
+  const [loading, setLoading] = useState<{
+    mihomo?: boolean
+    'mihomo-alpha'?: boolean
+  }>({})
   const [hasPermission, setHasPermission] = useState<
-    { mihomo: boolean; 'mihomo-alpha': boolean } | boolean | null
+    | {
+        mihomo: boolean
+        'mihomo-alpha': boolean
+      }
+    | boolean
+    | null
   >(null)
   const isWindows = platform === 'win32'
 
@@ -116,38 +125,40 @@ const PermissionModal: React.FC<Props> = (props) => {
                 {isWindows ? (
                   <>
                     <Card
-                      shadow="sm"
                       className="border-none bg-linear-to-br from-default-50 to-default-100"
+                      data-shadow="sm"
                     >
-                      <CardBody className="py-4">
+                      <Card.Content className="py-4">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
                             <span className="text-sm font-medium">提权配置状态</span>
                           </div>
                           <Chip
-                            color={
+                            size="sm"
+                            data-color={
                               typeof hasPermission === 'boolean'
                                 ? hasPermission
                                   ? 'success'
                                   : 'warning'
                                 : 'default'
                             }
-                            variant="flat"
-                            size="sm"
+                            variant="soft"
                           >
-                            {hasPermission === null
-                              ? '检查中...'
-                              : typeof hasPermission === 'boolean'
-                                ? hasPermission
-                                  ? '已配置'
-                                  : '未配置'
-                                : '未知'}
+                            <Chip.Label>
+                              {hasPermission === null
+                                ? '检查中...'
+                                : typeof hasPermission === 'boolean'
+                                  ? hasPermission
+                                    ? '已配置'
+                                    : '未配置'
+                                  : '未知'}
+                            </Chip.Label>
                           </Chip>
                         </div>
-                      </CardBody>
+                      </Card.Content>
                     </Card>
 
-                    <Divider />
+                    <Separator />
 
                     <div className="text-xs text-default-500 space-y-2">
                       <div className="flex items-start gap-2">
@@ -167,94 +178,108 @@ const PermissionModal: React.FC<Props> = (props) => {
                 ) : (
                   <>
                     <div className="space-y-3">
-                      <Card shadow="sm" className="border-none">
-                        <CardHeader className="pb-0 pt-4 px-4 flex-col items-start">
+                      <Card className="border-none" data-shadow="sm">
+                        <Card.Header className="pb-0 pt-4 px-4 flex-col items-start">
                           <div className="flex items-center justify-between w-full">
                             <div className="flex items-center gap-2">
                               <h4 className="font-semibold text-medium">内置正式版</h4>
                             </div>
                             <Chip
-                              color={
+                              size="sm"
+                              data-color={
                                 getStatusColor('mihomo') === 'bg-success' ? 'success' : 'warning'
                               }
-                              variant="flat"
-                              size="sm"
+                              variant="soft"
                             >
-                              {getStatusText('mihomo')}
+                              <Chip.Label>{getStatusText('mihomo')}</Chip.Label>
                             </Chip>
                           </div>
-                        </CardHeader>
-                        <CardBody className="pt-3 px-4 pb-4">
+                        </Card.Header>
+                        <Card.Content className="pt-3 px-4 pb-4">
                           {typeof hasPermission !== 'boolean' && hasPermission?.mihomo ? (
                             <Button
                               size="sm"
-                              color="warning"
-                              variant="flat"
                               onPress={() => handleCoreAction('mihomo', false)}
-                              isLoading={loading.mihomo}
                               fullWidth
+                              variant="secondary"
+                              data-color="warning"
+                              isPending={loading.mihomo}
+                              isDisabled={loading.mihomo}
                             >
+                              {loading.mihomo ? <Spinner size="sm" color="current" /> : null}
                               撤销授权
                             </Button>
                           ) : (
                             <Button
                               size="sm"
-                              color="primary"
-                              variant="shadow"
                               onPress={() => handleCoreAction('mihomo', true)}
-                              isLoading={loading.mihomo}
                               fullWidth
+                              variant="primary"
+                              data-color="primary"
+                              data-shadow="true"
+                              isPending={loading.mihomo}
+                              isDisabled={loading.mihomo}
                             >
+                              {loading.mihomo ? <Spinner size="sm" color="current" /> : null}
                               授权内核
                             </Button>
                           )}
-                        </CardBody>
+                        </Card.Content>
                       </Card>
 
-                      <Card shadow="sm" className="border-none">
-                        <CardHeader className="pb-0 pt-4 px-4 flex-col items-start">
+                      <Card className="border-none" data-shadow="sm">
+                        <Card.Header className="pb-0 pt-4 px-4 flex-col items-start">
                           <div className="flex items-center justify-between w-full">
                             <div className="flex items-center gap-2">
                               <h4 className="font-semibold text-medium">内置预览版</h4>
                             </div>
                             <Chip
-                              color={
+                              size="sm"
+                              data-color={
                                 getStatusColor('mihomo-alpha') === 'bg-success'
                                   ? 'success'
                                   : 'warning'
                               }
-                              variant="flat"
-                              size="sm"
+                              variant="soft"
                             >
-                              {getStatusText('mihomo-alpha')}
+                              <Chip.Label>{getStatusText('mihomo-alpha')}</Chip.Label>
                             </Chip>
                           </div>
-                        </CardHeader>
-                        <CardBody className="pt-3 px-4 pb-4">
+                        </Card.Header>
+                        <Card.Content className="pt-3 px-4 pb-4">
                           {typeof hasPermission !== 'boolean' && hasPermission?.['mihomo-alpha'] ? (
                             <Button
                               size="sm"
-                              color="warning"
-                              variant="flat"
                               onPress={() => handleCoreAction('mihomo-alpha', false)}
-                              isLoading={loading['mihomo-alpha']}
                               fullWidth
+                              variant="secondary"
+                              data-color="warning"
+                              isPending={loading['mihomo-alpha']}
+                              isDisabled={loading['mihomo-alpha']}
                             >
+                              {loading['mihomo-alpha'] ? (
+                                <Spinner size="sm" color="current" />
+                              ) : null}
                               撤销授权
                             </Button>
                           ) : (
                             <Button
                               size="sm"
-                              color="primary"
-                              variant="shadow"
                               onPress={() => handleCoreAction('mihomo-alpha', true)}
-                              isLoading={loading['mihomo-alpha']}
                               fullWidth
+                              variant="primary"
+                              data-color="primary"
+                              data-shadow="true"
+                              isPending={loading['mihomo-alpha']}
+                              isDisabled={loading['mihomo-alpha']}
                             >
+                              {loading['mihomo-alpha'] ? (
+                                <Spinner size="sm" color="current" />
+                              ) : null}
                               授权内核
                             </Button>
                           )}
-                        </CardBody>
+                        </Card.Content>
                       </Card>
                     </div>
 
@@ -273,8 +298,9 @@ const PermissionModal: React.FC<Props> = (props) => {
             <Modal.Footer className="space-x-2">
               <Button
                 size="sm"
-                variant="light"
                 onPress={() => onChange(false)}
+                variant="ghost"
+                data-color="default"
                 isDisabled={Object.values(loading).some((v) => v)}
               >
                 关闭
@@ -288,20 +314,24 @@ const PermissionModal: React.FC<Props> = (props) => {
                   return hasAnyPermission ? (
                     <Button
                       size="sm"
-                      color="warning"
                       onPress={() => handleAction(onRevoke)}
-                      isLoading={isLoading}
+                      variant="primary"
+                      data-color="warning"
+                      isPending={isLoading}
+                      isDisabled={isLoading}
                     >
-                      取消提权
+                      {isLoading ? <Spinner size="sm" color="current" /> : null}取消提权
                     </Button>
                   ) : (
                     <Button
                       size="sm"
-                      color="primary"
                       onPress={() => handleAction(onGrant)}
-                      isLoading={isLoading}
+                      variant="primary"
+                      data-color="primary"
+                      isPending={isLoading}
+                      isDisabled={isLoading}
                     >
-                      配置提权
+                      {isLoading ? <Spinner size="sm" color="current" /> : null}配置提权
                     </Button>
                   )
                 })()}

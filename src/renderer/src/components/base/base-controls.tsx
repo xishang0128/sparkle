@@ -1,4 +1,4 @@
-import { Tabs } from '@heroui-v3/react'
+import { Tabs } from '@heroui/react'
 import type React from 'react'
 import type { SettingItemProps } from './base-setting-item'
 
@@ -23,7 +23,11 @@ export const SettingTabs: React.FC<SettingTabsProps> = (props) => {
   const { ariaLabel, selectedKey, options, onChange } = props
 
   return (
-    <Tabs selectedKey={selectedKey} onSelectionChange={(key) => void onChange(String(key))}>
+    <Tabs
+      data-size="sm"
+      selectedKey={selectedKey}
+      onSelectionChange={(key) => void onChange(String(key))}
+    >
       <Tabs.ListContainer>
         <Tabs.List aria-label={ariaLabel}>
           {options.map((option) => (

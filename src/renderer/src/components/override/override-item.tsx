@@ -1,13 +1,6 @@
-import {
-  Button,
-  Card,
-  CardBody,
-  Chip,
-  Dropdown,
-  DropdownItem,
-  DropdownMenu,
-  DropdownTrigger
-} from '@heroui/react'
+import { Button, Chip, Card, Dropdown, Label } from '@heroui/react'
+import { Pressable } from 'react-aria'
+
 import { IoMdMore, IoMdRefresh } from 'react-icons/io'
 import dayjs from 'dayjs'
 import React, { Key, useEffect, useMemo, useState } from 'react'
@@ -204,96 +197,108 @@ const OverrideItem: React.FC<Props> = (props) => {
         />
       )}
       {openLog && <ExecLogModal id={info.id} onClose={() => setOpenLog(false)} />}
-      <Card
-        as="div"
-        fullWidth
-        isPressable
+      <Pressable
         onPress={() => {
           if (disableOpen) return
           setOpenFileEditor(true)
         }}
       >
-        <div {...attributes} {...listeners} className="h-full w-full">
-          <CardBody>
-            <div className="flex justify-between h-8 gap-1">
-              <div className="flex min-w-0 items-center">
-                <h3
-                  title={info?.name}
-                  className={`text-ellipsis whitespace-nowrap overflow-hidden text-md font-bold leading-8 text-foreground`}
-                >
-                  {info?.name}
-                </h3>
-              </div>
-              <div className="flex shrink-0" data-no-dnd onClick={(e) => e.stopPropagation()}>
-                {info.type === 'remote' && (
-                  <Button
-                    isIconOnly
-                    size="sm"
-                    variant="light"
-                    color="default"
-                    disabled={updating}
-                    onPress={async () => {
-                      setUpdating(true)
-                      try {
-                        await addOverrideItem(info)
-                        if (isOverrideUsedByCurrentProfile(profileConfig, info.id, info.global)) {
-                          await restartCore()
-                        }
-                      } catch (e) {
-                        notify(e, { variant: 'danger' })
-                      } finally {
-                        setUpdating(false)
-                      }
-                    }}
+        <Card className="w-full" data-pressable="true" role="button" tabIndex={0}>
+          <div {...attributes} {...listeners} className="h-full w-full">
+            <Card.Content>
+              <div className="flex justify-between h-8 gap-1">
+                <div className="flex min-w-0 items-center">
+                  <h3
+                    title={info?.name}
+                    className={`text-ellipsis whitespace-nowrap overflow-hidden text-md font-bold leading-8 text-foreground`}
                   >
-                    <IoMdRefresh
-                      color="default"
-                      className={`text-[24px] ${updating ? 'animate-spin' : ''}`}
-                    />
-                  </Button>
-                )}
-
-                <Dropdown>
-                  <DropdownTrigger>
-                    <Button isIconOnly size="sm" variant="light" color="default">
-                      <IoMdMore color="default" className={`text-[24px]`} />
-                    </Button>
-                  </DropdownTrigger>
-                  <DropdownMenu onAction={onMenuAction}>
-                    {menuItems.map((item) => (
-                      <DropdownItem
-                        showDivider={item.showDivider}
-                        key={item.key}
-                        color={item.color}
-                        className={item.className}
-                      >
-                        {item.label}
-                      </DropdownItem>
-                    ))}
-                  </DropdownMenu>
-                </Dropdown>
-              </div>
-            </div>
-            <div className="flex justify-between">
-              <div className={`mt-2 flex justify-start`}>
-                {info.global && (
-                  <Chip size="sm" variant="dot" color="primary" className="mr-2">
-                    全局
-                  </Chip>
-                )}
-                <Chip size="sm" variant="bordered">
-                  {info.ext === 'yaml' ? 'YAML' : 'JavaScript'}
-                </Chip>
-              </div>
-              {info.type === 'remote' && (
-                <div className={`mt-2 flex justify-end`}>
-                  <small>{dayjs(info.updated).fromNow()}</small>
+                    {info?.name}
+                  </h3>
                 </div>
-              )}
-            </div>
-          </CardBody>
-        </div>
-      </Card>
+                <div className="flex shrink-0" data-no-dnd onClick={(e) => e.stopPropagation()}>
+                  {info.type === 'remote' && (
+                    <Button
+                      isIconOnly
+                      size="sm"
+                      onPress={async () => {
+                        setUpdating(true)
+                        try {
+                          await addOverrideItem(info)
+                          if (isOverrideUsedByCurrentProfile(profileConfig, info.id, info.global)) {
+                            await restartCore()
+                          }
+                        } catch (e) {
+                          notify(e, { variant: 'danger' })
+                        } finally {
+                          setUpdating(false)
+                        }
+                      }}
+                      variant="ghost"
+                      data-color="default"
+                      isDisabled={updating}
+                    >
+                      <IoMdRefresh
+                        color="default"
+                        className={`text-[24px] ${updating ? 'animate-spin' : ''}`}
+                      />
+                    </Button>
+                  )}
+
+                  <Dropdown>
+                    <>
+                      <Button isIconOnly size="sm" variant="ghost" data-color="default">
+                        <IoMdMore color="default" className={`text-[24px]`} />
+                      </Button>
+                    </>
+                    <Dropdown.Popover>
+                      <Dropdown.Menu onAction={onMenuAction}>
+                        {menuItems.map((item) => (
+                          <Dropdown.Item
+                            key={item.key}
+                            id={item.key}
+                            data-divider={item.showDivider}
+                            data-color={item.color}
+                            className={['app-dropdown-item', item.className]
+                              .filter(Boolean)
+                              .join(' ')}
+                            textValue={item.label}
+                          >
+                            <Label>{item.label}</Label>
+                          </Dropdown.Item>
+                        ))}
+                      </Dropdown.Menu>
+                    </Dropdown.Popover>
+                  </Dropdown>
+                </div>
+              </div>
+              <div className="flex justify-between">
+                <div className={`mt-2 flex justify-start`}>
+                  {info.global && (
+                    <Chip
+                      size="sm"
+                      data-color="primary"
+                      variant="tertiary"
+                      data-dot="true"
+                      className={['mr-2'].filter(Boolean).join(' ')}
+                    >
+                      <span className="chip__dot" aria-hidden="true" />
+                      <Chip.Label>全局</Chip.Label>
+                    </Chip>
+                  )}
+                  <Chip size="sm" data-color="default" variant="tertiary" data-outline="true">
+                    <Chip.Label>{info.ext === 'yaml' ? 'YAML' : 'JavaScript'}</Chip.Label>
+                  </Chip>
+                </div>
+                {info.type === 'remote' && (
+                  <div className={`mt-2 flex justify-end`}>
+                    <small>{dayjs(info.updated).fromNow()}</small>
+                  </div>
+                )}
+              </div>
+            </Card.Content>
+          </div>
+        </Card>
+      </Pressable>
     </div>
   )
 }

@@ -7,7 +7,7 @@ import {
   Separator,
   Surface,
   Tabs
-} from '@heroui-v3/react'
+} from '@heroui/react'
 import type { ReactNode } from 'react'
 import { useMemo, useState } from 'react'
 import { BaseEditor } from '@renderer/components/base/base-editor-lazy'
@@ -446,6 +446,7 @@ const ConnectionDetailModal = ({ connection, onClose }: Props) => {
               <Modal.Heading>连接详情</Modal.Heading>
             </Modal.Header>
             <Tabs
+              data-size="sm"
               aria-label="连接详情视图"
               className="flex min-h-0 flex-col"
               selectedKey={viewMode}

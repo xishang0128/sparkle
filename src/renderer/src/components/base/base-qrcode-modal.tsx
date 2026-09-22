@@ -1,5 +1,5 @@
 import React from 'react'
-import { Modal } from '@heroui-v3/react'
+import { Modal } from '@heroui/react'
 import { QRCodeSVG } from 'qrcode.react'
 
 interface Props {

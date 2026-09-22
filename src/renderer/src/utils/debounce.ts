@@ -1,10 +1,14 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-export default function debounce<T extends (...args: any[]) => void>(func: T, wait: number): T {
+export default function debounce<Args extends unknown[], This = unknown>(
+  func: (this: This, ...args: Args) => unknown,
+  wait: number
+): (this: This, ...args: Args) => void {
   let timeout: ReturnType<typeof setTimeout> | null = null
-  return function (this: any, ...args: Parameters<T>) {
+  return function (this: This, ...args: Args): void {
     if (timeout !== null) {
       clearTimeout(timeout)
     }
-    timeout = setTimeout(() => func.apply(this, args), wait)
-  } as T
+    timeout = setTimeout(() => {
+      func.apply(this, args)
+    }, wait)
+  }
 }

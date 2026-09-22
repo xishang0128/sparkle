@@ -1,4 +1,4 @@
-import { cn, Divider } from '@heroui/react'
+import { Separator, cn } from '@heroui/react'
 
 import React from 'react'
 
@@ -57,7 +57,7 @@ const SettingItem: React.FC<SettingItemProps> = (props) => {
           <div className="setting-item__content">{children}</div>
         </div>
       )}
-      {divider && <Divider className="my-2" />}
+      {divider && <Separator className="my-2" />}
     </>
   )
 }

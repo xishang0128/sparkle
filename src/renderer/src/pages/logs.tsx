@@ -1,9 +1,10 @@
+import { Button, Separator, ListBox, Select, InputGroup } from '@heroui/react'
+
 import BasePage from '@renderer/components/base/base-page'
 import LogItem from '@renderer/components/logs/log-item'
 import { useAppConfig } from '@renderer/hooks/use-app-config'
 import { useControledMihomoConfig } from '@renderer/hooks/use-controled-mihomo-config'
 import { startTransition, useEffect, useMemo, useRef, useState } from 'react'
-import { Button, Divider, Input } from '@heroui/react'
 import { Virtuoso } from 'react-virtuoso'
 import { IoLocationSharp } from 'react-icons/io5'
 import { CgTrash } from 'react-icons/cg'
@@ -16,7 +17,7 @@ import {
   setMihomoLogMaxEntries,
   subscribeMihomoLogs
 } from '@renderer/utils/mihomo-log-store'
-import { ListBox, Select } from '@heroui-v3/react'
+
 import { restartMihomoLogs } from '@renderer/utils/ipc'
 import { notify } from '@renderer/utils/notification'
 
@@ -141,13 +142,32 @@ const Logs: React.FC = () => {
       <div className="flex h-full min-h-0 flex-col">
         <div className="sticky top-0 z-40">
           <div className="flex w-full items-center gap-2 p-2">
-            <Input
-              size="sm"
-              value={filter}
-              placeholder="筛选过滤"
-              isClearable
-              onValueChange={setFilter}
-            />
+            <InputGroup fullWidth>
+              <InputGroup.Input
+                value={filter}
+                placeholder="筛选过滤"
+                onChange={(event) => setFilter(event.target.value)}
+              />
+              {filter && (
+                <InputGroup.Suffix>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    isIconOnly
+                    aria-label="清空"
+                    onPress={(event) => {
+                      setFilter('')
+                      event.target
+                        .closest('[data-slot="input-group"]')
+                        ?.querySelector('input')
+                        ?.focus()
+                    }}
+                  >
+                    ×
+                  </Button>
+                </InputGroup.Suffix>
+              )}
+            </InputGroup>
             <Select
               aria-label="日志等级过滤"
               className="w-24 shrink-0"
@@ -217,27 +237,27 @@ const Logs: React.FC = () => {
             <Button
               size="sm"
               isIconOnly
-              color={trace ? 'primary' : 'default'}
-              variant={trace ? 'solid' : 'bordered'}
               onPress={() => {
                 setTrace((prev) => !prev)
               }}
+              variant={trace ? 'primary' : 'outline'}
+              data-color={trace ? 'primary' : 'default'}
             >
               <IoLocationSharp className="text-lg" />
             </Button>
             <Button
               size="sm"
               isIconOnly
-              variant="light"
-              color="danger"
               onPress={() => {
                 clearMihomoLogs()
               }}
+              variant="ghost"
+              data-color="danger"
             >
               <CgTrash className="text-lg" />
             </Button>
           </div>
-          <Divider />
+          <Separator />
         </div>
         <div className="min-h-0 flex-1 pt-2">
           <Virtuoso

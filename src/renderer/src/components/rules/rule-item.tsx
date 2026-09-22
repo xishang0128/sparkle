@@ -1,4 +1,5 @@
-import { Card, CardBody, Switch, Chip } from '@heroui/react'
+import { Chip, Card, Switch } from '@heroui/react'
+
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { mihomoRulesDisable } from '@renderer/utils/ipc'
 import RuleDetailTooltip from './rule-detail-tooltip'
@@ -74,10 +75,16 @@ const RuleItem: React.FC<Props> = ({ rule, index }) => {
   return (
     <div className={`w-full px-2 pb-2 ${index === 0 ? 'pt-2' : ''}`}>
       <Card>
-        <CardBody className="w-full">
+        <Card.Content className="w-full">
           <div className="flex justify-between text-ellipsis whitespace-nowrap overflow-hidden">
             {rule.payload || 'Match'}
-            <Switch size="sm" isSelected={isEnabled} onValueChange={handleToggle} />
+            <Switch size="sm" isSelected={isEnabled} onChange={handleToggle} aria-label="启用">
+              <Switch.Content>
+                <Switch.Control>
+                  <Switch.Thumb />
+                </Switch.Control>
+              </Switch.Content>
+            </Switch>
           </div>
           <div className="flex justify-between mt-1">
             <div className="flex justify-start text-foreground-500">
@@ -86,13 +93,18 @@ const RuleItem: React.FC<Props> = ({ rule, index }) => {
             </div>
             {hasStats && (
               <div ref={wrapperRef} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
-                <Chip size="sm" variant="flat" color="primary" className="text-xs">
-                  {hitRate.toFixed(1)}%
+                <Chip
+                  size="sm"
+                  data-color="primary"
+                  variant="soft"
+                  className={['text-xs'].filter(Boolean).join(' ')}
+                >
+                  <Chip.Label>{hitRate.toFixed(1)}%</Chip.Label>
                 </Chip>
               </div>
             )}
           </div>
-        </CardBody>
+        </Card.Content>
       </Card>
       <RuleDetailTooltip
         rule={rule}

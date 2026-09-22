@@ -1,4 +1,5 @@
 import { Button, Input } from '@heroui/react'
+
 import SettingCard from '../base/base-setting-card'
 import SettingItem from '../base/base-setting-item'
 import { useAppConfig } from '@renderer/hooks/use-app-config'
@@ -155,7 +156,10 @@ const ShortcutInput: React.FC<{
 
   const parseShortcut = (
     event: KeyboardEvent,
-    setKey: { (value: React.SetStateAction<string>): void; (arg0: string): void }
+    setKey: {
+      (value: React.SetStateAction<string>): void
+      (arg0: string): void
+    }
   ): void => {
     event.preventDefault()
     let code = event.code
@@ -206,8 +210,6 @@ const ShortcutInput: React.FC<{
     <>
       {inputValue !== value && (
         <Button
-          color="primary"
-          className="mr-2"
           size="sm"
           onPress={async () => {
             try {
@@ -221,6 +223,9 @@ const ShortcutInput: React.FC<{
               notify(`快捷键注册失败：${e}`, { variant: 'danger' })
             }
           }}
+          variant="primary"
+          data-color="primary"
+          className="mr-2"
         >
           确认
         </Button>
@@ -230,10 +235,9 @@ const ShortcutInput: React.FC<{
         onKeyDown={(e: KeyboardEvent): void => {
           parseShortcut(e, setInputValue)
         }}
-        size="sm"
-        onClear={() => setInputValue('')}
         value={inputValue}
         className="w-[calc(100%-72px)] pr-0"
+        fullWidth
       />
     </>
   )

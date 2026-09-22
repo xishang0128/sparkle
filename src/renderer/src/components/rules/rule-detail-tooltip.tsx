@@ -1,4 +1,4 @@
-import { Separator, Surface } from '@heroui-v3/react'
+import { Separator, Surface } from '@heroui/react'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import 'dayjs/locale/zh-cn'

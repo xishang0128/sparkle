@@ -1,5 +1,6 @@
+import { Button, Chip, Spinner, ScrollShadow, Accordion } from '@heroui/react'
+
 import { useEffect, useState, useMemo } from 'react'
-import { Button, ScrollShadow, Chip, Accordion, AccordionItem } from '@heroui/react'
 import { IoRefresh, IoClose, IoCheckmarkCircle } from 'react-icons/io5'
 import { useGroups } from './hooks/use-groups'
 import { mihomoChangeProxy, mihomoGroupDelay, mihomoCloseConnections } from './utils/ipc'
@@ -104,18 +105,20 @@ const TrayMenuApp: React.FC = () => {
         <div className="flex items-center gap-1">
           <Button
             size="sm"
-            variant="light"
             isIconOnly
             onPress={handleRefresh}
+            variant="ghost"
+            data-color="default"
             className="min-w-6 w-6 h-6"
           >
             <IoRefresh className="text-base" />
           </Button>
           <Button
             size="sm"
-            variant="light"
             isIconOnly
             onPress={handleClose}
+            variant="ghost"
+            data-color="default"
             className="min-w-6 w-6 h-6"
           >
             <IoClose className="text-base" />
@@ -141,91 +144,115 @@ const TrayMenuApp: React.FC = () => {
           </div>
         ) : (
           <Accordion
-            selectionMode="multiple"
             defaultExpandedKeys={defaultExpandedKeys}
-            className="px-1"
-            itemClasses={{
-              base: 'py-0',
-              title: 'text-sm font-medium',
-              trigger: 'py-2 data-[hover=true]:bg-default-100 rounded-lg px-2',
-              content: 'pt-0 pb-2'
-            }}
+            allowsMultipleExpanded={true}
+            className={['app-accordion app-accordion--tray', 'px-1'].filter(Boolean).join(' ')}
+            hideSeparator
           >
             {groups.map((group) => (
-              <AccordionItem
+              <Accordion.Item
                 key={group.name}
                 aria-label={group.name}
-                title={
-                  <div className="flex items-center justify-between w-full pr-2">
-                    <div className="flex items-center gap-2">
-                      <span>{group.name}</span>
-                      <Chip size="sm" variant="flat" className="text-[10px] h-4">
-                        {group.type}
-                      </Chip>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        size="sm"
-                        variant="light"
-                        isIconOnly
-                        isLoading={testingGroup === group.name}
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          handleTestDelay(group.name, group.testUrl)
-                        }}
-                        className="min-w-5 w-5 h-5"
-                      >
-                        <IoRefresh className="text-xs" />
-                      </Button>
-                      <Chip
-                        size="sm"
-                        color={getDelayColor(getCurrentDelay(group))}
-                        variant="flat"
-                        className="text-[10px] h-5 min-w-13"
-                      >
-                        {formatDelay(getCurrentDelay(group))}
-                      </Chip>
-                    </div>
-                  </div>
-                }
+                id={group.name}
+                className="app-accordion__item"
               >
-                <div className="flex flex-col gap-1 pl-2">
-                  {group.all?.map((proxy) => {
-                    const isActive = proxy.name === group.now
-                    const delay = getProxyDelay(proxy)
-                    return (
-                      <div
-                        key={proxy.name}
-                        onClick={() => handleSelectProxy(group.name, proxy.name)}
-                        className={`
+                {() => (
+                  <>
+                    <Accordion.Heading>
+                      <Accordion.Trigger>
+                        <span className="flex-1 text-left">
+                          {
+                            <div className="flex items-center justify-between w-full pr-2">
+                              <div className="flex items-center gap-2">
+                                <span>{group.name}</span>
+                                <Chip
+                                  size="sm"
+                                  data-color="default"
+                                  variant="soft"
+                                  className={['text-[10px] h-4'].filter(Boolean).join(' ')}
+                                >
+                                  <Chip.Label>{group.type}</Chip.Label>
+                                </Chip>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Button
+                                  size="sm"
+                                  isIconOnly
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    handleTestDelay(group.name, group.testUrl)
+                                  }}
+                                  variant="ghost"
+                                  data-color="default"
+                                  className="min-w-5 w-5 h-5"
+                                  isPending={testingGroup === group.name}
+                                  isDisabled={testingGroup === group.name}
+                                >
+                                  {testingGroup === group.name ? (
+                                    <Spinner size="sm" color="current" />
+                                  ) : null}
+                                  <IoRefresh className="text-xs" />
+                                </Button>
+                                <Chip
+                                  size="sm"
+                                  data-color={getDelayColor(getCurrentDelay(group))}
+                                  variant="soft"
+                                  className={['text-[10px] h-5 min-w-13'].filter(Boolean).join(' ')}
+                                >
+                                  <Chip.Label>{formatDelay(getCurrentDelay(group))}</Chip.Label>
+                                </Chip>
+                              </div>
+                            </div>
+                          }
+                        </span>
+                        <Accordion.Indicator />
+                      </Accordion.Trigger>
+                    </Accordion.Heading>
+                    <Accordion.Panel>
+                      <Accordion.Body>
+                        <div className="flex flex-col gap-1 pl-2">
+                          {group.all?.map((proxy) => {
+                            const isActive = proxy.name === group.now
+                            const delay = getProxyDelay(proxy)
+                            return (
+                              <div
+                                key={proxy.name}
+                                onClick={() => handleSelectProxy(group.name, proxy.name)}
+                                className={`
                           flex items-center justify-between px-2 py-1.5 rounded-lg cursor-pointer
                           transition-colors duration-150
                           ${isActive ? 'bg-primary/15 border border-primary/30' : 'hover:bg-default-100'}
                         `}
-                      >
-                        <div className="flex items-center gap-2 flex-1 min-w-0">
-                          {isActive && (
-                            <IoCheckmarkCircle className="text-primary text-sm shrink-0" />
-                          )}
-                          <span
-                            className={`text-xs truncate ${isActive ? 'text-primary font-medium' : ''}`}
-                          >
-                            {proxy.name}
-                          </span>
+                              >
+                                <div className="flex items-center gap-2 flex-1 min-w-0">
+                                  {isActive && (
+                                    <IoCheckmarkCircle className="text-primary text-sm shrink-0" />
+                                  )}
+                                  <span
+                                    className={`text-xs truncate ${isActive ? 'text-primary font-medium' : ''}`}
+                                  >
+                                    {proxy.name}
+                                  </span>
+                                </div>
+                                <Chip
+                                  size="sm"
+                                  data-color={getDelayColor(delay)}
+                                  variant="soft"
+                                  className={['text-[10px] h-4 min-w-12 shrink-0']
+                                    .filter(Boolean)
+                                    .join(' ')}
+                                >
+                                  <Chip.Label>{formatDelay(delay)}</Chip.Label>
+                                </Chip>
+                              </div>
+                            )
+                          })}
                         </div>
-                        <Chip
-                          size="sm"
-                          color={getDelayColor(delay)}
-                          variant="flat"
-                          className="text-[10px] h-4 min-w-12 shrink-0"
-                        >
-                          {formatDelay(delay)}
-                        </Chip>
-                      </div>
-                    )
-                  })}
-                </div>
-              </AccordionItem>
+                      </Accordion.Body>
+                    </Accordion.Panel>
+                  </>
+                )}
+              </Accordion.Item>
             ))}
           </Accordion>
         )}

@@ -1,16 +1,25 @@
+import { Input, Tooltip, Button, Separator } from '@heroui/react'
+
 import React from 'react'
-import { Button, Divider, Input, Tooltip } from '@heroui/react'
 import { MdDeleteForever } from 'react-icons/md'
 import type { ValidationResult } from '@renderer/utils/validate'
 
 interface EditableListProps {
   title?: string
   items:
-    string[] | Record<string, string | string[]> | Array<{ key: string; value: string | string[] }>
+    | string[]
+    | Record<string, string | string[]>
+    | Array<{
+        key: string
+        value: string | string[]
+      }>
   onChange: (items: unknown) => void
   placeholder?: string
   part2Placeholder?: string
-  parse?: (item: string) => { part1: string; part2?: string }
+  parse?: (item: string) => {
+    part1: string
+    part2?: string
+  }
   format?: (part1: string, part2?: string) => string
   disableFirst?: boolean
   divider?: boolean
@@ -36,16 +45,22 @@ const EditableList: React.FC<EditableListProps> = ({
   validatePart2
 }) => {
   const isDual = !!parse && !!format
-
-  let processedItems: Array<{ part1: string; part2?: string }> = []
-
+  let processedItems: Array<{
+    part1: string
+    part2?: string
+  }> = []
   if (objectMode === 'record' && !Array.isArray(items)) {
     processedItems = Object.entries(items).map(([key, value]) => ({
       part1: key,
       part2: Array.isArray(value) ? value.join(',') : String(value)
     }))
   } else if (objectMode === 'keyValue' && Array.isArray(items)) {
-    processedItems = (items as Array<{ key: string; value: string | string[] }>).map((item) => ({
+    processedItems = (
+      items as Array<{
+        key: string
+        value: string | string[]
+      }>
+    ).map((item) => ({
       part1: item.key,
       part2: Array.isArray(item.value) ? item.value.join(',') : String(item.value)
     }))
@@ -159,78 +174,97 @@ const EditableList: React.FC<EditableListProps> = ({
             <div key={idx} className="flex items-center space-x-2">
               {isDual || objectMode ? (
                 <>
-                  <div className="w-1/3">
-                    <Tooltip
-                      content={part1Error ?? '格式错误'}
-                      placement="left"
-                      isOpen={!part1Valid}
-                      showArrow={true}
-                      color="danger"
-                      offset={10}
-                    >
-                      <Input
-                        size="sm"
-                        fullWidth
-                        className={
-                          part1Valid ? '' : 'border-red-500 ring-1 ring-red-500 rounded-lg'
-                        }
-                        disabled={disabled}
-                        placeholder={placeholder}
-                        value={entry.part1}
-                        onValueChange={(v) => handleUpdate(idx, v, entry.part2)}
-                      />
+                  <div className="min-w-0 w-1/3">
+                    <Tooltip isOpen={!part1Valid} delay={0}>
+                      <Tooltip.Trigger className="block w-full">
+                        <Input
+                          disabled={disabled}
+                          placeholder={placeholder}
+                          value={entry.part1}
+                          onChange={(event) => {
+                            const v = event.target.value
+                            handleUpdate(idx, v, entry.part2)
+                          }}
+                          className={
+                            part1Valid ? '' : 'border-red-500 ring-1 ring-red-500 rounded-lg'
+                          }
+                          fullWidth
+                        />
+                      </Tooltip.Trigger>
+                      <Tooltip.Content
+                        placement="left"
+                        showArrow={true}
+                        offset={10}
+                        data-color="danger"
+                      >
+                        <Tooltip.Arrow />
+                        {part1Error ?? '格式错误'}
+                      </Tooltip.Content>
                     </Tooltip>
                   </div>
                   <span className="mx-1">:</span>
-                  <div className="flex-1">
-                    <Tooltip
-                      content={part2Error ?? '格式错误'}
-                      placement="left"
-                      isOpen={!part2Valid}
-                      showArrow={true}
-                      color="danger"
-                      offset={10}
-                    >
-                      <Input
-                        size="sm"
-                        fullWidth
-                        className={
-                          part2Valid ? '' : 'border-red-500 ring-1 ring-red-500 rounded-lg'
-                        }
-                        disabled={disabled}
-                        placeholder={part2Placeholder}
-                        value={entry.part2 || ''}
-                        onValueChange={(v) => handleUpdate(idx, entry.part1, v)}
-                      />
+                  <div className="min-w-0 flex-1">
+                    <Tooltip isOpen={!part2Valid} delay={0}>
+                      <Tooltip.Trigger className="block w-full">
+                        <Input
+                          disabled={disabled}
+                          placeholder={part2Placeholder}
+                          value={entry.part2 || ''}
+                          onChange={(event) => {
+                            const v = event.target.value
+                            handleUpdate(idx, entry.part1, v)
+                          }}
+                          className={
+                            part2Valid ? '' : 'border-red-500 ring-1 ring-red-500 rounded-lg'
+                          }
+                          fullWidth
+                        />
+                      </Tooltip.Trigger>
+                      <Tooltip.Content
+                        placement="left"
+                        showArrow={true}
+                        offset={10}
+                        data-color="danger"
+                      >
+                        <Tooltip.Arrow />
+                        {part2Error ?? '格式错误'}
+                      </Tooltip.Content>
                     </Tooltip>
                   </div>
                 </>
               ) : (
-                <Tooltip
-                  content={part1Error ?? '格式错误'}
-                  placement="left"
-                  isOpen={!part1Valid}
-                  showArrow={true}
-                  color="danger"
-                  offset={10}
-                >
-                  <Input
-                    size="sm"
-                    fullWidth
-                    className={part1Valid ? '' : 'border-red-500 ring-1 ring-red-500 rounded-lg'}
-                    disabled={disabled}
-                    placeholder={placeholder}
-                    value={entry.part1}
-                    onValueChange={(v) => handleUpdate(idx, v)}
-                  />
+                <Tooltip isOpen={!part1Valid} delay={0}>
+                  <Tooltip.Trigger className="min-w-0 flex-1">
+                    <Input
+                      disabled={disabled}
+                      placeholder={placeholder}
+                      value={entry.part1}
+                      onChange={(event) => {
+                        const v = event.target.value
+                        handleUpdate(idx, v)
+                      }}
+                      className={part1Valid ? '' : 'border-red-500 ring-1 ring-red-500 rounded-lg'}
+                      fullWidth
+                    />
+                  </Tooltip.Trigger>
+                  <Tooltip.Content
+                    placement="left"
+                    showArrow={true}
+                    offset={10}
+                    data-color="danger"
+                  >
+                    <Tooltip.Arrow />
+                    {part1Error ?? '格式错误'}
+                  </Tooltip.Content>
                 </Tooltip>
               )}
               {idx < processedItems.length && !disabled && (
                 <Button
                   size="sm"
-                  variant="flat"
-                  color="warning"
+                  className="shrink-0"
                   onPress={() => handleUpdate(idx, '', '')}
+                  variant="secondary"
+                  data-color="warning"
                 >
                   <MdDeleteForever className="text-lg" />
                 </Button>
@@ -239,7 +273,7 @@ const EditableList: React.FC<EditableListProps> = ({
           )
         })}
       </div>
-      {divider && <Divider className="mt-2 mb-2" />}
+      {divider && <Separator className="mt-2 mb-2" />}
     </>
   )
 }

@@ -1,3 +1,5 @@
+import { Button, Chip, Separator, Meter } from '@heroui/react'
+
 import {
   mihomoProxyProviders,
   mihomoUpdateProxyProviders,
@@ -8,7 +10,6 @@ import Viewer from './viewer'
 import useSWR from 'swr'
 import SettingCard from '../base/base-setting-card'
 import SettingItem from '../base/base-setting-item'
-import { Button, Chip, Divider } from '@heroui/react'
 import { IoMdRefresh } from 'react-icons/io'
 import { CgLoadbarDoc } from 'react-icons/cg'
 import { MdEditDocument, MdQrCode2 } from 'react-icons/md'
@@ -16,7 +17,7 @@ import QRCodeModal from '../base/base-qrcode-modal'
 import dayjs from 'dayjs'
 import { calcTraffic } from '@renderer/utils/calc'
 import { getHash } from '@renderer/utils/hash'
-import { Meter } from '@heroui-v3/react'
+
 import { notify } from '@renderer/utils/notification'
 
 const ProxyProvider: React.FC = () => {
@@ -28,7 +29,10 @@ const ProxyProvider: React.FC = () => {
     providerType: '',
     ageSecretKey: ''
   })
-  const [qrCode, setQrCode] = useState<{ name: string; url: string } | null>(null)
+  const [qrCode, setQrCode] = useState<{
+    name: string
+    url: string
+  } | null>(null)
   useEffect(() => {
     if (showDetails.title) {
       const fetchProviderPath = async (name: string): Promise<void> => {
@@ -137,12 +141,13 @@ const ProxyProvider: React.FC = () => {
       <SettingItem compatKey="legacy" title="代理集合" divider>
         <Button
           size="sm"
-          color="primary"
           onPress={() => {
             providers.forEach((provider, index) => {
               onUpdate(provider.name, index)
             })
           }}
+          variant="primary"
+          data-color="primary"
         >
           更新全部
         </Button>
@@ -153,8 +158,13 @@ const ProxyProvider: React.FC = () => {
             compatKey="legacy"
             title={provider.name}
             actions={
-              <Chip className="ml-2" size="sm">
-                {provider.proxies?.length || 0}
+              <Chip
+                size="sm"
+                data-color="default"
+                variant="primary"
+                className={['ml-2'].filter(Boolean).join(' ')}
+              >
+                <Chip.Label>{provider.proxies?.length || 0}</Chip.Label>
               </Chip>
             }
             divider={!provider.subscriptionInfo && index !== providers.length - 1}
@@ -164,16 +174,17 @@ const ProxyProvider: React.FC = () => {
               {provider.vehicleType === 'HTTP' && (
                 <Button
                   isIconOnly
-                  className="ml-2"
                   size="sm"
                   onPress={() => onShowQrCode(provider.name)}
+                  variant="primary"
+                  data-color="default"
+                  className="ml-2"
                 >
                   <MdQrCode2 className="text-lg" />
                 </Button>
               )}
               <Button
                 isIconOnly
-                className="ml-2"
                 size="sm"
                 onPress={() => {
                   setShowDetails({
@@ -185,6 +196,9 @@ const ProxyProvider: React.FC = () => {
                     ageSecretKey: ''
                   })
                 }}
+                variant="primary"
+                data-color="default"
+                className="ml-2"
               >
                 {provider.vehicleType == 'File' ? (
                   <MdEditDocument className={`text-lg`} />
@@ -194,11 +208,13 @@ const ProxyProvider: React.FC = () => {
               </Button>
               <Button
                 isIconOnly
-                className="ml-2"
                 size="sm"
                 onPress={() => {
                   onUpdate(provider.name, index)
                 }}
+                variant="primary"
+                data-color="default"
+                className="ml-2"
               >
                 <IoMdRefresh className={`text-lg ${updating[index] ? 'animate-spin' : ''}`} />
               </Button>
@@ -210,9 +226,7 @@ const ProxyProvider: React.FC = () => {
                 compatKey="legacy"
                 title={
                   <div className="text-foreground-500">
-                    {`${calcTraffic(
-                      provider.subscriptionInfo.Upload + provider.subscriptionInfo.Download
-                    )} / ${calcTraffic(provider.subscriptionInfo.Total)}`}
+                    {`${calcTraffic(provider.subscriptionInfo.Upload + provider.subscriptionInfo.Download)} / ${calcTraffic(provider.subscriptionInfo.Total)}`}
                   </div>
                 }
               >
@@ -232,7 +246,7 @@ const ProxyProvider: React.FC = () => {
                   <Meter.Fill />
                 </Meter.Track>
               </Meter>
-              {index !== providers.length - 1 && <Divider className="my-2" />}
+              {index !== providers.length - 1 && <Separator className="my-2" />}
             </>
           )}
         </Fragment>

@@ -1,7 +1,8 @@
+import { Button, Input, Tooltip, InputGroup, Spinner, Select, Switch, ListBox } from '@heroui/react'
+
 import React, { useState } from 'react'
 import SettingCard from '../base/base-setting-card'
 import SettingItem from '../base/base-setting-item'
-import { Button, Input, Select, SelectItem, Switch, Tooltip } from '@heroui/react'
 import { mihomoUpgradeUI, restartCore } from '@renderer/utils/ipc'
 import { useControledMihomoConfig } from '@renderer/hooks/use-controled-mihomo-config'
 import EditableList from '../base/base-list-editor'
@@ -70,36 +71,37 @@ const ControllerSetting: React.FC = () => {
           {externalControllerInput != externalController && !externalControllerError && (
             <Button
               size="sm"
-              color="primary"
-              className="mr-2"
-              isDisabled={!!externalControllerError}
               onPress={() => {
                 onChangeNeedRestart({
                   'external-controller': externalControllerInput
                 })
               }}
+              variant="primary"
+              data-color="primary"
+              className="mr-2"
+              isDisabled={!!externalControllerError}
             >
               确认
             </Button>
           )}
-          <Tooltip
-            content={externalControllerError}
-            placement="right"
-            isOpen={!!externalControllerError}
-            showArrow={true}
-            color="danger"
-            offset={10}
-          >
-            <Input
-              size="sm"
-              className={`w-50 ${externalControllerError ? 'border-red-500 ring-1 ring-red-500 rounded-lg' : ''}`}
-              value={externalControllerInput}
-              onValueChange={(v) => {
-                setExternalControllerInput(v)
-                const r = isValidListenAddress(v)
-                setExternalControllerError(r.ok ? null : (r.error ?? '格式错误'))
-              }}
-            />
+          <Tooltip isOpen={!!externalControllerError} delay={0}>
+            <Tooltip.Trigger>
+              <Input
+                value={externalControllerInput}
+                onChange={(event) => {
+                  const v = event.target.value
+                  setExternalControllerInput(v)
+                  const r = isValidListenAddress(v)
+                  setExternalControllerError(r.ok ? null : (r.error ?? '格式错误'))
+                }}
+                className={`w-50 ${externalControllerError ? 'border-red-500 ring-1 ring-red-500 rounded-lg' : ''}`}
+                fullWidth
+              />
+            </Tooltip.Trigger>
+            <Tooltip.Content placement="right" showArrow={true} offset={10} data-color="danger">
+              <Tooltip.Arrow />
+              {externalControllerError}
+            </Tooltip.Content>
           </Tooltip>
         </div>
       </SettingItem>
@@ -112,8 +114,9 @@ const ControllerSetting: React.FC = () => {
               <Button
                 size="sm"
                 isIconOnly
-                variant="light"
                 onPress={() => setSecretInput(generateRandomString(32))}
+                variant="ghost"
+                data-color="default"
               >
                 <IoMdRefresh className="text-lg" />
               </Button>
@@ -124,48 +127,58 @@ const ControllerSetting: React.FC = () => {
               {secretInput != secret && (
                 <Button
                   size="sm"
-                  color="primary"
-                  className="mr-2"
                   onPress={() => {
                     onChangeNeedRestart({ secret: secretInput })
                   }}
+                  variant="primary"
+                  data-color="primary"
+                  className="mr-2"
                 >
                   确认
                 </Button>
               )}
-              <Input
-                size="sm"
-                type={showPassword ? 'text' : 'password'}
-                className="w-50"
-                value={secretInput}
-                onValueChange={setSecretInput}
-                startContent={
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword((prev) => !prev)}
-                    className="text-gray-500 hover:text-gray-700"
-                  >
-                    {showPassword ? (
-                      <AiOutlineEyeInvisible className="w-4 h-4" />
-                    ) : (
-                      <AiOutlineEye className="w-4 h-4" />
-                    )}
-                  </button>
-                }
-              />
+              <InputGroup className="w-50" fullWidth>
+                <InputGroup.Prefix>
+                  {
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((prev) => !prev)}
+                      className="text-gray-500 hover:text-gray-700"
+                    >
+                      {showPassword ? (
+                        <AiOutlineEyeInvisible className="w-4 h-4" />
+                      ) : (
+                        <AiOutlineEye className="w-4 h-4" />
+                      )}
+                    </button>
+                  }
+                </InputGroup.Prefix>
+                <InputGroup.Input
+                  type={showPassword ? 'text' : 'password'}
+                  value={secretInput}
+                  onChange={(event) => setSecretInput(event.target.value)}
+                />
+              </InputGroup>
             </div>
           </SettingItem>
           <SettingItem compatKey="legacy" title="启用控制器面板" divider>
             <Switch
               size="sm"
               isSelected={enableExternalUi}
-              onValueChange={(v) => {
+              onChange={(v) => {
                 setEnableExternalUi(v)
                 onChangeNeedRestart({
                   'external-ui': v ? 'ui' : undefined
                 })
               }}
-            />
+              aria-label="启用控制器面板"
+            >
+              <Switch.Content>
+                <Switch.Control>
+                  <Switch.Thumb />
+                </Switch.Control>
+              </Switch.Content>
+            </Switch>
           </SettingItem>
           {enableExternalUi && (
             <SettingItem
@@ -176,17 +189,18 @@ const ControllerSetting: React.FC = () => {
                   <Button
                     size="sm"
                     isIconOnly
-                    variant="light"
-                    isLoading={upgrading}
                     onPress={upgradeUI}
+                    variant="ghost"
+                    data-color="default"
+                    isPending={upgrading}
+                    isDisabled={upgrading}
                   >
+                    {upgrading ? <Spinner size="sm" color="current" /> : null}
                     <IoMdCloudDownload className="text-lg" />
                   </Button>
                   <Button
                     isIconOnly
                     size="sm"
-                    className="app-nodrag"
-                    variant="light"
                     onPress={() => {
                       const controller = externalController.startsWith(':')
                         ? `127.0.0.1${externalController}`
@@ -215,6 +229,9 @@ const ControllerSetting: React.FC = () => {
                         }
                       }
                     }}
+                    variant="ghost"
+                    data-color="default"
+                    className="app-nodrag"
                   >
                     <HiExternalLink className="text-lg" />
                   </Button>
@@ -226,43 +243,75 @@ const ControllerSetting: React.FC = () => {
                 {externalUiUrlInput != externalUiUrl && (
                   <Button
                     size="sm"
-                    color="primary"
-                    className="mr-2"
                     onPress={() => {
                       onChangeNeedRestart({
                         'external-ui-url': externalUiUrlInput
                       })
                     }}
+                    variant="primary"
+                    data-color="primary"
+                    className="mr-2"
                   >
                     确认
                   </Button>
                 )}
                 <Select
                   aria-label="外部 UI 来源"
-                  classNames={{ trigger: 'data-[hover=true]:bg-default-200' }}
-                  className="w-37.5"
-                  size="sm"
-                  selectedKeys={new Set([externalUiUrlInput])}
-                  disallowEmptySelection={true}
-                  onSelectionChange={(v) => {
-                    setExternalUiUrlInput(v.currentKey as string)
+                  className={['w-37.5'].filter(Boolean).join(' ')}
+                  data-size="sm"
+                  value={externalUiUrlInput ?? null}
+                  onChange={(v) => {
+                    setExternalUiUrlInput(v as string)
                   }}
                 >
-                  <SelectItem key="https://github.com/Zephyruso/zashboard/releases/latest/download/dist.zip">
-                    zashboard
-                  </SelectItem>
-                  <SelectItem key="https://github.com/MetaCubeX/metacubexd/archive/refs/heads/gh-pages.zip">
-                    metacubexd
-                  </SelectItem>
-                  <SelectItem key="https://github.com/MetaCubeX/Yacd-meta/archive/refs/heads/gh-pages.zip">
-                    yacd-meta
-                  </SelectItem>
-                  <SelectItem key="https://github.com/haishanh/yacd/archive/refs/heads/gh-pages.zip">
-                    yacd
-                  </SelectItem>
-                  <SelectItem key="https://github.com/MetaCubeX/Razord-meta/archive/refs/heads/gh-pages.zip">
-                    razord-meta
-                  </SelectItem>
+                  <Select.Trigger className="data-[hover=true]:bg-default-200">
+                    <Select.Value />
+                    <Select.Indicator />
+                  </Select.Trigger>
+                  <Select.Popover>
+                    <ListBox>
+                      <ListBox.Item
+                        key="https://github.com/Zephyruso/zashboard/releases/latest/download/dist.zip"
+                        id="https://github.com/Zephyruso/zashboard/releases/latest/download/dist.zip"
+                        textValue="zashboard"
+                      >
+                        zashboard
+                        <ListBox.ItemIndicator />
+                      </ListBox.Item>
+                      <ListBox.Item
+                        key="https://github.com/MetaCubeX/metacubexd/archive/refs/heads/gh-pages.zip"
+                        id="https://github.com/MetaCubeX/metacubexd/archive/refs/heads/gh-pages.zip"
+                        textValue="metacubexd"
+                      >
+                        metacubexd
+                        <ListBox.ItemIndicator />
+                      </ListBox.Item>
+                      <ListBox.Item
+                        key="https://github.com/MetaCubeX/Yacd-meta/archive/refs/heads/gh-pages.zip"
+                        id="https://github.com/MetaCubeX/Yacd-meta/archive/refs/heads/gh-pages.zip"
+                        textValue="yacd-meta"
+                      >
+                        yacd-meta
+                        <ListBox.ItemIndicator />
+                      </ListBox.Item>
+                      <ListBox.Item
+                        key="https://github.com/haishanh/yacd/archive/refs/heads/gh-pages.zip"
+                        id="https://github.com/haishanh/yacd/archive/refs/heads/gh-pages.zip"
+                        textValue="yacd"
+                      >
+                        yacd
+                        <ListBox.ItemIndicator />
+                      </ListBox.Item>
+                      <ListBox.Item
+                        key="https://github.com/MetaCubeX/Razord-meta/archive/refs/heads/gh-pages.zip"
+                        id="https://github.com/MetaCubeX/Razord-meta/archive/refs/heads/gh-pages.zip"
+                        textValue="razord-meta"
+                      >
+                        razord-meta
+                        <ListBox.ItemIndicator />
+                      </ListBox.Item>
+                    </ListBox>
+                  </Select.Popover>
                 </Select>
               </div>
             </SettingItem>
@@ -273,7 +322,7 @@ const ControllerSetting: React.FC = () => {
             <Switch
               size="sm"
               isSelected={allowPrivateNetwork}
-              onValueChange={(v) => {
+              onChange={(v) => {
                 onChangeNeedRestart({
                   'external-controller-cors': {
                     ...externalControllerCors,
@@ -281,14 +330,20 @@ const ControllerSetting: React.FC = () => {
                   }
                 })
               }}
-            />
+              aria-label="允许私有网络访问"
+            >
+              <Switch.Content>
+                <Switch.Control>
+                  <Switch.Thumb />
+                </Switch.Control>
+              </Switch.Content>
+            </Switch>
           </SettingItem>
           <div className="mt-1"></div>
           <SettingItem compatKey="legacy" title="允许的来源">
             {allowOriginsInput.join(',') != initialAllowOrigins.join(',') && (
               <Button
                 size="sm"
-                color="primary"
                 onPress={() => {
                   const finalOrigins = allowOriginsInput.length == 0 ? ['*'] : allowOriginsInput
                   onChangeNeedRestart({
@@ -298,6 +353,8 @@ const ControllerSetting: React.FC = () => {
                     }
                   })
                 }}
+                variant="primary"
+                data-color="primary"
               >
                 确认
               </Button>

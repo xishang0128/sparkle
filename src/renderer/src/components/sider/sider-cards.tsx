@@ -1,5 +1,11 @@
 import { useEffect, useLayoutEffect, useRef, useState, type MouseEvent } from 'react'
-import { closestCorners, DndContext, type DragEndEvent } from '@dnd-kit/core'
+import {
+  closestCenter,
+  DndContext,
+  pointerWithin,
+  type CollisionDetection,
+  type DragEndEvent
+} from '@dnd-kit/core'
 import { SortableContext } from '@dnd-kit/sortable'
 import { useNavigate } from 'react-router-dom'
 import { useAppConfig } from '@renderer/hooks/use-app-config'
@@ -18,6 +24,20 @@ import SniffCard from './sniff-card'
 import SubStoreCard from './substore-card'
 import SysproxySwitcher from './sysproxy-switcher'
 import TunSwitcher from './tun-switcher'
+import { siderSortingStrategy } from './sider-sorting'
+import SiderDropPlaceholder from './sider-drop-placeholder'
+
+const detectCardCollision: CollisionDetection = (args) => {
+  const visibleArgs = {
+    ...args,
+    droppableContainers: args.droppableContainers.filter(({ id }) => {
+      const rect = args.droppableRects.get(id)
+      return rect && rect.width > 0 && rect.height > 0
+    })
+  }
+  const pointerCollisions = pointerWithin(visibleArgs)
+  return pointerCollisions.length > 0 ? pointerCollisions : closestCenter(visibleArgs)
+}
 
 const interactiveSelector = 'button:not(.pointer-events-none), [role="switch"]'
 
@@ -81,6 +101,7 @@ export default function SiderCards({ iconOnly = false }: Props): React.JSX.Eleme
   const { appConfig, patchAppConfig } = useAppConfig()
   const siderOrder = appConfig?.siderOrder ?? defaultSiderOrder
   const [order, setOrder] = useState(siderOrder)
+  const gridRef = useRef<HTMLDivElement>(null)
   const suppressClickRef = useRef(false)
   const suppressClickTimerRef = useRef<number | undefined>(undefined)
   const navigate = useNavigate()
@@ -117,6 +138,7 @@ export default function SiderCards({ iconOnly = false }: Props): React.JSX.Eleme
       const newOrder = order.slice()
       const activeIndex = newOrder.indexOf(active.id as string)
       const overIndex = newOrder.indexOf(over.id as string)
+      if (activeIndex < 0 || overIndex < 0) return
       newOrder.splice(activeIndex, 1)
       newOrder.splice(overIndex, 0, active.id as string)
       setOrder(newOrder)
@@ -161,7 +183,7 @@ export default function SiderCards({ iconOnly = false }: Props): React.JSX.Eleme
     <div style={{ overflowX: 'clip' }}>
       <DndContext
         sensors={sensors}
-        collisionDetection={closestCorners}
+        collisionDetection={detectCardCollision}
         onDragStart={() => {
           suppressClickRef.current = true
         }}
@@ -170,8 +192,15 @@ export default function SiderCards({ iconOnly = false }: Props): React.JSX.Eleme
           void onDragEnd(event).finally(releaseClickSuppression)
         }}
       >
-        <div className="grid grid-cols-2 gap-2 m-2" onClickCapture={onClickCapture}>
-          <SortableContext items={order}>{cards}</SortableContext>
+        <div
+          ref={gridRef}
+          className="sider-cards relative grid grid-cols-2 gap-2 m-2"
+          onClickCapture={onClickCapture}
+        >
+          <SiderDropPlaceholder order={order} gridRef={gridRef} />
+          <SortableContext items={order} strategy={siderSortingStrategy}>
+            {cards}
+          </SortableContext>
         </div>
       </DndContext>
     </div>

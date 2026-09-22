@@ -1,7 +1,8 @@
+import { Button, Switch } from '@heroui/react'
+
 import React, { useState } from 'react'
 import SettingCard from '../base/base-setting-card'
 import SettingItem from '../base/base-setting-item'
-import { Button, Switch } from '@heroui/react'
 import { useAppConfig } from '@renderer/hooks/use-app-config'
 import { restartCore } from '@renderer/utils/ipc'
 import EditableList from '../base/base-list-editor'
@@ -36,48 +37,77 @@ const EnvSetting: React.FC = () => {
         <Switch
           size="sm"
           isSelected={disableSystemCA}
-          onValueChange={(v) => {
+          onChange={(v) => {
             handleConfigChangeWithRestart('disableSystemCA', v)
           }}
-        />
+          aria-label="禁用系统 CA"
+        >
+          <Switch.Content>
+            <Switch.Control>
+              <Switch.Thumb />
+            </Switch.Control>
+          </Switch.Content>
+        </Switch>
       </SettingItem>
       <SettingItem compatKey="legacy" title="禁用内置 CA" divider>
         <Switch
           size="sm"
           isSelected={disableEmbedCA}
-          onValueChange={(v) => {
+          onChange={(v) => {
             handleConfigChangeWithRestart('disableEmbedCA', v)
           }}
-        />
+          aria-label="禁用内置 CA"
+        >
+          <Switch.Content>
+            <Switch.Control>
+              <Switch.Thumb />
+            </Switch.Control>
+          </Switch.Content>
+        </Switch>
       </SettingItem>
       <SettingItem compatKey="legacy" title="禁用回环检测" divider>
         <Switch
           size="sm"
           isSelected={disableLoopbackDetector}
-          onValueChange={(v) => {
+          onChange={(v) => {
             handleConfigChangeWithRestart('disableLoopbackDetector', v)
           }}
-        />
+          aria-label="禁用回环检测"
+        >
+          <Switch.Content>
+            <Switch.Control>
+              <Switch.Thumb />
+            </Switch.Control>
+          </Switch.Content>
+        </Switch>
       </SettingItem>
       {platform == 'linux' && (
         <SettingItem compatKey="legacy" title="禁用 nftables" divider>
           <Switch
             size="sm"
             isSelected={disableNftables}
-            onValueChange={(v) => {
+            onChange={(v) => {
               handleConfigChangeWithRestart('disableNftables', v)
             }}
-          />
+            aria-label="禁用 nftables"
+          >
+            <Switch.Content>
+              <Switch.Control>
+                <Switch.Thumb />
+              </Switch.Control>
+            </Switch.Content>
+          </Switch>
         </SettingItem>
       )}
       <SettingItem compatKey="legacy" title="可信路径">
         {safePathsInput.join('') != safePaths.join('') && (
           <Button
             size="sm"
-            color="primary"
             onPress={() => {
               handleConfigChangeWithRestart('safePaths', safePathsInput)
             }}
+            variant="primary"
+            data-color="primary"
           >
             确认
           </Button>

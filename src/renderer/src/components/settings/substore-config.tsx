@@ -1,7 +1,8 @@
+import { Input, Button, Switch } from '@heroui/react'
+
 import React, { useState, useEffect } from 'react'
 import SettingCard from '@renderer/components/base/base-setting-card'
 import SettingItem from '@renderer/components/base/base-setting-item'
-import { Button, Input, Switch } from '@heroui/react'
 import {
   startSubStoreFrontendServer,
   startSubStoreBackendServer,
@@ -62,7 +63,7 @@ const SubStoreConfig: React.FC = () => {
         <Switch
           size="sm"
           isSelected={useSubStore}
-          onValueChange={async (v) => {
+          onChange={async (v) => {
             try {
               await patchAppConfig({ useSubStore: v })
               if (v) {
@@ -76,7 +77,14 @@ const SubStoreConfig: React.FC = () => {
               notify(e, { variant: 'danger' })
             }
           }}
-        />
+          aria-label="启用 Sub-Store"
+        >
+          <Switch.Content>
+            <Switch.Control>
+              <Switch.Thumb />
+            </Switch.Control>
+          </Switch.Content>
+        </Switch>
       </SettingItem>
       {useSubStore && (
         <>
@@ -84,7 +92,7 @@ const SubStoreConfig: React.FC = () => {
             <Switch
               size="sm"
               isSelected={subStoreHost === '0.0.0.0'}
-              onValueChange={async (v) => {
+              onChange={async (v) => {
                 try {
                   if (v) {
                     await patchAppConfig({ subStoreHost: '0.0.0.0' })
@@ -97,13 +105,20 @@ const SubStoreConfig: React.FC = () => {
                   notify(e, { variant: 'danger' })
                 }
               }}
-            />
+              aria-label="允许局域网连接"
+            >
+              <Switch.Content>
+                <Switch.Control>
+                  <Switch.Thumb />
+                </Switch.Control>
+              </Switch.Content>
+            </Switch>
           </SettingItem>
           <SettingItem compatKey="legacy" title="使用自建 Sub-Store 后端" divider>
             <Switch
               size="sm"
               isSelected={useCustomSubStore}
-              onValueChange={async (v) => {
+              onChange={async (v) => {
                 try {
                   await patchAppConfig({ useCustomSubStore: v })
                   if (v) {
@@ -115,19 +130,27 @@ const SubStoreConfig: React.FC = () => {
                   notify(e, { variant: 'danger' })
                 }
               }}
-            />
+              aria-label="使用自建 Sub-Store 后端"
+            >
+              <Switch.Content>
+                <Switch.Control>
+                  <Switch.Thumb />
+                </Switch.Control>
+              </Switch.Content>
+            </Switch>
           </SettingItem>
           {useCustomSubStore ? (
             <SettingItem compatKey="legacy" title="自建 Sub-Store 后端地址">
               <Input
-                size="sm"
-                className="w-[60%]"
                 value={customSubStoreUrlValue}
                 placeholder="必须包含协议头"
-                onValueChange={(v: string) => {
+                onChange={(event) => {
+                  const v = event.target.value
                   setCustomSubStoreUrlValue(v)
                   setCustomSubStoreUrl(v)
                 }}
+                className="w-[60%]"
+                fullWidth
               />
             </SettingItem>
           ) : (
@@ -136,7 +159,7 @@ const SubStoreConfig: React.FC = () => {
                 <Switch
                   size="sm"
                   isSelected={useProxyInSubStore}
-                  onValueChange={async (v) => {
+                  onChange={async (v) => {
                     try {
                       await patchAppConfig({ useProxyInSubStore: v })
                       await startSubStoreBackendServer()
@@ -144,14 +167,20 @@ const SubStoreConfig: React.FC = () => {
                       notify(e, { variant: 'danger' })
                     }
                   }}
-                />
+                  aria-label="为 Sub-Store 内所有请求启用代理"
+                >
+                  <Switch.Content>
+                    <Switch.Control>
+                      <Switch.Thumb />
+                    </Switch.Control>
+                  </Switch.Content>
+                </Switch>
               </SettingItem>
               <SettingItem compatKey="legacy" title="定时同步订阅/文件" divider>
                 <div className="flex w-[60%] gap-2">
                   {subStoreBackendSyncCronValue !== subStoreBackendSyncCron && (
                     <Button
                       size="sm"
-                      color="primary"
                       onPress={async () => {
                         if (
                           !subStoreBackendSyncCronValue ||
@@ -165,17 +194,20 @@ const SubStoreConfig: React.FC = () => {
                           notify('Cron 表达式无效', { variant: 'danger' })
                         }
                       }}
+                      variant="primary"
+                      data-color="primary"
                     >
                       确认
                     </Button>
                   )}
                   <Input
-                    size="sm"
                     value={subStoreBackendSyncCronValue}
                     placeholder="Cron 表达式"
-                    onValueChange={(v: string) => {
+                    onChange={(event) => {
+                      const v = event.target.value
                       setSubStoreBackendSyncCronValue(v)
                     }}
+                    fullWidth
                   />
                 </div>
               </SettingItem>
@@ -184,7 +216,6 @@ const SubStoreConfig: React.FC = () => {
                   {subStoreBackendDownloadCronValue !== subStoreBackendDownloadCron && (
                     <Button
                       size="sm"
-                      color="primary"
                       onPress={async () => {
                         if (
                           !subStoreBackendDownloadCronValue ||
@@ -198,17 +229,20 @@ const SubStoreConfig: React.FC = () => {
                           notify('Cron 表达式无效', { variant: 'danger' })
                         }
                       }}
+                      variant="primary"
+                      data-color="primary"
                     >
                       确认
                     </Button>
                   )}
                   <Input
-                    size="sm"
                     value={subStoreBackendDownloadCronValue}
                     placeholder="Cron 表达式"
-                    onValueChange={(v: string) => {
+                    onChange={(event) => {
+                      const v = event.target.value
                       setSubStoreBackendDownloadCronValue(v)
                     }}
+                    fullWidth
                   />
                 </div>
               </SettingItem>
@@ -217,7 +251,6 @@ const SubStoreConfig: React.FC = () => {
                   {subStoreBackendUploadCronValue !== subStoreBackendUploadCron && (
                     <Button
                       size="sm"
-                      color="primary"
                       onPress={async () => {
                         if (
                           !subStoreBackendUploadCronValue ||
@@ -231,17 +264,20 @@ const SubStoreConfig: React.FC = () => {
                           notify('Cron 表达式无效', { variant: 'danger' })
                         }
                       }}
+                      variant="primary"
+                      data-color="primary"
                     >
                       确认
                     </Button>
                   )}
                   <Input
-                    size="sm"
                     value={subStoreBackendUploadCronValue}
                     placeholder="Cron 表达式"
-                    onValueChange={(v: string) => {
+                    onChange={(event) => {
+                      const v = event.target.value
                       setSubStoreBackendUploadCronValue(v)
                     }}
+                    fullWidth
                   />
                 </div>
               </SettingItem>

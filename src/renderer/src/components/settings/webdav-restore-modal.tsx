@@ -1,4 +1,4 @@
-import { Button, Modal } from '@heroui-v3/react'
+import { Button, Modal } from '@heroui/react'
 import { relaunchApp, webdavDelete, webdavRestore } from '@renderer/utils/ipc'
 import React, { useState } from 'react'
 import { MdDeleteForever } from 'react-icons/md'

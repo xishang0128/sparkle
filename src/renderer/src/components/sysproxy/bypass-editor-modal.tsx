@@ -1,7 +1,6 @@
-/* eslint-disable react/prop-types */
 import { useEffect, useState } from 'react'
 import { dump, load } from 'js-yaml'
-import { Button, Modal } from '@heroui-v3/react'
+import { Button, Modal } from '@heroui/react'
 import { BaseEditor } from '../base/base-editor-lazy'
 import { useAppConfig } from '@renderer/hooks/use-app-config'
 import { notify } from '@renderer/utils/notification'
@@ -16,8 +15,7 @@ interface ParsedYaml {
   bypass?: string[]
 }
 
-const ByPassEditorModal: React.FC<Props> = (props) => {
-  const { bypass, onCancel, onConfirm } = props
+const ByPassEditorModal = ({ bypass, onCancel, onConfirm }: Props) => {
   useAppConfig()
   const [currData, setCurrData] = useState<string>('')
   useEffect(() => {

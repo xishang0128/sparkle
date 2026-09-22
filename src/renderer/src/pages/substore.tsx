@@ -1,4 +1,5 @@
-import { Button } from '@heroui/react'
+import { Button, Spinner } from '@heroui/react'
+
 import BasePage from '@renderer/components/base/base-page'
 import { useAppConfig } from '@renderer/hooks/use-app-config'
 import {
@@ -40,9 +41,6 @@ const SubStore: React.FC = () => {
             <Button
               isIconOnly
               size="sm"
-              className="app-nodrag"
-              variant="light"
-              isLoading={isUpdating}
               onPress={async () => {
                 try {
                   notify('Sub-Store 更新中...')
@@ -64,19 +62,26 @@ const SubStore: React.FC = () => {
                   setIsUpdating(false)
                 }
               }}
+              variant="ghost"
+              data-color="default"
+              className="app-nodrag"
+              isPending={isUpdating}
+              isDisabled={isUpdating}
             >
+              {isUpdating ? <Spinner size="sm" color="current" /> : null}
               <IoMdCloudDownload className="text-lg" />
             </Button>
             <Button
               isIconOnly
               size="sm"
-              className="app-nodrag"
-              variant="light"
               onPress={() => {
                 open(
                   `http://127.0.0.1:${frontendPort}?api=${useCustomSubStore ? customSubStoreUrl : `http://127.0.0.1:${backendPort}`}`
                 )
               }}
+              variant="ghost"
+              data-color="default"
+              className="app-nodrag"
             >
               <HiExternalLink className="text-lg" />
             </Button>

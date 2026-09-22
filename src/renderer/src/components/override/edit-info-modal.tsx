@@ -8,7 +8,7 @@ import {
   Separator,
   Surface,
   Switch
-} from '@heroui-v3/react'
+} from '@heroui/react'
 import type { ReactNode } from 'react'
 import React, { useState } from 'react'
 import { useAppConfig } from '@renderer/hooks/use-app-config'

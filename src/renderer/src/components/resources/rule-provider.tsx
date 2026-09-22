@@ -1,3 +1,5 @@
+import { Button, Chip } from '@heroui/react'
+
 import {
   mihomoRuleProviders,
   mihomoUpdateRuleProviders,
@@ -9,7 +11,6 @@ import { Fragment, useEffect, useMemo, useState } from 'react'
 import useSWR from 'swr'
 import SettingCard from '../base/base-setting-card'
 import SettingItem from '../base/base-setting-item'
-import { Button, Chip } from '@heroui/react'
 import { IoMdRefresh } from 'react-icons/io'
 import { CgLoadbarDoc } from 'react-icons/cg'
 import { MdEditDocument } from 'react-icons/md'
@@ -134,12 +135,13 @@ const RuleProvider: React.FC = () => {
       <SettingItem compatKey="legacy" title="规则集合" divider>
         <Button
           size="sm"
-          color="primary"
           onPress={() => {
             providers.forEach((provider, index) => {
               onUpdate(provider.name, index)
             })
           }}
+          variant="primary"
+          data-color="primary"
         >
           更新全部
         </Button>
@@ -150,8 +152,13 @@ const RuleProvider: React.FC = () => {
             compatKey="legacy"
             title={provider.name}
             actions={
-              <Chip className="ml-2" size="sm">
-                {provider.ruleCount}
+              <Chip
+                size="sm"
+                data-color="default"
+                variant="primary"
+                className={['ml-2'].filter(Boolean).join(' ')}
+              >
+                <Chip.Label>{provider.ruleCount}</Chip.Label>
               </Chip>
             }
           >
@@ -160,9 +167,11 @@ const RuleProvider: React.FC = () => {
               {provider.vehicleType !== 'Inline' && (
                 <Button
                   isIconOnly
-                  className="ml-2"
                   size="sm"
                   onPress={() => openProviderDetails(provider)}
+                  variant="primary"
+                  data-color="default"
+                  className="ml-2"
                 >
                   {provider.vehicleType == 'File' ? (
                     <MdEditDocument className={`text-lg`} />
@@ -173,11 +182,13 @@ const RuleProvider: React.FC = () => {
               )}
               <Button
                 isIconOnly
-                className="ml-2"
                 size="sm"
                 onPress={() => {
                   onUpdate(provider.name, index)
                 }}
+                variant="primary"
+                data-color="default"
+                className="ml-2"
               >
                 <IoMdRefresh className={`text-lg ${updating[index] ? 'animate-spin' : ''}`} />
               </Button>

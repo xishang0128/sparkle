@@ -1,5 +1,6 @@
+import { Button, Tooltip, InputGroup, Select, Switch, ListBox } from '@heroui/react'
+
 import { useEffect, useState } from 'react'
-import { Button, Input, Select, SelectItem, Switch, Tooltip } from '@heroui/react'
 import { IoIosHelpCircle } from 'react-icons/io'
 import { useAppConfig } from '@renderer/hooks/use-app-config'
 import { useControledMihomoConfig } from '@renderer/hooks/use-controled-mihomo-config'
@@ -45,10 +46,13 @@ const LogSetting: React.FC = () => {
         compatKey="legacy"
         title="保存日志"
         actions={
-          <Tooltip content="关闭后将停止写入本地日志文件，实时日志页面仍可继续查看当前会话日志">
-            <Button isIconOnly size="sm" variant="light">
+          <Tooltip delay={0}>
+            <Button isIconOnly size="sm" variant="ghost" data-color="default">
               <IoIosHelpCircle className="text-lg" />
             </Button>
+            <Tooltip.Content>
+              {'关闭后将停止写入本地日志文件，实时日志页面仍可继续查看当前会话日志'}
+            </Tooltip.Content>
           </Tooltip>
         }
         divider
@@ -56,47 +60,59 @@ const LogSetting: React.FC = () => {
         <Switch
           size="sm"
           isSelected={saveLogs}
-          onValueChange={(value) => {
+          onChange={(value) => {
             patchAppConfig({ saveLogs: value })
           }}
-        />
+          aria-label="保存日志"
+        >
+          <Switch.Content>
+            <Switch.Control>
+              <Switch.Thumb />
+            </Switch.Control>
+          </Switch.Content>
+        </Switch>
       </SettingItem>
       <SettingItem compatKey="legacy" title="日志保留天数" divider>
         <div className="flex">
           {saveLogs && maxLogDaysInput !== maxLogDays && (
             <Button
               size="sm"
-              color="primary"
-              className="mr-2"
               onPress={() => {
                 patchAppConfig({ maxLogDays: maxLogDaysInput })
               }}
+              variant="primary"
+              data-color="primary"
+              className="mr-2"
             >
               确认
             </Button>
           )}
-          <Input
-            size="sm"
-            type="number"
-            className="w-25"
-            endContent="天"
-            value={maxLogDaysInput.toString()}
-            min={1}
-            isDisabled={!saveLogs}
-            onValueChange={(value) => {
-              setMaxLogDaysInput(Math.max(parseInt(value) || 0, 1))
-            }}
-          />
+          <InputGroup className="w-25" isDisabled={!saveLogs} fullWidth>
+            <InputGroup.Input
+              type="number"
+              value={maxLogDaysInput.toString()}
+              min={1}
+              onChange={(event) => {
+                const value = event.target.value
+                setMaxLogDaysInput(Math.max(parseInt(value) || 0, 1))
+              }}
+              disabled={!saveLogs}
+            />
+            <InputGroup.Suffix>{'天'}</InputGroup.Suffix>
+          </InputGroup>
         </div>
       </SettingItem>
       <SettingItem
         compatKey="legacy"
         title="单文件日志上限"
         actions={
-          <Tooltip content="仅影响本地日志文件，超过大小上限后会自动删除最早的日志行">
-            <Button isIconOnly size="sm" variant="light">
+          <Tooltip delay={0}>
+            <Button isIconOnly size="sm" variant="ghost" data-color="default">
               <IoIosHelpCircle className="text-lg" />
             </Button>
+            <Tooltip.Content>
+              {'仅影响本地日志文件，超过大小上限后会自动删除最早的日志行'}
+            </Tooltip.Content>
           </Tooltip>
         }
         divider
@@ -105,37 +121,42 @@ const LogSetting: React.FC = () => {
           {saveLogs && maxLogFileSizeMBInput !== maxLogFileSizeMB && (
             <Button
               size="sm"
-              color="primary"
-              className="mr-2"
               onPress={() => {
                 patchAppConfig({ maxLogFileSizeMB: maxLogFileSizeMBInput })
               }}
+              variant="primary"
+              data-color="primary"
+              className="mr-2"
             >
               确认
             </Button>
           )}
-          <Input
-            size="sm"
-            type="number"
-            className="w-25"
-            endContent="MB"
-            value={maxLogFileSizeMBInput.toString()}
-            min={1}
-            isDisabled={!saveLogs}
-            onValueChange={(value) => {
-              setMaxLogFileSizeMBInput(Math.max(parseInt(value) || 0, 1))
-            }}
-          />
+          <InputGroup className="w-25" isDisabled={!saveLogs} fullWidth>
+            <InputGroup.Input
+              type="number"
+              value={maxLogFileSizeMBInput.toString()}
+              min={1}
+              onChange={(event) => {
+                const value = event.target.value
+                setMaxLogFileSizeMBInput(Math.max(parseInt(value) || 0, 1))
+              }}
+              disabled={!saveLogs}
+            />
+            <InputGroup.Suffix>{'MB'}</InputGroup.Suffix>
+          </InputGroup>
         </div>
       </SettingItem>
       <SettingItem
         compatKey="legacy"
         title="实时日志缓存数"
         actions={
-          <Tooltip content="仅影响应用内实时日志页面保留的条数，不影响本地日志文件">
-            <Button isIconOnly size="sm" variant="light">
+          <Tooltip delay={0}>
+            <Button isIconOnly size="sm" variant="ghost" data-color="default">
               <IoIosHelpCircle className="text-lg" />
             </Button>
+            <Tooltip.Content>
+              {'仅影响应用内实时日志页面保留的条数，不影响本地日志文件'}
+            </Tooltip.Content>
           </Tooltip>
         }
         divider
@@ -144,45 +165,66 @@ const LogSetting: React.FC = () => {
           {maxLogEntriesInput !== maxLogEntries && (
             <Button
               size="sm"
-              color="primary"
-              className="mr-2"
               onPress={() => {
                 patchAppConfig({ maxLogEntries: maxLogEntriesInput })
               }}
+              variant="primary"
+              data-color="primary"
+              className="mr-2"
             >
               确认
             </Button>
           )}
-          <Input
-            size="sm"
-            type="number"
-            className="w-25"
-            endContent="条"
-            value={maxLogEntriesInput.toString()}
-            min={1}
-            onValueChange={(value) => {
-              setMaxLogEntriesInput(Math.max(parseInt(value) || 0, 1))
-            }}
-          />
+          <InputGroup className="w-25" fullWidth>
+            <InputGroup.Input
+              type="number"
+              value={maxLogEntriesInput.toString()}
+              min={1}
+              onChange={(event) => {
+                const value = event.target.value
+                setMaxLogEntriesInput(Math.max(parseInt(value) || 0, 1))
+              }}
+            />
+            <InputGroup.Suffix>{'条'}</InputGroup.Suffix>
+          </InputGroup>
         </div>
       </SettingItem>
       <SettingItem compatKey="legacy" title="日志等级">
         <Select
           aria-label="日志等级"
-          classNames={{ trigger: 'data-[hover=true]:bg-default-200' }}
-          className="w-25"
-          size="sm"
-          selectedKeys={new Set([logLevel])}
-          disallowEmptySelection={true}
-          onSelectionChange={(value) =>
-            onChangeNeedRestart({ 'log-level': value.currentKey as LogLevel })
-          }
+          className={['w-25'].filter(Boolean).join(' ')}
+          data-size="sm"
+          value={logLevel ?? null}
+          onChange={(value) => onChangeNeedRestart({ 'log-level': value as LogLevel })}
         >
-          <SelectItem key="silent">静默</SelectItem>
-          <SelectItem key="error">错误</SelectItem>
-          <SelectItem key="warning">警告</SelectItem>
-          <SelectItem key="info">信息</SelectItem>
-          <SelectItem key="debug">调试</SelectItem>
+          <Select.Trigger className="data-[hover=true]:bg-default-200">
+            <Select.Value />
+            <Select.Indicator />
+          </Select.Trigger>
+          <Select.Popover>
+            <ListBox>
+              <ListBox.Item key="silent" id="silent" textValue="静默">
+                静默
+                <ListBox.ItemIndicator />
+              </ListBox.Item>
+              <ListBox.Item key="error" id="error" textValue="错误">
+                错误
+                <ListBox.ItemIndicator />
+              </ListBox.Item>
+              <ListBox.Item key="warning" id="warning" textValue="警告">
+                警告
+                <ListBox.ItemIndicator />
+              </ListBox.Item>
+              <ListBox.Item key="info" id="info" textValue="信息">
+                信息
+                <ListBox.ItemIndicator />
+              </ListBox.Item>
+              <ListBox.Item key="debug" id="debug" textValue="调试">
+                调试
+                <ListBox.ItemIndicator />
+              </ListBox.Item>
+            </ListBox>
+          </Select.Popover>
         </Select>
       </SettingItem>
     </SettingCard>

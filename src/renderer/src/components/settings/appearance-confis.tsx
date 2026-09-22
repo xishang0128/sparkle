@@ -1,7 +1,8 @@
+import { Button, Tooltip, Spinner, Select, Switch, Tabs, ListBox } from '@heroui/react'
+
 import React, { useEffect, useState, useRef } from 'react'
 import SettingCard from '../base/base-setting-card'
 import SettingItem from '../base/base-setting-item'
-import { Button, Select, SelectItem, Switch, Tab, Tabs, Tooltip } from '@heroui/react'
 import { BiSolidFileImport } from 'react-icons/bi'
 import {
   applyTheme,
@@ -33,7 +34,12 @@ const rasterTrayIconPattern = /\.(png|jpe?g|webp)$/i
 
 const AppearanceConfig: React.FC = () => {
   const { appConfig, patchAppConfig } = useAppConfig()
-  const [customThemes, setCustomThemes] = useState<{ key: string; label: string }[]>()
+  const [customThemes, setCustomThemes] = useState<
+    {
+      key: string
+      label: string
+    }[]
+  >()
   const [openCSSEditor, setOpenCSSEditor] = useState(false)
   const [trayIconCropDataURL, setTrayIconCropDataURL] = useState('')
   const [fetching, setFetching] = useState(false)
@@ -99,10 +105,11 @@ const AppearanceConfig: React.FC = () => {
           compatKey="legacy"
           title="显示悬浮窗"
           actions={
-            <Tooltip content="未禁用GPU加速的情况下，悬浮窗可能会导致应用崩溃">
-              <Button isIconOnly size="sm" variant="light">
+            <Tooltip delay={0}>
+              <Button isIconOnly size="sm" variant="ghost" data-color="default">
                 <IoIosHelpCircle className="text-lg" />
               </Button>
+              <Tooltip.Content>{'未禁用GPU加速的情况下，悬浮窗可能会导致应用崩溃'}</Tooltip.Content>
             </Tooltip>
           }
           divider
@@ -110,7 +117,7 @@ const AppearanceConfig: React.FC = () => {
           <Switch
             size="sm"
             isSelected={localShowFloating}
-            onValueChange={async (v) => {
+            onChange={async (v) => {
               if (timeoutRef.current) {
                 clearTimeout(timeoutRef.current)
                 timeoutRef.current = null
@@ -128,7 +135,14 @@ const AppearanceConfig: React.FC = () => {
                 await closeFloatingWindow()
               }
             }}
-          />
+            aria-label="显示悬浮窗"
+          >
+            <Switch.Content>
+              <Switch.Control>
+                <Switch.Thumb />
+              </Switch.Control>
+            </Switch.Content>
+          </Switch>
         </SettingItem>
         {localShowFloating && (
           <>
@@ -136,17 +150,24 @@ const AppearanceConfig: React.FC = () => {
               <Switch
                 size="sm"
                 isSelected={spinFloatingIcon}
-                onValueChange={async (v) => {
+                onChange={async (v) => {
                   await patchAppConfig({ spinFloatingIcon: v })
                   window.electron.ipcRenderer.send('updateFloatingWindow')
                 }}
-              />
+                aria-label="根据网速旋转悬浮窗图标"
+              >
+                <Switch.Content>
+                  <Switch.Control>
+                    <Switch.Thumb />
+                  </Switch.Control>
+                </Switch.Content>
+              </Switch>
             </SettingItem>
             <SettingItem compatKey="legacy" title="禁用托盘图标" divider>
               <Switch
                 size="sm"
                 isSelected={disableTray}
-                onValueChange={async (v) => {
+                onChange={async (v) => {
                   await patchAppConfig({ disableTray: v })
                   if (v) {
                     closeTrayIcon()
@@ -154,7 +175,14 @@ const AppearanceConfig: React.FC = () => {
                     showTrayIcon()
                   }
                 }}
-              />
+                aria-label="禁用托盘图标"
+              >
+                <Switch.Content>
+                  <Switch.Control>
+                    <Switch.Thumb />
+                  </Switch.Control>
+                </Switch.Content>
+              </Switch>
             </SettingItem>
           </>
         )}
@@ -163,10 +191,15 @@ const AppearanceConfig: React.FC = () => {
             compatKey="legacy"
             title="自定义托盘图标"
             actions={
-              <Tooltip content="设置后托盘会使用此图标；开启网速显示时会与网速合成。PNG、JPG、WebP 会先裁剪后保存。">
-                <Button isIconOnly size="sm" variant="light">
+              <Tooltip delay={0}>
+                <Button isIconOnly size="sm" variant="ghost" data-color="default">
                   <IoIosHelpCircle className="text-lg" />
                 </Button>
+                <Tooltip.Content>
+                  {
+                    '设置后托盘会使用此图标；开启网速显示时会与网速合成。PNG、JPG、WebP 会先裁剪后保存。'
+                  }
+                </Tooltip.Content>
               </Tooltip>
             }
             divider
@@ -179,7 +212,6 @@ const AppearanceConfig: React.FC = () => {
               )}
               <Button
                 size="sm"
-                variant="flat"
                 onPress={async () => {
                   const files = await getFilePath(
                     ['png', 'jpg', 'jpeg', 'webp', 'ico', 'icns'],
@@ -194,17 +226,20 @@ const AppearanceConfig: React.FC = () => {
                   await patchAppConfig({ customTrayIcon: await readImageFileDataURL(files[0]) })
                   await updateTrayIcon()
                 }}
+                variant="secondary"
+                data-color="default"
               >
                 {customTrayIcon ? '更换图标' : '选择图标'}
               </Button>
               {customTrayIcon && (
                 <Button
                   size="sm"
-                  variant="light"
                   onPress={async () => {
                     await patchAppConfig({ customTrayIcon: '' })
                     await updateTrayIcon()
                   }}
+                  variant="ghost"
+                  data-color="default"
                 >
                   恢复默认
                 </Button>
@@ -218,16 +253,21 @@ const AppearanceConfig: React.FC = () => {
               <Switch
                 size="sm"
                 isSelected={proxyInTray}
-                onValueChange={async (v) => {
+                onChange={async (v) => {
                   await patchAppConfig({ proxyInTray: v })
                 }}
-              />
+                aria-label="托盘菜单显示节点信息"
+              >
+                <Switch.Content>
+                  <Switch.Control>
+                    <Switch.Thumb />
+                  </Switch.Control>
+                </Switch.Content>
+              </Switch>
             </SettingItem>
             {proxyInTray && (
               <SettingItem compatKey="legacy" title="托盘菜单节点延迟显示方式" divider>
                 <Tabs
-                  size="sm"
-                  color="primary"
                   selectedKey={trayProxyDelayLayout}
                   onSelectionChange={async (v) => {
                     await patchAppConfig({
@@ -235,9 +275,22 @@ const AppearanceConfig: React.FC = () => {
                     })
                     window.electron.ipcRenderer.send('updateTrayMenu')
                   }}
+                  data-color="primary"
+                  data-size="sm"
+                  data-full-width={false}
                 >
-                  <Tab key="same-line" title="同一行" />
-                  <Tab key="new-line" title="换行" />
+                  <Tabs.ListContainer>
+                    <Tabs.List aria-label="选项">
+                      <Tabs.Tab key="same-line" id="same-line">
+                        同一行
+                        <Tabs.Indicator />
+                      </Tabs.Tab>
+                      <Tabs.Tab key="new-line" id="new-line">
+                        换行
+                        <Tabs.Indicator />
+                      </Tabs.Tab>
+                    </Tabs.List>
+                  </Tabs.ListContainer>
                 </Tabs>
               </SettingItem>
             )}
@@ -249,11 +302,18 @@ const AppearanceConfig: React.FC = () => {
               <Switch
                 size="sm"
                 isSelected={showTraffic}
-                onValueChange={async (v) => {
+                onChange={async (v) => {
                   await patchAppConfig({ showTraffic: v })
                   await startMonitor()
                 }}
-              />
+                aria-label="启用"
+              >
+                <Switch.Content>
+                  <Switch.Control>
+                    <Switch.Thumb />
+                  </Switch.Control>
+                </Switch.Content>
+              </Switch>
             </SettingItem>
           </>
         )}
@@ -263,11 +323,18 @@ const AppearanceConfig: React.FC = () => {
               <Switch
                 size="sm"
                 isSelected={useDockIcon}
-                onValueChange={async (v) => {
+                onChange={async (v) => {
                   await patchAppConfig({ useDockIcon: v })
                   setDockVisible(v)
                 }}
-              />
+                aria-label="显示 Dock 图标"
+              >
+                <Switch.Content>
+                  <Switch.Control>
+                    <Switch.Thumb />
+                  </Switch.Control>
+                </Switch.Content>
+              </Switch>
             </SettingItem>
           </>
         )}
@@ -275,21 +342,31 @@ const AppearanceConfig: React.FC = () => {
           <Switch
             size="sm"
             isSelected={useWindowFrame}
-            onValueChange={async (v) => {
+            onChange={async (v) => {
               await patchAppConfig({ useWindowFrame: v })
               await relaunchApp()
             }}
-          />
+            aria-label="使用系统标题栏"
+          >
+            <Switch.Content>
+              <Switch.Control>
+                <Switch.Thumb />
+              </Switch.Control>
+            </Switch.Content>
+          </Switch>
         </SettingItem>
         {useWindowFrame && (
           <SettingItem
             compatKey="legacy"
             title="启用窗口拖动区域"
             actions={
-              <Tooltip content="让应用内页面标题的空白区域可用于拖动窗口，适用于系统未提供可拖动标题栏的环境。">
-                <Button isIconOnly size="sm" variant="light">
+              <Tooltip delay={0}>
+                <Button isIconOnly size="sm" variant="ghost" data-color="default">
                   <IoIosHelpCircle className="text-lg" />
                 </Button>
+                <Tooltip.Content>
+                  {'让应用内页面标题的空白区域可用于拖动窗口，适用于系统未提供可拖动标题栏的环境。'}
+                </Tooltip.Content>
               </Tooltip>
             }
             divider
@@ -297,35 +374,63 @@ const AppearanceConfig: React.FC = () => {
             <Switch
               size="sm"
               isSelected={enableWindowDrag}
-              onValueChange={async (v) => {
+              onChange={async (v) => {
                 await patchAppConfig({ enableWindowDrag: v })
                 await relaunchApp()
               }}
-            />
+              aria-label="启用窗口拖动区域"
+            >
+              <Switch.Content>
+                <Switch.Control>
+                  <Switch.Thumb />
+                </Switch.Control>
+              </Switch.Content>
+            </Switch>
           </SettingItem>
         )}
         <SettingItem compatKey="legacy" title="显示更新按钮" divider>
           <Switch
             size="sm"
             isSelected={showUpdateButtonAfterNotification}
-            onValueChange={(v) => {
+            onChange={(v) => {
               patchAppConfig({ showUpdateButtonAfterNotification: v })
             }}
-          />
+            aria-label="显示更新按钮"
+          >
+            <Switch.Content>
+              <Switch.Control>
+                <Switch.Thumb />
+              </Switch.Control>
+            </Switch.Content>
+          </Switch>
         </SettingItem>
         <SettingItem compatKey="legacy" title="背景色" divider>
           <Tabs
-            size="sm"
-            color="primary"
             selectedKey={appTheme}
             onSelectionChange={(key) => {
               setTheme(key.toString())
               patchAppConfig({ appTheme: key as AppTheme })
             }}
+            data-color="primary"
+            data-size="sm"
+            data-full-width={false}
           >
-            <Tab key="system" title="自动" />
-            <Tab key="dark" title="深色" />
-            <Tab key="light" title="浅色" />
+            <Tabs.ListContainer>
+              <Tabs.List aria-label="选项">
+                <Tabs.Tab key="system" id="system">
+                  自动
+                  <Tabs.Indicator />
+                </Tabs.Tab>
+                <Tabs.Tab key="dark" id="dark">
+                  深色
+                  <Tabs.Indicator />
+                </Tabs.Tab>
+                <Tabs.Tab key="light" id="light">
+                  浅色
+                  <Tabs.Indicator />
+                </Tabs.Tab>
+              </Tabs.List>
+            </Tabs.ListContainer>
           </Tabs>
         </SettingItem>
         <SettingItem
@@ -335,9 +440,7 @@ const AppearanceConfig: React.FC = () => {
             <>
               <Button
                 size="sm"
-                isLoading={fetching}
                 isIconOnly
-                variant="light"
                 onPress={async () => {
                   setFetching(true)
                   try {
@@ -349,13 +452,17 @@ const AppearanceConfig: React.FC = () => {
                     setFetching(false)
                   }
                 }}
+                variant="ghost"
+                data-color="default"
+                isPending={fetching}
+                isDisabled={fetching}
               >
+                {fetching ? <Spinner size="sm" color="current" /> : null}
                 <IoMdCloudDownload className="text-lg" />
               </Button>
               <Button
                 size="sm"
                 isIconOnly
-                variant="light"
                 onPress={async () => {
                   const files = await getFilePath(['css'])
                   if (!files) return
@@ -366,16 +473,19 @@ const AppearanceConfig: React.FC = () => {
                     notify(e, { variant: 'danger' })
                   }
                 }}
+                variant="ghost"
+                data-color="default"
               >
                 <BiSolidFileImport className="text-lg" />
               </Button>
               <Button
                 size="sm"
                 isIconOnly
-                variant="light"
                 onPress={async () => {
                   setOpenCSSEditor(true)
                 }}
+                variant="ghost"
+                data-color="default"
               >
                 <MdEditDocument className="text-lg" />
               </Button>
@@ -385,22 +495,31 @@ const AppearanceConfig: React.FC = () => {
           {customThemes && (
             <Select
               aria-label="自定义主题"
-              classNames={{ trigger: 'data-[hover=true]:bg-default-200' }}
-              className="w-[60%]"
-              size="sm"
-              selectedKeys={new Set([customTheme])}
-              disallowEmptySelection={true}
-              onSelectionChange={async (v) => {
+              className={['w-[60%]'].filter(Boolean).join(' ')}
+              data-size="sm"
+              value={customTheme ?? null}
+              onChange={async (v) => {
                 try {
-                  await patchAppConfig({ customTheme: v.currentKey as string })
+                  await patchAppConfig({ customTheme: v as string })
                 } catch (e) {
                   notify(e, { variant: 'danger' })
                 }
               }}
             >
-              {customThemes.map((theme) => (
-                <SelectItem key={theme.key}>{theme.label}</SelectItem>
-              ))}
+              <Select.Trigger className="data-[hover=true]:bg-default-200">
+                <Select.Value />
+                <Select.Indicator />
+              </Select.Trigger>
+              <Select.Popover>
+                <ListBox>
+                  {customThemes.map((theme) => (
+                    <ListBox.Item key={theme.key} id={theme.key} textValue={theme.label}>
+                      {theme.label}
+                      <ListBox.ItemIndicator />
+                    </ListBox.Item>
+                  ))}
+                </ListBox>
+              </Select.Popover>
             </Select>
           )}
         </SettingItem>

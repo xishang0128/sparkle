@@ -1,6 +1,7 @@
+import { Chip, Spinner, Card, Separator, Button, Modal } from '@heroui/react'
+
 import React, { useEffect, useState, useCallback } from 'react'
-import { Button, Spinner, Card, CardBody, Chip, Divider } from '@heroui/react'
-import { Modal } from '@heroui-v3/react'
+
 import { serviceStatus, testServiceConnection } from '@renderer/utils/ipc'
 import { notify } from '@renderer/utils/notification'
 import { systemCoreOnlyBuild, systemServicePath } from '../../../../shared/build-flags'
@@ -138,26 +139,23 @@ const ServiceModal: React.FC<Props> = (props) => {
             <Modal.Body>
               <div className="space-y-4">
                 <Card
-                  shadow="sm"
                   className="border-none bg-linear-to-br from-default-50 to-default-100"
+                  data-shadow="sm"
                 >
-                  <CardBody className="py-4">
+                  <Card.Content className="py-4">
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-2">
                         <span className="text-sm font-medium">服务状态</span>
                       </div>
                       {status === null ? (
-                        <Chip
-                          color="default"
-                          variant="flat"
-                          size="sm"
-                          startContent={<Spinner size="sm" color="current" />}
-                        >
-                          检查中...
+                        <Chip size="sm" data-color="default" variant="soft">
+                          {<Spinner size="sm" color="current" />}
+                          <Chip.Label>检查中...</Chip.Label>
                         </Chip>
                       ) : (
                         <Chip
-                          color={
+                          size="sm"
+                          data-color={
                             status === 'running'
                               ? 'success'
                               : status === 'stopped'
@@ -168,49 +166,43 @@ const ServiceModal: React.FC<Props> = (props) => {
                                     ? 'warning'
                                     : 'default'
                           }
-                          variant="flat"
-                          size="sm"
+                          variant="soft"
                         >
-                          {getStatusText()}
+                          <Chip.Label>{getStatusText()}</Chip.Label>
                         </Chip>
                       )}
                     </div>
-
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <span className="text-sm font-medium">连接状态</span>
                       </div>
                       {connectionStatus === 'checking' ? (
-                        <Chip
-                          color="default"
-                          variant="flat"
-                          size="sm"
-                          startContent={<Spinner size="sm" color="current" />}
-                        >
-                          检测中...
+                        <Chip size="sm" data-color="default" variant="soft">
+                          {<Spinner size="sm" color="current" />}
+                          <Chip.Label>检测中...</Chip.Label>
                         </Chip>
                       ) : (
                         <Chip
-                          color={
+                          size="sm"
+                          data-color={
                             connectionStatus === 'connected'
                               ? 'success'
                               : connectionStatus === 'disconnected'
                                 ? 'danger'
                                 : 'default'
                           }
-                          variant="flat"
-                          size="sm"
+                          variant="soft"
                         >
-                          {getConnectionStatusText()}
+                          <Chip.Label>{getConnectionStatusText()}</Chip.Label>
                         </Chip>
                       )}
                     </div>
-                  </CardBody>
+                  </Card.Content>
                 </Card>
 
-                <Divider />
+                <Separator />
 
-               <div className="text-xs text-default-500 space-y-2">
+                <div className="text-xs text-default-500 space-y-2">
                   <div className="flex items-start gap-2">
                     <span>
                       {systemCoreOnlyBuild
@@ -227,10 +219,11 @@ const ServiceModal: React.FC<Props> = (props) => {
             <Modal.Footer className="flex-col gap-2 sm:flex-row">
               <Button
                 size="sm"
-                variant="light"
                 onPress={() => onChange(false)}
-                isDisabled={loading}
+                variant="ghost"
+                data-color="default"
                 className="sm:mr-auto"
+                isDisabled={loading}
               >
                 关闭
               </Button>
@@ -238,52 +231,60 @@ const ServiceModal: React.FC<Props> = (props) => {
               {status === 'unknown' ? null : status === 'not-installed' ? (
                 <Button
                   size="sm"
-                  color="primary"
-                  variant="shadow"
                   onPress={() => handleAction(onInstall)}
-                  isLoading={loading}
+                  variant="primary"
+                  data-color="primary"
+                  data-shadow="true"
+                  isPending={loading}
+                  isDisabled={loading}
                 >
-                  安装服务
+                  {loading ? <Spinner size="sm" color="current" /> : null}安装服务
                 </Button>
               ) : (
                 <>
                   <Button
                     size="sm"
-                    color="primary"
-                    variant="flat"
                     onPress={() => handleAction(onInit)}
-                    isLoading={loading}
+                    variant="secondary"
+                    data-color="primary"
+                    isPending={loading}
+                    isDisabled={loading}
                   >
+                    {loading ? <Spinner size="sm" color="current" /> : null}
                     {status === 'need-init' ? '初始化' : '重置认证'}
                   </Button>
                   <Button
                     size="sm"
-                    color="primary"
-                    variant="flat"
                     onPress={() => handleAction(onRestart)}
-                    isLoading={loading}
+                    variant="secondary"
+                    data-color="primary"
+                    isPending={loading}
+                    isDisabled={loading}
                   >
-                    重启
+                    {loading ? <Spinner size="sm" color="current" /> : null}重启
                   </Button>
                   {status !== 'running' && status !== 'need-init' ? (
                     <Button
                       size="sm"
-                      color="success"
-                      variant="shadow"
                       onPress={() => handleAction(onStart, true)}
-                      isLoading={loading}
+                      variant="primary"
+                      data-color="success"
+                      data-shadow="true"
+                      isPending={loading}
+                      isDisabled={loading}
                     >
-                      启动
+                      {loading ? <Spinner size="sm" color="current" /> : null}启动
                     </Button>
                   ) : null}
                   <Button
                     size="sm"
-                    color="danger"
-                    variant="flat"
                     onPress={() => handleAction(onUninstall)}
-                    isLoading={loading}
+                    variant="secondary"
+                    data-color="danger"
+                    isPending={loading}
+                    isDisabled={loading}
                   >
-                    卸载
+                    {loading ? <Spinner size="sm" color="current" /> : null}卸载
                   </Button>
                 </>
               )}

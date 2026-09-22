@@ -9,7 +9,7 @@ import {
   Surface,
   Switch,
   Tooltip
-} from '@heroui-v3/react'
+} from '@heroui/react'
 import type { ReactNode } from 'react'
 import React, { useState } from 'react'
 import { useOverrideConfig } from '@renderer/hooks/use-override-config'

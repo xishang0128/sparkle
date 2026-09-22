@@ -1,8 +1,8 @@
 @import 'tailwindcss';
-@plugin './hero.mjs';
-@import '@heroui-v3/styles';
-@import './main-compatible.css';
-@source '../../../../node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}';
+@import '@heroui/styles';
+@import './app-theme.css';
+@import './app-controls.css';
+@import './app-pages.css';
 @custom-variant dark (&:is(.dark *));
 
 @keyframes proxy-row-in {
@@ -44,22 +44,22 @@
 }
 
 .driver-popover {
-  background-color: hsl(var(--heroui-content2)) !important;
+  background-color: var(--surface-secondary) !important;
   border-radius: 8px !important;
-  color: hsl(var(--heroui-foreground)) !important;
+  color: var(--foreground) !important;
 }
 
 .driver-popover a {
-  color: hsl(var(--heroui-primary)) !important;
+  color: var(--accent) !important;
   text-decoration: underline !important;
 }
 
 .driver-popover-close-btn {
-  color: hsl(var(--heroui-foreground)) !important;
+  color: var(--foreground) !important;
 }
 
 .driver-popover-progress-text {
-  color: hsl(var(--heroui-default-500)) !important;
+  color: var(--default-500) !important;
 }
 
 .driver-popover-prev-btn {
@@ -69,7 +69,7 @@
   padding: 8px !important;
   border-radius: 5px !important;
   font-size: 12px !important;
-  background-color: hsl(var(--heroui-primary)) !important;
+  background-color: var(--accent) !important;
 }
 
 .driver-popover-next-btn {
@@ -79,23 +79,23 @@
   padding: 8px !important;
   border-radius: 5px !important;
   font-size: 12px !important;
-  background-color: hsl(var(--heroui-primary)) !important;
+  background-color: var(--accent) !important;
 }
 
 .driver-popover-arrow-side-bottom {
-  border-bottom-color: hsl(var(--heroui-content2)) !important;
+  border-bottom-color: var(--surface-secondary) !important;
 }
 
 .driver-popover-arrow-side-top {
-  border-top-color: hsl(var(--heroui-content2)) !important;
+  border-top-color: var(--surface-secondary) !important;
 }
 
 .driver-popover-arrow-side-left {
-  border-left-color: hsl(var(--heroui-content2)) !important;
+  border-left-color: var(--surface-secondary) !important;
 }
 
 .driver-popover-arrow-side-right {
-  border-right-color: hsl(var(--heroui-content2)) !important;
+  border-right-color: var(--surface-secondary) !important;
 }
 
 .app-nodrag {

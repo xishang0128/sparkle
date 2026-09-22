@@ -1,18 +1,9 @@
+import { Button, Badge, Tooltip, Separator, Select, Tabs, ListBox, InputGroup } from '@heroui/react'
+
 import BasePage from '@renderer/components/base/base-page'
 import { mihomoCloseConnections, mihomoCloseConnection } from '@renderer/utils/ipc'
 import React, { Key, KeyboardEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { flushSync } from 'react-dom'
-import {
-  Badge,
-  Button,
-  Divider,
-  Input,
-  Select,
-  SelectItem,
-  Tab,
-  Tabs,
-  Tooltip
-} from '@heroui/react'
 import { calcTraffic } from '@renderer/utils/calc'
 import ConnectionItem from '@renderer/components/connections/connection-item'
 import { Virtuoso, GroupedVirtuoso } from 'react-virtuoso'
@@ -586,7 +577,7 @@ const Connections: React.FC = () => {
   const handleOrderByChange = useCallback(
     async (v: unknown) => {
       await patchAppConfig({
-        connectionOrderBy: (v as { currentKey: string }).currentKey as
+        connectionOrderBy: v as
           'time' | 'upload' | 'download' | 'uploadSpeed' | 'downloadSpeed' | 'process'
       })
     },
@@ -887,18 +878,10 @@ const Connections: React.FC = () => {
                 ↓ {calcTraffic(connectionsInfo?.downloadTotal ?? 0)}{' '}
               </span>
             </div>
-            <Badge
-              className="mt-2"
-              color="primary"
-              variant="flat"
-              showOutline={false}
-              content={filteredConnections.length}
-            >
+            <Badge.Anchor>
               <Button
-                className="app-nodrag ml-1"
                 isIconOnly
                 size="sm"
-                variant="light"
                 aria-label={tab === 'active' ? '关闭所有连接' : '清空记录'}
                 onPress={() => {
                   if (filter === '') {
@@ -909,6 +892,9 @@ const Connections: React.FC = () => {
                     })
                   }
                 }}
+                variant="ghost"
+                data-color="default"
+                className="app-nodrag ml-1"
               >
                 {tab === 'active' ? (
                   <CgClose className="text-lg" />
@@ -916,13 +902,20 @@ const Connections: React.FC = () => {
                   <CgTrash className="text-lg" />
                 )}
               </Button>
-            </Badge>
+              <Badge
+                className={['mt-2'].filter(Boolean).join(' ')}
+                data-color="primary"
+                variant="soft"
+                data-outline={false}
+                data-shape="rectangle"
+              >
+                <Badge.Label>{filteredConnections.length}</Badge.Label>
+              </Badge>
+            </Badge.Anchor>
           </div>
           <Button
             size="sm"
             isIconOnly
-            className="app-nodrag ml-2"
-            variant="light"
             aria-label={paused ? '继续' : '暂停'}
             onPress={() =>
               setPaused((p) => {
@@ -930,19 +923,23 @@ const Connections: React.FC = () => {
                 return !p
               })
             }
+            variant="ghost"
+            data-color="default"
+            className="app-nodrag ml-2"
           >
             {paused ? <IoPlay className="text-lg" /> : <IoPause className="text-lg" />}
           </Button>
           <Button
             size="sm"
             isIconOnly
-            className="app-nodrag"
-            variant="light"
             aria-label="连接设置"
             onPress={() => {
               setIsSettingDrawerOpen(true)
               setSettingDrawerReopenSignal((signal) => signal + 1)
             }}
+            variant="ghost"
+            data-color="default"
+            className="app-nodrag"
           >
             <MdTune className="text-lg" />
           </Button>
@@ -961,92 +958,111 @@ const Connections: React.FC = () => {
       <div className="overflow-x-auto sticky top-0 z-40">
         <div className="flex p-2 gap-2">
           <Tabs
-            size="sm"
-            color={tab === 'active' ? 'primary' : 'danger'}
             selectedKey={tab}
-            variant="underlined"
-            className="w-fit h-8"
             onSelectionChange={handleTabChange}
+            className="connection-tabs w-fit h-8"
+            data-color={tab === 'active' ? 'primary' : 'danger'}
+            data-size="sm"
+            data-full-width={false}
+            variant="secondary"
           >
-            <Tab
-              key="active"
-              title={
-                <Badge
-                  color={tab === 'active' ? 'primary' : 'default'}
-                  size="sm"
-                  shape="circle"
-                  variant="flat"
-                  content={activeConnections.length}
-                  showOutline={false}
-                >
-                  <span className="p-1">活动中</span>
-                </Badge>
-              }
-            />
-            <Tab
-              key="closed"
-              title={
-                <Badge
-                  color={tab === 'closed' ? 'danger' : 'default'}
-                  size="sm"
-                  shape="circle"
-                  variant="flat"
-                  content={closedConnections.length}
-                  showOutline={false}
-                >
-                  <span className="p-1">已关闭</span>
-                </Badge>
-              }
-            />
-          </Tabs>
-          <Tooltip
-            content={compiledFilter.error ?? '格式错误'}
-            placement="left"
-            isOpen={Boolean(compiledFilter.error)}
-            showArrow={true}
-            color="danger"
-            offset={10}
-          >
-            <div className="relative min-w-0 flex-1">
-              <Input
-                ref={filterInputRef}
-                variant="flat"
-                size="sm"
-                className={
-                  compiledFilter.error ? 'border-red-500 ring-1 ring-red-500 rounded-lg' : ''
+            <Tabs.List aria-label="选项">
+              <Tabs.Tab key="active" id="active">
+                {
+                  <Badge.Anchor className="items-center gap-0.5 leading-none">
+                    <span>活动中</span>
+                    <Badge
+                      size="sm"
+                      data-color={tab === 'active' ? 'primary' : 'default'}
+                      variant="soft"
+                      data-outline={false}
+                      data-shape="circle"
+                    >
+                      <Badge.Label>{activeConnections.length}</Badge.Label>
+                    </Badge>
+                  </Badge.Anchor>
                 }
-                classNames={{
-                  inputWrapper:
-                    'relative h-8 px-3 group-data-[focus-visible=true]:!ring-0 group-data-[focus-visible=true]:!ring-transparent group-data-[focus-visible=true]:!ring-offset-0',
-                  innerWrapper: 'overflow-hidden',
-                  input: 'font-mono text-sm tracking-normal focus-visible:!outline-none'
-                }}
-                value={filter}
-                placeholder="筛选过滤"
-                isClearable
+                <Tabs.Indicator />
+              </Tabs.Tab>
+              <Tabs.Tab key="closed" id="closed">
+                {
+                  <Badge.Anchor className="items-center gap-0.5 leading-none">
+                    <span>已关闭</span>
+                    <Badge
+                      size="sm"
+                      data-color={tab === 'closed' ? 'danger' : 'default'}
+                      variant="soft"
+                      data-outline={false}
+                      data-shape="circle"
+                    >
+                      <Badge.Label>{closedConnections.length}</Badge.Label>
+                    </Badge>
+                  </Badge.Anchor>
+                }
+                <Tabs.Indicator />
+              </Tabs.Tab>
+            </Tabs.List>
+          </Tabs>
+          <Tooltip isOpen={Boolean(compiledFilter.error)} delay={0}>
+            <Tooltip.Trigger className="relative min-w-0 flex-1">
+              <InputGroup
+                fullWidth
+                className={[
+                  compiledFilter.error ? 'border-red-500 ring-1 ring-red-500 rounded-lg' : '',
+                  'relative h-8 px-3 group-data-[focus-visible=true]:ring-0! group-data-[focus-visible=true]:ring-transparent! group-data-[focus-visible=true]:ring-offset-0!',
+                  'overflow-hidden'
+                ]
+                  .filter(Boolean)
+                  .join(' ')}
                 isInvalid={Boolean(compiledFilter.error)}
-                onValueChange={handleFilterValueChange}
-                onKeyDown={handleFilterKeyDown}
-                onFocus={() => {
-                  setIsFilterFocused(true)
-                  requestAnimationFrame(() => syncFilterCursor())
-                }}
-                onBlur={() => {
-                  setCompletionSession(null)
-                  requestAnimationFrame(() => {
-                    const activeElement = document.activeElement
-                    if (activeElement !== filterInputRef.current) {
-                      setIsFilterFocused(false)
-                    }
-                  })
-                }}
-                onClick={() => {
-                  setCompletionSession(null)
-                  syncFilterCursor()
-                }}
-                onKeyUp={() => syncFilterCursor()}
-                onSelect={handleFilterSelect}
-              />
+              >
+                <InputGroup.Input
+                  ref={filterInputRef}
+                  value={filter}
+                  placeholder="筛选过滤"
+                  onKeyDown={handleFilterKeyDown}
+                  onFocus={() => {
+                    setIsFilterFocused(true)
+                    requestAnimationFrame(() => syncFilterCursor())
+                  }}
+                  onBlur={() => {
+                    setCompletionSession(null)
+                    requestAnimationFrame(() => {
+                      const activeElement = document.activeElement
+                      if (activeElement !== filterInputRef.current) {
+                        setIsFilterFocused(false)
+                      }
+                    })
+                  }}
+                  onClick={() => {
+                    setCompletionSession(null)
+                    syncFilterCursor()
+                  }}
+                  onKeyUp={() => syncFilterCursor()}
+                  onSelect={handleFilterSelect}
+                  className="font-mono text-sm tracking-normal focus-visible:outline-none!"
+                  onChange={(event) => handleFilterValueChange(event.target.value)}
+                />
+                {filter && (
+                  <InputGroup.Suffix>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      isIconOnly
+                      aria-label="清空"
+                      onPress={(event) => {
+                        handleFilterValueChange('')
+                        event.target
+                          .closest('[data-slot="input-group"]')
+                          ?.querySelector('input')
+                          ?.focus()
+                      }}
+                    >
+                      ×
+                    </Button>
+                  </InputGroup.Suffix>
+                )}
+              </InputGroup>
               {inlineCompletionSuffix ? (
                 <div className="pointer-events-none absolute top-1/2 left-3 right-10 z-10 flex -translate-y-1/2 items-center overflow-hidden font-mono text-sm tracking-normal">
                   <div
@@ -1060,31 +1076,61 @@ const Connections: React.FC = () => {
                   </div>
                 </div>
               ) : null}
-            </div>
+            </Tooltip.Trigger>
+            <Tooltip.Content placement="left" showArrow={true} offset={10} data-color="danger">
+              <Tooltip.Arrow />
+              {compiledFilter.error ?? '格式错误'}
+            </Tooltip.Content>
           </Tooltip>
 
           <Select
             aria-label="排序字段"
-            classNames={{ trigger: 'data-[hover=true]:bg-default-200' }}
-            size="sm"
-            className="w-34 min-w-24 shrink-0"
-            selectedKeys={new Set([connectionOrderBy])}
-            disallowEmptySelection={true}
-            onSelectionChange={handleOrderByChange}
+            className={['w-34 min-w-24 shrink-0'].filter(Boolean).join(' ')}
+            data-size="sm"
+            value={connectionOrderBy ?? null}
+            onChange={handleOrderByChange}
           >
-            <SelectItem key="upload">上传量</SelectItem>
-            <SelectItem key="download">下载量</SelectItem>
-            <SelectItem key="uploadSpeed">上传速度</SelectItem>
-            <SelectItem key="downloadSpeed">下载速度</SelectItem>
-            <SelectItem key="time">时间</SelectItem>
-            <SelectItem key="process">进程名称</SelectItem>
+            <Select.Trigger className="data-[hover=true]:bg-default-200">
+              <Select.Value />
+              <Select.Indicator />
+            </Select.Trigger>
+            <Select.Popover>
+              <ListBox>
+                <ListBox.Item key="upload" id="upload" textValue="上传量">
+                  上传量
+                  <ListBox.ItemIndicator />
+                </ListBox.Item>
+                <ListBox.Item key="download" id="download" textValue="下载量">
+                  下载量
+                  <ListBox.ItemIndicator />
+                </ListBox.Item>
+                <ListBox.Item key="uploadSpeed" id="uploadSpeed" textValue="上传速度">
+                  上传速度
+                  <ListBox.ItemIndicator />
+                </ListBox.Item>
+                <ListBox.Item key="downloadSpeed" id="downloadSpeed" textValue="下载速度">
+                  下载速度
+                  <ListBox.ItemIndicator />
+                </ListBox.Item>
+                <ListBox.Item key="time" id="time" textValue="时间">
+                  时间
+                  <ListBox.ItemIndicator />
+                </ListBox.Item>
+                <ListBox.Item key="process" id="process" textValue="进程名称">
+                  进程名称
+                  <ListBox.ItemIndicator />
+                </ListBox.Item>
+              </ListBox>
+            </Select.Popover>
           </Select>
           <Button
             size="sm"
             isIconOnly
-            className="bg-content2"
             aria-label={connectionDirection === 'asc' ? '升序' : '降序'}
             onPress={handleDirectionToggle}
+            variant="primary"
+            data-color="default"
+            className="bg-content2"
           >
             {connectionDirection === 'asc' ? (
               <HiSortAscending className="text-lg" />
@@ -1093,7 +1139,7 @@ const Connections: React.FC = () => {
             )}
           </Button>
         </div>
-        <Divider />
+        <Separator />
       </div>
       <div className="h-[calc(100vh-100px)] mt-px">
         {grouped ? (

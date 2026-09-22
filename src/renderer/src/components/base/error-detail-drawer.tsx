@@ -1,4 +1,4 @@
-import { Button, Drawer } from '@heroui-v3/react'
+import { Button, Drawer } from '@heroui/react'
 import React, { useEffect, useState } from 'react'
 import { FiCheck, FiCopy } from 'react-icons/fi'
 import { notify } from '@renderer/utils/notification'

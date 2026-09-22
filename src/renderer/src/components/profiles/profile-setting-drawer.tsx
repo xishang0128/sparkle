@@ -1,4 +1,4 @@
-import { Button, Drawer, Input, InputGroup, Switch, Tooltip } from '@heroui-v3/react'
+import { Button, Drawer, Input, InputGroup, Switch, Tooltip } from '@heroui/react'
 import React, { useState, useEffect, useRef } from 'react'
 import SettingItem from '../base/base-setting-item'
 import { SettingTabs, settingItemProps } from '../base/base-controls'
@@ -165,6 +165,7 @@ const ProfileSettingDrawer: React.FC<Props> = (props) => {
                 divider
               >
                 <Switch
+                  size="sm"
                   aria-label="为不同订阅分别指定工作目录"
                   isSelected={diffWorkDir}
                   onChange={(v) => {
@@ -221,6 +222,7 @@ const ProfileSettingDrawer: React.FC<Props> = (props) => {
                 {...settingItemProps}
               >
                 <Switch
+                  size="sm"
                   aria-label="同步运行时配置到 Gist"
                   isSelected={gistSyncEnabled}
                   onChange={(v) => {
@@ -237,6 +239,7 @@ const ProfileSettingDrawer: React.FC<Props> = (props) => {
               {gistSyncEnabled && (
                 <SettingItem title="加密 Gist 配置" {...settingItemProps} divider>
                   <Switch
+                    size="sm"
                     aria-label="加密 Gist 配置"
                     isSelected={gistEncrypted}
                     onChange={(v) => {

@@ -1,3 +1,5 @@
+import { Button, Input, Switch } from '@heroui/react'
+
 import React, { useState } from 'react'
 import SettingCard from '../base/base-setting-card'
 import SettingItem from '../base/base-setting-item'
@@ -7,7 +9,6 @@ import { useControledMihomoConfig } from '@renderer/hooks/use-controled-mihomo-c
 import { restartCore, startSubStoreBackendServer, triggerSysProxy } from '@renderer/utils/ipc'
 import { useAppConfig } from '@renderer/hooks/use-app-config'
 import { platform } from '@renderer/utils/init'
-import { Button, Input, Switch } from '@heroui/react'
 import { FaNetworkWired } from 'react-icons/fa'
 import InterfaceModal from '@renderer/components/mihomo/interface-modal'
 
@@ -38,8 +39,12 @@ const PortSetting: React.FC = () => {
   const [authenticationInput, setAuthenticationInput] = useState(authentication)
   const [skipAuthPrefixesInput, setSkipAuthPrefixesInput] = useState(skipAuthPrefixes)
   const [lanOpen, setLanOpen] = useState(false)
-
-  const parseAuth = (item: string): { part1: string; part2: string } => {
+  const parseAuth = (
+    item: string
+  ): {
+    part1: string
+    part2: string
+  } => {
     const [user = '', pass = ''] = item.split(':')
     return { part1: user, part2: pass }
   }
@@ -69,9 +74,6 @@ const PortSetting: React.FC = () => {
             {mixedPortInput !== mixedPort && (
               <Button
                 size="sm"
-                color="primary"
-                className="mr-2"
-                isDisabled={hasPortConflict()}
                 onPress={async () => {
                   await onChangeNeedRestart({ 'mixed-port': mixedPortInput })
                   await startSubStoreBackendServer()
@@ -79,20 +81,25 @@ const PortSetting: React.FC = () => {
                     triggerSysProxy(true, onlyActiveDevice)
                   }
                 }}
+                variant="primary"
+                data-color="primary"
+                className="mr-2"
+                isDisabled={hasPortConflict()}
               >
                 确认
               </Button>
             )}
             <Input
-              size="sm"
               type="number"
-              className="w-25"
               value={mixedPortInput.toString()}
               max={65535}
               min={0}
-              onValueChange={(v) => {
+              onChange={(event) => {
+                const v = event.target.value
                 setMixedPortInput(parseInt(v) || 0)
               }}
+              className="w-25"
+              fullWidth
             />
           </div>
         </SettingItem>
@@ -101,26 +108,28 @@ const PortSetting: React.FC = () => {
             {socksPortInput !== socksPort && (
               <Button
                 size="sm"
-                color="primary"
-                className="mr-2"
-                isDisabled={hasPortConflict()}
                 onPress={() => {
                   onChangeNeedRestart({ 'socks-port': socksPortInput })
                 }}
+                variant="primary"
+                data-color="primary"
+                className="mr-2"
+                isDisabled={hasPortConflict()}
               >
                 确认
               </Button>
             )}
             <Input
-              size="sm"
               type="number"
-              className="w-25"
               value={socksPortInput.toString()}
               max={65535}
               min={0}
-              onValueChange={(v) => {
+              onChange={(event) => {
+                const v = event.target.value
                 setSocksPortInput(parseInt(v) || 0)
               }}
+              className="w-25"
+              fullWidth
             />
           </div>
         </SettingItem>
@@ -129,26 +138,28 @@ const PortSetting: React.FC = () => {
             {httpPortInput !== httpPort && (
               <Button
                 size="sm"
-                color="primary"
-                className="mr-2"
-                isDisabled={hasPortConflict()}
                 onPress={() => {
                   onChangeNeedRestart({ port: httpPortInput })
                 }}
+                variant="primary"
+                data-color="primary"
+                className="mr-2"
+                isDisabled={hasPortConflict()}
               >
                 确认
               </Button>
             )}
             <Input
-              size="sm"
               type="number"
-              className="w-25"
               value={httpPortInput.toString()}
               max={65535}
               min={0}
-              onValueChange={(v) => {
+              onChange={(event) => {
+                const v = event.target.value
                 setHttpPortInput(parseInt(v) || 0)
               }}
+              className="w-25"
+              fullWidth
             />
           </div>
         </SettingItem>
@@ -158,26 +169,28 @@ const PortSetting: React.FC = () => {
               {redirPortInput !== redirPort && (
                 <Button
                   size="sm"
-                  color="primary"
-                  className="mr-2"
-                  isDisabled={hasPortConflict()}
                   onPress={() => {
                     onChangeNeedRestart({ 'redir-port': redirPortInput })
                   }}
+                  variant="primary"
+                  data-color="primary"
+                  className="mr-2"
+                  isDisabled={hasPortConflict()}
                 >
                   确认
                 </Button>
               )}
               <Input
-                size="sm"
                 type="number"
-                className="w-25"
                 value={redirPortInput.toString()}
                 max={65535}
                 min={0}
-                onValueChange={(v) => {
+                onChange={(event) => {
+                  const v = event.target.value
                   setRedirPortInput(parseInt(v) || 0)
                 }}
+                className="w-25"
+                fullWidth
               />
             </div>
           </SettingItem>
@@ -188,26 +201,28 @@ const PortSetting: React.FC = () => {
               {tproxyPortInput !== tproxyPort && (
                 <Button
                   size="sm"
-                  color="primary"
-                  className="mr-2"
-                  isDisabled={hasPortConflict()}
                   onPress={() => {
                     onChangeNeedRestart({ 'tproxy-port': tproxyPortInput })
                   }}
+                  variant="primary"
+                  data-color="primary"
+                  className="mr-2"
+                  isDisabled={hasPortConflict()}
                 >
                   确认
                 </Button>
               )}
               <Input
-                size="sm"
                 type="number"
-                className="w-25"
                 value={tproxyPortInput.toString()}
                 max={65535}
                 min={0}
-                onValueChange={(v) => {
+                onChange={(event) => {
+                  const v = event.target.value
                   setTproxyPortInput(parseInt(v) || 0)
                 }}
+                className="w-25"
+                fullWidth
               />
             </div>
           </SettingItem>
@@ -219,10 +234,11 @@ const PortSetting: React.FC = () => {
             <Button
               size="sm"
               isIconOnly
-              variant="light"
               onPress={() => {
                 setLanOpen(true)
               }}
+              variant="ghost"
+              data-color="default"
             >
               <FaNetworkWired className="text-lg" />
             </Button>
@@ -232,10 +248,17 @@ const PortSetting: React.FC = () => {
           <Switch
             size="sm"
             isSelected={allowLan}
-            onValueChange={(v) => {
+            onChange={(v) => {
               onChangeNeedRestart({ 'allow-lan': v })
             }}
-          />
+            aria-label="允许局域网连接"
+          >
+            <Switch.Content>
+              <Switch.Control>
+                <Switch.Thumb />
+              </Switch.Control>
+            </Switch.Content>
+          </Switch>
         </SettingItem>
         {allowLan && (
           <>
@@ -243,10 +266,11 @@ const PortSetting: React.FC = () => {
               {lanAllowedIpsInput.join('') !== lanAllowedIps.join('') && (
                 <Button
                   size="sm"
-                  color="primary"
                   onPress={() => {
                     onChangeNeedRestart({ 'lan-allowed-ips': lanAllowedIpsInput })
                   }}
+                  variant="primary"
+                  data-color="primary"
                 >
                   确认
                 </Button>
@@ -261,10 +285,11 @@ const PortSetting: React.FC = () => {
               {lanDisallowedIpsInput.join('') !== lanDisallowedIps.join('') && (
                 <Button
                   size="sm"
-                  color="primary"
                   onPress={() => {
                     onChangeNeedRestart({ 'lan-disallowed-ips': lanDisallowedIpsInput })
                   }}
+                  variant="primary"
+                  data-color="primary"
                 >
                   确认
                 </Button>
@@ -281,8 +306,9 @@ const PortSetting: React.FC = () => {
           {authenticationInput.join() !== authentication.join() && (
             <Button
               size="sm"
-              color="primary"
               onPress={() => onChangeNeedRestart({ authentication: authenticationInput })}
+              variant="primary"
+              data-color="primary"
             >
               确认
             </Button>
@@ -300,10 +326,11 @@ const PortSetting: React.FC = () => {
           {skipAuthPrefixesInput.join('') !== skipAuthPrefixes.join('') && (
             <Button
               size="sm"
-              color="primary"
               onPress={() => {
                 onChangeNeedRestart({ 'skip-auth-prefixes': skipAuthPrefixesInput })
               }}
+              variant="primary"
+              data-color="primary"
             >
               确认
             </Button>

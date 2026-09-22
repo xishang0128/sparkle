@@ -1,4 +1,5 @@
-import { Button, Input, Switch, Tab, Tabs, Tooltip } from '@heroui/react'
+import { Button, Input, Tooltip, Switch, Tabs } from '@heroui/react'
+
 import BasePage from '@renderer/components/base/base-page'
 import SettingCard from '@renderer/components/base/base-setting-card'
 import SettingItem from '@renderer/components/base/base-setting-item'
@@ -148,7 +149,13 @@ const Sysproxy: React.FC = () => {
       contentClassName="no-scrollbar"
       header={
         changed && (
-          <Button color="primary" className="app-nodrag" size="sm" onPress={onSave}>
+          <Button
+            size="sm"
+            onPress={onSave}
+            variant="primary"
+            data-color="primary"
+            className="app-nodrag"
+          >
             保存
           </Button>
         )
@@ -180,24 +187,36 @@ const Sysproxy: React.FC = () => {
       <SettingCard className="sysproxy-settings">
         <SettingItem compatKey="legacy" title="代理主机" divider>
           <Input
-            size="sm"
-            className="w-[50%]"
             value={values.host}
             placeholder="默认 127.0.0.1 若无特殊需求请勿修改"
-            onValueChange={(v) => {
+            onChange={(event) => {
+              const v = event.target.value
               setValues({ ...values, host: v })
             }}
+            className="w-[50%]"
+            fullWidth
           />
         </SettingItem>
         <SettingItem compatKey="legacy" title="代理模式" divider>
           <Tabs
-            size="sm"
-            color="primary"
             selectedKey={values.mode}
             onSelectionChange={(key: Key) => setValues({ ...values, mode: key as SysProxyMode })}
+            data-color="primary"
+            data-size="sm"
+            data-full-width={false}
           >
-            <Tab key="manual" title="手动" />
-            <Tab key="auto" title="PAC" />
+            <Tabs.ListContainer>
+              <Tabs.List aria-label="选项">
+                <Tabs.Tab key="manual" id="manual">
+                  手动
+                  <Tabs.Indicator />
+                </Tabs.Tab>
+                <Tabs.Tab key="auto" id="auto">
+                  PAC
+                  <Tabs.Indicator />
+                </Tabs.Tab>
+              </Tabs.List>
+            </Tabs.ListContainer>
           </Tabs>
         </SettingItem>
         {platform === 'win32' && (
@@ -207,6 +226,8 @@ const Sysproxy: React.FC = () => {
               onPress={async () => {
                 await openUWPTool()
               }}
+              variant="primary"
+              data-color="default"
             >
               打开 UWP 工具
             </Button>
@@ -214,8 +235,6 @@ const Sysproxy: React.FC = () => {
         )}
         <SettingItem compatKey="legacy" title="设置方式" divider>
           <Tabs
-            size="sm"
-            color="primary"
             selectedKey={values.settingMode}
             onSelectionChange={(key) => {
               const settingMode = key as 'exec' | 'service'
@@ -226,9 +245,22 @@ const Sysproxy: React.FC = () => {
                 guardNotify: settingMode === 'service' ? values.guardNotify : false
               })
             }}
+            data-color="primary"
+            data-size="sm"
+            data-full-width={false}
           >
-            <Tab key="exec" title="执行命令" />
-            <Tab key="service" title="服务模式" />
+            <Tabs.ListContainer>
+              <Tabs.List aria-label="选项">
+                <Tabs.Tab key="exec" id="exec">
+                  执行命令
+                  <Tabs.Indicator />
+                </Tabs.Tab>
+                <Tabs.Tab key="service" id="service">
+                  服务模式
+                  <Tabs.Indicator />
+                </Tabs.Tab>
+              </Tabs.List>
+            </Tabs.ListContainer>
           </Tabs>
         </SettingItem>
         {platform !== 'linux' && values.settingMode === 'service' && (
@@ -236,16 +268,17 @@ const Sysproxy: React.FC = () => {
             compatKey="legacy"
             title="仅为活跃接口设置"
             actions={
-              <Tooltip
-                content={
-                  <>
-                    <div>开启后，系统代理仅会为当前活跃的网络接口设置，仅服务模式下生效</div>
-                  </>
-                }
-              >
-                <Button isIconOnly size="sm" variant="light">
+              <Tooltip delay={0}>
+                <Button isIconOnly size="sm" variant="ghost" data-color="default">
                   <IoIosHelpCircle className="text-lg" />
                 </Button>
+                <Tooltip.Content>
+                  {
+                    <>
+                      <div>开启后，系统代理仅会为当前活跃的网络接口设置，仅服务模式下生效</div>
+                    </>
+                  }
+                </Tooltip.Content>
               </Tooltip>
             }
             divider
@@ -254,10 +287,17 @@ const Sysproxy: React.FC = () => {
               size="sm"
               isSelected={onlyActiveDevice}
               isDisabled={!values.settingMode || values.settingMode !== 'service'}
-              onValueChange={(v) => {
+              onChange={(v) => {
                 patchAppConfig({ onlyActiveDevice: v })
               }}
-            />
+              aria-label="仅为活跃接口设置"
+            >
+              <Switch.Content>
+                <Switch.Control>
+                  <Switch.Thumb />
+                </Switch.Control>
+              </Switch.Content>
+            </Switch>
           </SettingItem>
         )}
         {values.settingMode === 'service' && (
@@ -265,10 +305,13 @@ const Sysproxy: React.FC = () => {
             compatKey="legacy"
             title="系统代理守护"
             actions={
-              <Tooltip content={<div>检测到系统代理被修改后自动恢复，仅服务模式下生效</div>}>
-                <Button isIconOnly size="sm" variant="light">
+              <Tooltip delay={0}>
+                <Button isIconOnly size="sm" variant="ghost" data-color="default">
                   <IoIosHelpCircle className="text-lg" />
                 </Button>
+                <Tooltip.Content>
+                  {<div>检测到系统代理被修改后自动恢复，仅服务模式下生效</div>}
+                </Tooltip.Content>
               </Tooltip>
             }
             divider
@@ -276,10 +319,17 @@ const Sysproxy: React.FC = () => {
             <Switch
               size="sm"
               isSelected={values.guard}
-              onValueChange={(v) => {
+              onChange={(v) => {
                 setValues({ ...values, guard: v, guardNotify: v ? values.guardNotify : false })
               }}
-            />
+              aria-label="系统代理守护"
+            >
+              <Switch.Content>
+                <Switch.Control>
+                  <Switch.Thumb />
+                </Switch.Control>
+              </Switch.Content>
+            </Switch>
           </SettingItem>
         )}
         {values.settingMode === 'service' && values.guard && (
@@ -287,10 +337,11 @@ const Sysproxy: React.FC = () => {
             compatKey="legacy"
             title="守护通知"
             actions={
-              <Tooltip content={<div>系统代理恢复成功或失败时发送通知</div>}>
-                <Button isIconOnly size="sm" variant="light">
+              <Tooltip delay={0}>
+                <Button isIconOnly size="sm" variant="ghost" data-color="default">
                   <IoIosHelpCircle className="text-lg" />
                 </Button>
+                <Tooltip.Content>{<div>系统代理恢复成功或失败时发送通知</div>}</Tooltip.Content>
               </Tooltip>
             }
             divider
@@ -299,15 +350,27 @@ const Sysproxy: React.FC = () => {
               size="sm"
               isSelected={values.guardNotify}
               isDisabled={!values.guard}
-              onValueChange={(v) => {
+              onChange={(v) => {
                 setValues({ ...values, guardNotify: v })
               }}
-            />
+              aria-label="守护通知"
+            >
+              <Switch.Content>
+                <Switch.Control>
+                  <Switch.Thumb />
+                </Switch.Control>
+              </Switch.Content>
+            </Switch>
           </SettingItem>
         )}
         {values.mode === 'auto' && (
           <SettingItem compatKey="legacy" title="代理模式">
-            <Button size="sm" onPress={() => setOpenPacEditor(true)}>
+            <Button
+              size="sm"
+              onPress={() => setOpenPacEditor(true)}
+              variant="primary"
+              data-color="default"
+            >
               编辑 PAC 脚本
             </Button>
           </SettingItem>
@@ -323,6 +386,8 @@ const Sysproxy: React.FC = () => {
                     bypass: Array.from(new Set([...defaultBypass, ...values.bypass]))
                   })
                 }}
+                variant="primary"
+                data-color="default"
               >
                 添加默认代理绕过
               </Button>
@@ -333,6 +398,8 @@ const Sysproxy: React.FC = () => {
                 onPress={async () => {
                   setOpenEditor(true)
                 }}
+                variant="primary"
+                data-color="default"
               >
                 编辑
               </Button>

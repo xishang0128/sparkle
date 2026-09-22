@@ -1,8 +1,9 @@
+import { Button, Separator } from '@heroui/react'
+
 import { useTheme } from 'next-themes'
 import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import { NavigateFunction, useLocation, useNavigate, useRoutes } from 'react-router-dom'
 import OutboundModeSwitcher from '@renderer/components/sider/outbound-mode-switcher'
-import { Button, Divider } from '@heroui/react'
 import { IoSettings } from 'react-icons/io5'
 import routes, { useDeferredRoutePreload } from '@renderer/routes'
 import { useAppConfig } from '@renderer/hooks/use-app-config'
@@ -166,14 +167,20 @@ const App: React.FC = () => {
     }
     const handleShowProfileInstallConfirm = (
       _event: unknown,
-      data: { url: string; name?: string | null }
+      data: {
+        url: string
+        name?: string | null
+      }
     ): void => {
       setProfileInstallData(data)
       setShowProfileInstallConfirm(true)
     }
     const handleShowOverrideInstallConfirm = (
       _event: unknown,
-      data: { url: string; name?: string | null }
+      data: {
+        url: string
+        name?: string | null
+      }
     ): void => {
       setOverrideInstallData(data)
       setShowOverrideInstallConfirm(true)
@@ -304,11 +311,11 @@ const App: React.FC = () => {
             <OutboundModeSwitcher iconOnly />
             <Button
               size="sm"
-              className="app-nodrag"
               isIconOnly
-              color={location.pathname.includes('/settings') ? 'primary' : 'default'}
-              variant={location.pathname.includes('/settings') ? 'solid' : 'light'}
               onPress={() => navigate('/settings')}
+              variant={location.pathname.includes('/settings') ? 'primary' : 'ghost'}
+              data-color={location.pathname.includes('/settings') ? 'primary' : 'default'}
+              className="app-nodrag"
             >
               <IoSettings className="text-[20px]" />
             </Button>
@@ -338,13 +345,13 @@ const App: React.FC = () => {
               )}
               <Button
                 size="sm"
-                className="app-nodrag"
                 isIconOnly
-                color={location.pathname.includes('/settings') ? 'primary' : 'default'}
-                variant={location.pathname.includes('/settings') ? 'solid' : 'light'}
                 onPress={() => {
                   navigate('/settings')
                 }}
+                variant={location.pathname.includes('/settings') ? 'primary' : 'ghost'}
+                data-color={location.pathname.includes('/settings') ? 'primary' : 'default'}
+                className="app-nodrag"
               >
                 <IoSettings className="text-[20px]" />
               </Button>
@@ -378,12 +385,10 @@ const App: React.FC = () => {
         className="group flex justify-center"
       >
         <div
-          className={`h-full w-0.5 transition-colors ${
-            resizing ? 'bg-primary' : 'bg-transparent group-hover:bg-primary/60'
-          }`}
+          className={`h-full w-0.5 transition-colors ${resizing ? 'bg-primary' : 'bg-transparent group-hover:bg-primary/60'}`}
         />
       </div>
-      <Divider orientation="vertical" />
+      <Separator orientation="vertical" />
       <div
         style={{ width: `calc(100% - ${siderWidthValue + 1}px)` }}
         className="main grow h-full overflow-y-auto"

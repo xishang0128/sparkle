@@ -1,9 +1,10 @@
+import { Button, Tooltip, Input, Switch, Tabs } from '@heroui/react'
+
 import { useControledMihomoConfig } from '@renderer/hooks/use-controled-mihomo-config'
 import SettingCard from '../base/base-setting-card'
 import SettingItem from '../base/base-setting-item'
 import InterfaceSelect from '../base/interface-select'
 import { restartCore } from '@renderer/utils/ipc'
-import { Button, Input, Switch, Tab, Tabs, Tooltip } from '@heroui/react'
 import { useState } from 'react'
 import { IoIosHelpCircle } from 'react-icons/io'
 
@@ -35,44 +36,75 @@ const AdvancedSetting: React.FC = () => {
     <SettingCard header="高级设置">
       <SettingItem compatKey="legacy" title="查找进程" divider>
         <Tabs
-          size="sm"
-          color="primary"
           selectedKey={findProcessMode}
           onSelectionChange={(key) => {
             onChangeNeedRestart({ 'find-process-mode': key as FindProcessMode })
           }}
+          data-color="primary"
+          data-size="sm"
+          data-full-width={false}
         >
-          <Tab key="strict" title="自动"></Tab>
-          <Tab key="off" title="关闭"></Tab>
-          <Tab key="always" title="开启"></Tab>
+          <Tabs.ListContainer>
+            <Tabs.List aria-label="选项">
+              <Tabs.Tab key="strict" id="strict">
+                自动
+                <Tabs.Indicator />
+              </Tabs.Tab>
+              <Tabs.Tab key="off" id="off">
+                关闭
+                <Tabs.Indicator />
+              </Tabs.Tab>
+              <Tabs.Tab key="always" id="always">
+                开启
+                <Tabs.Indicator />
+              </Tabs.Tab>
+            </Tabs.List>
+          </Tabs.ListContainer>
         </Tabs>
       </SettingItem>
       <SettingItem compatKey="legacy" title="存储选择节点" divider>
         <Switch
           size="sm"
           isSelected={storeSelected}
-          onValueChange={(v) => {
+          onChange={(v) => {
             onChangeNeedRestart({ profile: { 'store-selected': v } })
           }}
-        />
+          aria-label="存储选择节点"
+        >
+          <Switch.Content>
+            <Switch.Control>
+              <Switch.Thumb />
+            </Switch.Control>
+          </Switch.Content>
+        </Switch>
       </SettingItem>
       <SettingItem compatKey="legacy" title="存储 FakeIP" divider>
         <Switch
           size="sm"
           isSelected={storeFakeIp}
-          onValueChange={(v) => {
+          onChange={(v) => {
             onChangeNeedRestart({ profile: { 'store-fake-ip': v } })
           }}
-        />
+          aria-label="存储 FakeIP"
+        >
+          <Switch.Content>
+            <Switch.Control>
+              <Switch.Thumb />
+            </Switch.Control>
+          </Switch.Content>
+        </Switch>
       </SettingItem>
       <SettingItem
         compatKey="legacy"
         title="使用 RTT 延迟测试"
         actions={
-          <Tooltip content="开启后会使用统一延迟测试来获取节点延迟，以消除不同节点握手时间的影响">
-            <Button isIconOnly size="sm" variant="light">
+          <Tooltip delay={0}>
+            <Button isIconOnly size="sm" variant="ghost" data-color="default">
               <IoIosHelpCircle className="text-lg" />
             </Button>
+            <Tooltip.Content>
+              {'开启后会使用统一延迟测试来获取节点延迟，以消除不同节点握手时间的影响'}
+            </Tooltip.Content>
           </Tooltip>
         }
         divider
@@ -80,19 +112,29 @@ const AdvancedSetting: React.FC = () => {
         <Switch
           size="sm"
           isSelected={unifiedDelay}
-          onValueChange={(v) => {
+          onChange={(v) => {
             onChangeNeedRestart({ 'unified-delay': v })
           }}
-        />
+          aria-label="使用 RTT 延迟测试"
+        >
+          <Switch.Content>
+            <Switch.Control>
+              <Switch.Thumb />
+            </Switch.Control>
+          </Switch.Content>
+        </Switch>
       </SettingItem>
       <SettingItem
         compatKey="legacy"
         title="TCP 并发"
         actions={
-          <Tooltip content="对 dns 解析出的多个 IP 地址进行 TCP 并发连接，使用握手时间最短的连接">
-            <Button isIconOnly size="sm" variant="light">
+          <Tooltip delay={0}>
+            <Button isIconOnly size="sm" variant="ghost" data-color="default">
               <IoIosHelpCircle className="text-lg" />
             </Button>
+            <Tooltip.Content>
+              {'对 dns 解析出的多个 IP 地址进行 TCP 并发连接，使用握手时间最短的连接'}
+            </Tooltip.Content>
           </Tooltip>
         }
         divider
@@ -100,43 +142,59 @@ const AdvancedSetting: React.FC = () => {
         <Switch
           size="sm"
           isSelected={tcpConcurrent}
-          onValueChange={(v) => {
+          onChange={(v) => {
             onChangeNeedRestart({ 'tcp-concurrent': v })
           }}
-        />
+          aria-label="TCP 并发"
+        >
+          <Switch.Content>
+            <Switch.Control>
+              <Switch.Thumb />
+            </Switch.Control>
+          </Switch.Content>
+        </Switch>
       </SettingItem>
       <SettingItem compatKey="legacy" title="禁用 TCP Keep Alive" divider>
         <Switch
           size="sm"
           isSelected={disableKeepAlive}
-          onValueChange={(v) => {
+          onChange={(v) => {
             onChangeNeedRestart({ 'disable-keep-alive': v })
           }}
-        />
+          aria-label="禁用 TCP Keep Alive"
+        >
+          <Switch.Content>
+            <Switch.Control>
+              <Switch.Thumb />
+            </Switch.Control>
+          </Switch.Content>
+        </Switch>
       </SettingItem>
       <SettingItem compatKey="legacy" title="TCP Keep Alive 间隔" divider>
         <div className="flex">
           {intervalInput !== interval && (
             <Button
               size="sm"
-              color="primary"
-              className="mr-2"
               onPress={async () => {
                 await onChangeNeedRestart({ 'keep-alive-interval': intervalInput })
               }}
+              variant="primary"
+              data-color="primary"
+              className="mr-2"
             >
               确认
             </Button>
           )}
           <Input
-            size="sm"
             type="number"
-            className="w-25"
             value={intervalInput.toString()}
             min={0}
-            onValueChange={(v) => {
+            onChange={(event) => {
+              const v = event.target.value
               setIntervalInput(parseInt(v) || 0)
             }}
+            className="w-25"
+            fullWidth
           />
         </div>
       </SettingItem>
@@ -145,24 +203,26 @@ const AdvancedSetting: React.FC = () => {
           {idleInput !== idle && (
             <Button
               size="sm"
-              color="primary"
-              className="mr-2"
               onPress={async () => {
                 await onChangeNeedRestart({ 'keep-alive-idle': idleInput })
               }}
+              variant="primary"
+              data-color="primary"
+              className="mr-2"
             >
               确认
             </Button>
           )}
           <Input
-            size="sm"
             type="number"
-            className="w-25"
             value={idleInput.toString()}
             min={0}
-            onValueChange={(v) => {
+            onChange={(event) => {
+              const v = event.target.value
               setIdleInput(parseInt(v) || 0)
             }}
+            className="w-25"
+            fullWidth
           />
         </div>
       </SettingItem>

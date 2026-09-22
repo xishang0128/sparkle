@@ -1,4 +1,4 @@
-import { Button, Drawer, InputGroup, ListBox, Select, Switch } from '@heroui-v3/react'
+import { Button, Drawer, InputGroup, ListBox, Select, Switch } from '@heroui/react'
 import React, { useEffect, useRef, useState } from 'react'
 import SettingItem from '../base/base-setting-item'
 import { settingItemProps } from '../base/base-controls'
@@ -73,6 +73,7 @@ const ConnectionSettingDrawer: React.FC<Props> = (props) => {
             <div className="flex flex-col gap-1">
               <SettingItem title="显示应用图标" {...settingItemProps} divider>
                 <Switch
+                  size="sm"
                   aria-label="显示应用图标"
                   isSelected={displayIcon}
                   onChange={(v) => {
@@ -88,6 +89,7 @@ const ConnectionSettingDrawer: React.FC<Props> = (props) => {
               </SettingItem>
               <SettingItem title="显示应用名称" {...settingItemProps} divider>
                 <Switch
+                  size="sm"
                   aria-label="显示应用名称"
                   isSelected={displayAppName}
                   onChange={(v) => {
@@ -103,6 +105,7 @@ const ConnectionSettingDrawer: React.FC<Props> = (props) => {
               </SettingItem>
               <SettingItem title="进程归类" {...settingItemProps} divider>
                 <Switch
+                  size="sm"
                   aria-label="进程归类"
                   isSelected={connectionGroupByProcess}
                   onChange={(v) => {
