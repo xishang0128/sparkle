@@ -136,7 +136,9 @@ jobs:
         if: matrix.os == 'ubuntu-latest' && matrix.arch == 'loong64'
         shell: bash
         run: |
-          git apply patches/edit-dependencies-for-loongarch.patch
+          LOONGARCH_OVERRIDES=$(pnpm config get overrides --json | jq '. + {"electron": "42.3.0", "electron-builder": "npm:@loongdotjs/electron-builder@26.15.6"}')
+          pnpm config set --location=project --json overrides "$LOONGARCH_OVERRIDES"
+          pnpm install --lockfile-only --ignore-scripts --no-frozen-lockfile
 
       - name: Install Dependencies and Prepare
         env:
