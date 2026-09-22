@@ -33,7 +33,7 @@ export async function resolveThemes(): Promise<{ key: string; label: string }[]>
 }
 
 export async function fetchThemes(): Promise<void> {
-  const zipUrl = 'https://github.com/mihomo-party-org/theme-hub/releases/download/latest/themes.zip'
+  const zipUrl = 'https://github.com/UruhaLushia/sparkle-themes/releases/download/latest/themes.zip'
   const { 'mixed-port': mixedPort = 7890 } = await getControledMihomoConfig()
   const zipData = await axios.get(zipUrl, {
     responseType: 'arraybuffer',
