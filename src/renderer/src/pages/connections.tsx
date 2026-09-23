@@ -1094,7 +1094,7 @@ const Connections: React.FC = () => {
               <Select.Value />
               <Select.Indicator />
             </Select.Trigger>
-            <Select.Popover>
+            <Select.Popover placement="bottom" shouldFlip containerPadding={56}>
               <ListBox>
                 <ListBox.Item key="upload" id="upload" textValue="上传量">
                   上传量

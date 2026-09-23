@@ -28,7 +28,7 @@ const InterfaceSelect: React.FC<{
         <Select.Value />
         <Select.Indicator />
       </Select.Trigger>
-      <Select.Popover>
+      <Select.Popover placement="bottom" shouldFlip containerPadding={56}>
         <ListBox>
           <ListBox.Item key="" id="" textValue="禁用">
             禁用

@@ -189,7 +189,12 @@ const Logs: React.FC = () => {
                 <Select.Value className="-translate-y-px" />
                 <Select.Indicator className="size-4" />
               </Select.Trigger>
-              <Select.Popover className="min-w-0 rounded-lg">
+              <Select.Popover
+                placement="bottom"
+                shouldFlip
+                containerPadding={56}
+                className="min-w-0 rounded-lg"
+              >
                 <ListBox className="w-24 rounded-lg p-1 text-sm">
                   <ListBox.Item
                     id="silent"

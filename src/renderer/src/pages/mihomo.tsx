@@ -226,7 +226,7 @@ const Mihomo: React.FC = () => {
                 <Select.Value />
                 <Select.Indicator />
               </Select.Trigger>
-              <Select.Popover>
+              <Select.Popover placement="bottom" shouldFlip containerPadding={56}>
                 <ListBox>
                   <ListBox.Item key="mihomo" id="mihomo" textValue="内置稳定版">
                     内置稳定版
@@ -262,7 +262,7 @@ const Mihomo: React.FC = () => {
                 <Select.Value />
                 <Select.Indicator />
               </Select.Trigger>
-              <Select.Popover>
+              <Select.Popover placement="bottom" shouldFlip containerPadding={56}>
                 <ListBox>
                   {loadingPaths ? (
                     <ListBox.Item key="" id="" textValue="正在查找系统内核...">
@@ -313,7 +313,7 @@ const Mihomo: React.FC = () => {
               <Select.Value />
               <Select.Indicator />
             </Select.Trigger>
-            <Select.Popover>
+            <Select.Popover placement="bottom" shouldFlip containerPadding={56}>
               <ListBox>
                 <ListBox.Item key="PRIORITY_HIGHEST" id="PRIORITY_HIGHEST" textValue="实时">
                   实时

@@ -113,7 +113,7 @@ const ProxySettingDrawer: React.FC<Props> = (props) => {
                     <Select.Value />
                     <Select.Indicator />
                   </Select.Trigger>
-                  <Select.Popover>
+                  <Select.Popover placement="bottom" shouldFlip containerPadding={56}>
                     <ListBox>
                       <ListBox.Item id="auto" textValue="自动">
                         自动

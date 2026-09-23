@@ -201,7 +201,7 @@ const LogSetting: React.FC = () => {
             <Select.Value />
             <Select.Indicator />
           </Select.Trigger>
-          <Select.Popover>
+          <Select.Popover placement="bottom" shouldFlip containerPadding={56}>
             <ListBox>
               <ListBox.Item key="silent" id="silent" textValue="静默">
                 静默

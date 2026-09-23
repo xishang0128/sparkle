@@ -271,7 +271,7 @@ const ControllerSetting: React.FC = () => {
                     <Select.Value />
                     <Select.Indicator />
                   </Select.Trigger>
-                  <Select.Popover>
+                  <Select.Popover placement="bottom" shouldFlip containerPadding={56}>
                     <ListBox>
                       <ListBox.Item
                         key="https://github.com/Zephyruso/zashboard/releases/latest/download/dist.zip"

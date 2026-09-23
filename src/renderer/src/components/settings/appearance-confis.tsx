@@ -515,7 +515,7 @@ const AppearanceConfig: React.FC = () => {
                 <Select.Value />
                 <Select.Indicator />
               </Select.Trigger>
-              <Select.Popover>
+              <Select.Popover placement="bottom" shouldFlip containerPadding={56}>
                 <ListBox>
                   {customThemes.map((theme) => (
                     <ListBox.Item key={theme.key} id={theme.key} textValue={theme.label}>

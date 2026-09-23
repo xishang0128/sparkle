@@ -150,7 +150,7 @@ const EditInfoModal: React.FC<Props> = (props) => {
                       <Select.Value />
                       <Select.Indicator />
                     </Select.Trigger>
-                    <Select.Popover>
+                    <Select.Popover placement="bottom" shouldFlip containerPadding={56}>
                       <ListBox>
                         <ListBox.Item id="yaml" textValue="YAML">
                           YAML

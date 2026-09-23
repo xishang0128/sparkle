@@ -208,7 +208,7 @@ const AdvancedSettings: React.FC = () => {
             <Select.Value />
             <Select.Indicator />
           </Select.Trigger>
-          <Select.Popover>
+          <Select.Popover placement="bottom" shouldFlip containerPadding={56}>
             <ListBox>
               <ListBox.Item key="bash" id="bash" textValue="Bash">
                 Bash
