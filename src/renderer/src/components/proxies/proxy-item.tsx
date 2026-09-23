@@ -244,8 +244,7 @@ const ProxyItem: React.FC<Props> = (props) => {
                       isPending={loading}
                       isDisabled={loading}
                     >
-                      {loading ? <Spinner size="sm" color="current" /> : null}
-                      {delayText(delay)}
+                      {loading ? <Spinner size="sm" color="current" /> : delayText(delay)}
                     </Button>
                   </div>
                 </>
@@ -291,8 +290,7 @@ const ProxyItem: React.FC<Props> = (props) => {
                         isPending={loading}
                         isDisabled={loading}
                       >
-                        {loading ? <Spinner size="sm" color="current" /> : null}
-                        {delayText(delay)}
+                        {loading ? <Spinner size="sm" color="current" /> : delayText(delay)}
                       </Button>
                     </div>
                   </div>

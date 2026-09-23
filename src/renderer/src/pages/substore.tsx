@@ -68,8 +68,11 @@ const SubStore: React.FC = () => {
               isPending={isUpdating}
               isDisabled={isUpdating}
             >
-              {isUpdating ? <Spinner size="sm" color="current" /> : null}
-              <IoMdCloudDownload className="text-lg" />
+              {isUpdating ? (
+                <Spinner size="sm" color="current" />
+              ) : (
+                <IoMdCloudDownload className="text-lg" />
+              )}
             </Button>
             <Button
               isIconOnly

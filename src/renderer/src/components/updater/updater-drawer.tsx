@@ -1,4 +1,4 @@
-import { Button, Drawer, Label, Link, ProgressBar } from '@heroui/react'
+import { Button, Drawer, Label, Link, ProgressBar, Spinner } from '@heroui/react'
 import ReactMarkdown from 'react-markdown'
 import React, { useEffect, useRef, useState } from 'react'
 import { downloadAndInstallUpdate } from '@renderer/utils/ipc'
@@ -199,7 +199,7 @@ const UpdaterDrawer: React.FC<Props> = (props) => {
                     isPending={downloading}
                     onPress={onUpdate}
                   >
-                    <FiDownload />
+                    {downloading ? <Spinner size="sm" color="current" /> : <FiDownload />}
                     立即更新
                   </Button>
                 )}

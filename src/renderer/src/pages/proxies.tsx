@@ -164,8 +164,11 @@ const GroupHeader = memo(function GroupHeader({
                     isPending={delaying}
                     isDisabled={delaying}
                   >
-                    {delaying ? <Spinner size="sm" color="current" /> : null}
-                    <MdOutlineSpeed className="text-lg text-foreground-500" />
+                    {delaying ? (
+                      <Spinner size="sm" color="current" />
+                    ) : (
+                      <MdOutlineSpeed className="text-lg text-foreground-500" />
+                    )}
                   </Button>
                 </div>
                 <IoIosArrowBack

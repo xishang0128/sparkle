@@ -190,8 +190,9 @@ const TrayMenuApp: React.FC = () => {
                                 >
                                   {testingGroup === group.name ? (
                                     <Spinner size="sm" color="current" />
-                                  ) : null}
-                                  <IoRefresh className="text-xs" />
+                                  ) : (
+                                    <IoRefresh className="text-xs" />
+                                  )}
                                 </Button>
                                 <Chip
                                   size="sm"

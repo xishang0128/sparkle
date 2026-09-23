@@ -400,8 +400,11 @@ const Profiles: React.FC = () => {
                   isPending={subStoreImporting}
                   isDisabled={subStoreImporting}
                 >
-                  {subStoreImporting ? <Spinner size="sm" color="current" /> : null}
-                  <SubStoreIcon className="text-lg" />
+                  {subStoreImporting ? (
+                    <Spinner size="sm" color="current" />
+                  ) : (
+                    <SubStoreIcon className="text-lg" />
+                  )}
                 </Button>
               </>
               <Dropdown.Popover>
