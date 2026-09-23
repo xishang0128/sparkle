@@ -1,4 +1,4 @@
-import { Separator, Surface } from '@heroui/react'
+import { Chip, Separator, Surface } from '@heroui/react'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import 'dayjs/locale/zh-cn'
@@ -14,7 +14,7 @@ interface Props {
   visible: boolean
 }
 
-const TOOLTIP_WIDTH = 212
+const TOOLTIP_WIDTH = 228
 
 const isZeroTime = (at: string): boolean =>
   at.startsWith('0001-01-01') || at.startsWith('1970-01-01')
@@ -43,7 +43,7 @@ const RuleDetailTooltip: React.FC<Props> = ({ rule, anchorEl, visible }) => {
     const vh = window.innerHeight
     const h = panelRef.current.offsetHeight
     setFinalTop(Math.max(8, Math.min(pos.top, vh - h - 8)))
-  }, [pos, anchorEl])
+  }, [pos, anchorEl, rule])
 
   if (!visible || !pos || !anchorEl) return null
 
@@ -59,9 +59,6 @@ const RuleDetailTooltip: React.FC<Props> = ({ rule, anchorEl, visible }) => {
   const { hitCount, hitAt, missCount, missAt } = rule.extra
   const totalCount = hitCount + missCount
   const hitRate = totalCount > 0 ? (hitCount / totalCount) * 100 : 0
-
-  const arrowBorderColor = 'var(--color-separator)'
-  const arrowFillColor = 'var(--color-surface-secondary)'
 
   return createPortal(
     <div
@@ -79,52 +76,36 @@ const RuleDetailTooltip: React.FC<Props> = ({ rule, anchorEl, visible }) => {
       }}
     >
       <div
-        className="absolute"
-        style={{
-          top: arrowTop,
-          [side === 'right' ? 'left' : 'right']: -7,
-          width: 0,
-          height: 0,
-          borderTop: '7px solid transparent',
-          borderBottom: '7px solid transparent',
-          ...(side === 'right'
-            ? { borderRight: `7px solid ${arrowBorderColor}` }
-            : { borderLeft: `7px solid ${arrowBorderColor}` })
-        }}
-      />
-      <div
-        className="absolute"
+        className={`absolute z-2 size-2.5 rotate-45 border-default-200/70 bg-surface-secondary ${side === 'right' ? 'border-b border-l' : 'border-t border-r'}`}
         style={{
           top: arrowTop + 1,
-          [side === 'right' ? 'left' : 'right']: -5,
-          width: 0,
-          height: 0,
-          zIndex: 1,
-          borderTop: '6px solid transparent',
-          borderBottom: '6px solid transparent',
-          ...(side === 'right'
-            ? { borderRight: `6px solid ${arrowFillColor}` }
-            : { borderLeft: `6px solid ${arrowFillColor}` })
+          [side === 'right' ? 'left' : 'right']: -4
         }}
       />
 
       <Surface
         ref={panelRef}
         variant="secondary"
-        className="relative z-1 overflow-hidden rounded-lg shadow-overlay border border-separator/30"
+        className="relative z-1 overflow-hidden rounded-xl shadow-md border border-default-200/70"
       >
-        <div className="px-3 pt-2.5 pb-2">
-          <span className="text-xs font-semibold leading-snug">{rule.payload || 'Match'}</span>
+        <div className="flex items-start gap-2 px-3 pt-2.5 pb-2">
+          <span className="text-xs font-semibold min-w-0 flex-1 whitespace-normal wrap-anywhere leading-5">
+            {rule.payload || 'Match'}
+          </span>
         </div>
 
-        <Separator variant="tertiary" />
+        <Separator className="mx-3 w-auto bg-default-200/70" />
 
-        <div className="px-3 py-2 grid grid-cols-[auto_1fr] gap-x-2 gap-y-1.5 items-center">
+        <div className="px-3 py-2 grid grid-cols-[auto_minmax(0,1fr)] gap-x-2 gap-y-1.5 items-center">
           <span className="text-[10px] text-muted">类型</span>
-          <span className="text-[10px] text-muted justify-self-end">{rule.type}</span>
+          <Chip className="justify-self-end" variant="soft" size="sm">
+            {rule.type}
+          </Chip>
 
           <span className="text-[10px] text-muted">代理</span>
-          <span className="text-[10px] text-muted justify-self-end">{rule.proxy}</span>
+          <span className="text-[10px] flag-emoji text-muted min-w-0 text-right whitespace-normal wrap-anywhere">
+            {rule.proxy}
+          </span>
 
           {rule.size > 0 && (
             <>
