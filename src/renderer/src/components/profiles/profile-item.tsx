@@ -365,20 +365,8 @@ const ProfileItem: React.FC<Props> = (props) => {
               )}
               {extra && (
                 <Meter aria-label="流量用量" maxValue={total} value={usage}>
-                  <Meter.Track
-                    className={
-                      isCurrent
-                        ? 'h-2.5 bg-black/22 shadow-[inset_0_0_0_1px_rgb(255_255_255/0.35)]'
-                        : undefined
-                    }
-                  >
-                    <Meter.Fill
-                      className={
-                        isCurrent
-                          ? 'bg-(--color-accent-foreground) shadow-[0_0_8px_rgb(255_255_255/0.45)]'
-                          : undefined
-                      }
-                    />
+                  <Meter.Track className={`h-1.5 ${isCurrent ? 'bg-primary-foreground/25' : ''}`}>
+                    <Meter.Fill className={isCurrent ? 'bg-primary-foreground' : undefined} />
                   </Meter.Track>
                 </Meter>
               )}

@@ -224,20 +224,8 @@ const ProfileCard: React.FC<Props> = (props) => {
             )}
             {extra && (
               <Meter aria-label="流量用量" maxValue={total} value={usage}>
-                <Meter.Track
-                  className={
-                    match
-                      ? 'h-2.5 bg-black/22 shadow-[inset_0_0_0_1px_rgb(255_255_255/0.35)]'
-                      : undefined
-                  }
-                >
-                  <Meter.Fill
-                    className={
-                      match
-                        ? 'bg-(--color-accent-foreground) shadow-[0_0_8px_rgb(255_255_255/0.45)]'
-                        : undefined
-                    }
-                  />
+                <Meter.Track className={`h-1.5 ${match ? 'bg-primary-foreground/25' : ''}`}>
+                  <Meter.Fill className={match ? 'bg-primary-foreground' : undefined} />
                 </Meter.Track>
               </Meter>
             )}
