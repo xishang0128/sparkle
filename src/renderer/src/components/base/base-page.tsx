@@ -11,6 +11,12 @@ interface Props {
   children?: React.ReactNode
   contentClassName?: string
 }
+
+interface WindowControlsOverlay extends EventTarget {
+  visible: boolean
+  getTitlebarAreaRect: () => DOMRect
+}
+
 let saveOnTop = false
 
 const BasePage = forwardRef<HTMLDivElement, Props>((props, ref) => {
@@ -25,16 +31,27 @@ const BasePage = forwardRef<HTMLDivElement, Props>((props, ref) => {
   }
 
   useEffect(() => {
-    if (platform !== 'darwin' && !useWindowFrame) {
-      try {
-        // @ts-ignore windowControlsOverlay
-        const windowControlsOverlay = window.navigator.windowControlsOverlay
-        setOverlayWidth(window.innerWidth - windowControlsOverlay.getTitlebarAreaRect().width)
-      } catch (e) {
-        // ignore
-      }
+    const overlay = (
+      window.navigator as Navigator & { windowControlsOverlay?: WindowControlsOverlay }
+    ).windowControlsOverlay
+
+    if (platform === 'darwin' || useWindowFrame || !overlay) {
+      setOverlayWidth(0)
+      return
     }
-  }, [])
+
+    const updateOverlayWidth = (): void => {
+      const rect = overlay.getTitlebarAreaRect()
+      // The overlay can report an empty rectangle before the window is shown.
+      setOverlayWidth(
+        overlay.visible && rect.width > 0 ? Math.max(0, window.innerWidth - rect.right) : 0
+      )
+    }
+
+    updateOverlayWidth()
+    overlay.addEventListener('geometrychange', updateOverlayWidth)
+    return () => overlay.removeEventListener('geometrychange', updateOverlayWidth)
+  }, [useWindowFrame])
 
   const contentRef = useRef<HTMLDivElement>(null)
   useImperativeHandle(ref, () => {
@@ -47,10 +64,10 @@ const BasePage = forwardRef<HTMLDivElement, Props>((props, ref) => {
         className={`sticky top-0 h-12.25 w-full ${disableAnimation ? 'bg-background/95 backdrop-blur-sm' : 'bg-transparent backdrop-blur'}`}
       >
         <div className="app-drag p-2 flex justify-between h-12 items-center">
-          <div className="title h-full text-lg leading-8">{props.title}</div>
+          <div className="title min-w-0 truncate h-full text-lg leading-8">{props.title}</div>
           <div
             style={{ marginRight: overlayWidth }}
-            className="header flex gap-1 h-full items-center"
+            className="header flex shrink-0 gap-1 h-full items-center"
           >
             {props.header}
             <Button
