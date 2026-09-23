@@ -338,37 +338,33 @@ const Profiles: React.FC = () => {
               onKeyUp={handleInputKeyUp}
               onChange={(event) => setUrl(event.target.value)}
             />
-            <InputGroup.Suffix>
-              {
-                <>
-                  <Button
-                    size="sm"
-                    isIconOnly
-                    onPress={() => {
-                      navigator.clipboard.readText().then((text) => {
-                        setUrl(text)
-                      })
-                    }}
-                    variant="ghost"
-                    data-color="default"
-                    className="z-10"
-                  >
-                    <MdContentPaste className="text-lg" />
-                  </Button>
-                  <Checkbox
-                    className="whitespace-nowrap"
-                    isSelected={useProxy}
-                    onChange={setUseProxy}
-                  >
-                    <Checkbox.Content>
-                      <Checkbox.Control>
-                        <Checkbox.Indicator />
-                      </Checkbox.Control>
-                      <Label>代理</Label>
-                    </Checkbox.Content>
-                  </Checkbox>
-                </>
-              }
+            <InputGroup.Suffix className="gap-2">
+              <Button
+                size="sm"
+                isIconOnly
+                aria-label="粘贴订阅链接"
+                onPress={() => {
+                  navigator.clipboard.readText().then((text) => {
+                    setUrl(text)
+                  })
+                }}
+                variant="ghost"
+                data-color="default"
+              >
+                <MdContentPaste className="text-lg" />
+              </Button>
+              <Checkbox
+                className="shrink-0 whitespace-nowrap"
+                isSelected={useProxy}
+                onChange={setUseProxy}
+              >
+                <Checkbox.Content className="gap-1.5">
+                  <Checkbox.Control>
+                    <Checkbox.Indicator />
+                  </Checkbox.Control>
+                  <Label>代理</Label>
+                </Checkbox.Content>
+              </Checkbox>
             </InputGroup.Suffix>
           </InputGroup>
 

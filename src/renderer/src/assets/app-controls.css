@@ -626,6 +626,9 @@
     height: 1.25rem;
     border-radius: 6px;
   }
+  .checkbox .checkbox__control::before {
+    border-radius: inherit;
+  }
   .button[data-shadow='true'] {
     box-shadow: 0 4px 14px 0 color-mix(in srgb, var(--app-color) 40%, transparent);
   }
