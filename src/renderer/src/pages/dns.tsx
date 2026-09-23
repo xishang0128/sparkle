@@ -205,7 +205,7 @@ const DNS: React.FC = () => {
           <>
             <SettingItem compatKey="legacy" title="虚假 IP 范围 (IPv4)" divider>
               <Tooltip isOpen={!!fakeIPRangeError} delay={0}>
-                <Tooltip.Trigger>
+                <Tooltip.Trigger className="block w-[40%]">
                   <Input
                     placeholder="例：198.18.0.1/16"
                     value={values.fakeIPRange}
@@ -216,8 +216,7 @@ const DNS: React.FC = () => {
                       setFakeIPRangeError(r.ok ? null : (r.error ?? '格式错误'))
                     }}
                     className={
-                      `w-[40%] ` +
-                      (fakeIPRangeError ? 'border-red-500 ring-1 ring-red-500 rounded-lg' : '')
+                      fakeIPRangeError ? 'border-red-500 ring-1 ring-red-500 rounded-lg' : ''
                     }
                     fullWidth
                   />
@@ -231,7 +230,7 @@ const DNS: React.FC = () => {
             {values.ipv6 && (
               <SettingItem compatKey="legacy" title="虚假 IP 范围 (IPv6)" divider>
                 <Tooltip isOpen={!!fakeIPRange6Error} delay={0}>
-                  <Tooltip.Trigger>
+                  <Tooltip.Trigger className="block w-[40%]">
                     <Input
                       placeholder="例：fc00::/18"
                       value={values.fakeIPRange6}
@@ -242,8 +241,7 @@ const DNS: React.FC = () => {
                         setFakeIPRange6Error(r.ok ? null : (r.error ?? '格式错误'))
                       }}
                       className={
-                        `w-[40%] ` +
-                        (fakeIPRange6Error ? 'border-red-500 ring-1 ring-red-500 rounded-lg' : '')
+                        fakeIPRange6Error ? 'border-red-500 ring-1 ring-red-500 rounded-lg' : ''
                       }
                       fullWidth
                     />

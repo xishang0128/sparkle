@@ -85,7 +85,7 @@ const ControllerSetting: React.FC = () => {
             </Button>
           )}
           <Tooltip isOpen={!!externalControllerError} delay={0}>
-            <Tooltip.Trigger>
+            <Tooltip.Trigger className="block w-50">
               <Input
                 value={externalControllerInput}
                 onChange={(event) => {
