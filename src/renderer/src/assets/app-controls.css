@@ -315,10 +315,12 @@
     padding: 0.25rem;
     box-shadow: var(--app-shadow-md);
   }
-  .select__popover .list-box {
+  .select__popover .list-box,
+  .dropdown__popover .dropdown__menu {
     padding: 0;
   }
   .list-box .list-box-item,
+  .dropdown__menu .menu-item,
   .menu .menu-item {
     min-height: 2rem;
     padding: 0.375rem 0.5rem;
