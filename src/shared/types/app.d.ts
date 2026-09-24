@@ -40,6 +40,7 @@ interface AppConfig {
   systemCorePath?: string
   corePermissionMode?: 'elevated' | 'service'
   serviceRunMode?: 'auto' | 'sandbox' | 'direct'
+  serviceCpuAffinity?: number[]
   serviceAuthKey?: string
   disableLoopbackDetector: boolean
   disableEmbedCA: boolean

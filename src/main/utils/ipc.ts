@@ -166,26 +166,39 @@ function ipcErrorWrapper<T>( // eslint-disable-next-line @typescript-eslint/no-e
 async function patchAppConfigWithServiceSync(patch: Partial<AppConfig>): Promise<AppConfig> {
   const nextConfig = await patchAppConfig(await normalizeServiceModePatch(patch))
 
-  if (!('saveLogs' in patch || 'maxLogFileSizeMB' in patch)) {
+  if (!('saveLogs' in patch || 'maxLogFileSizeMB' in patch || 'serviceCpuAffinity' in patch)) {
     return nextConfig
   }
 
   const {
     corePermissionMode = 'elevated',
     saveLogs = true,
-    maxLogFileSizeMB = 20
+    maxLogFileSizeMB = 20,
+    serviceCpuAffinity = []
   } = await getAppConfig()
   if (corePermissionMode !== 'service') {
     return nextConfig
   }
 
-  void patchCoreProfile({
+  const syncCoreProfile = patchCoreProfile({
     log_path: coreLogPath(),
     save_logs: saveLogs,
-    max_log_file_size_mb: maxLogFileSizeMB
-  }).catch((error) => {
-    appendAppLog(`[Service]: sync core log config failed, ${error}\n`).catch(() => {})
+    max_log_file_size_mb: maxLogFileSizeMB,
+    cpu_affinity: serviceCpuAffinity
   })
+
+  if ('serviceCpuAffinity' in patch) {
+    try {
+      await syncCoreProfile
+    } catch (error) {
+      await appendAppLog(`[Service]: sync core profile failed, ${error}\n`).catch(() => {})
+      throw error
+    }
+  } else {
+    void syncCoreProfile.catch((error) => {
+      appendAppLog(`[Service]: sync core log config failed, ${error}\n`).catch(() => {})
+    })
+  }
 
   return nextConfig
 }

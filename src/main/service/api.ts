@@ -379,6 +379,7 @@ export interface ServiceCoreLaunchProfile {
   args?: string[]
   mode?: 'auto' | 'sandbox' | 'direct'
   safe_paths?: string[]
+  cpu_affinity?: number[]
   env?: Record<string, string | undefined>
   mihomo_cpu_priority?: Priority
   log_path?: string

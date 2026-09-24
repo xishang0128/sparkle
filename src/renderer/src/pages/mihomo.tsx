@@ -61,6 +61,7 @@ const Mihomo: React.FC = () => {
     core = 'mihomo',
     corePermissionMode = 'elevated',
     serviceRunMode = 'auto',
+    serviceCpuAffinity = [],
     coreStartupMode = 'post-up',
     mihomoCpuPriority = 'PRIORITY_NORMAL'
   } = appConfig || {}
@@ -167,6 +168,12 @@ const Mihomo: React.FC = () => {
       {showServiceModal && (
         <ServiceModal
           onChange={setShowServiceModal}
+          serviceRunMode={serviceRunMode}
+          onRunModeChange={(mode) => handleConfigChangeWithRestart('serviceRunMode', mode)}
+          serviceCpuAffinity={serviceCpuAffinity}
+          onCpuAffinityChange={async (value) => {
+            await patchAppConfig({ serviceCpuAffinity: value })
+          }}
           onInit={async () => {
             await initService()
             notify('服务初始化成功')
@@ -371,34 +378,6 @@ const Mihomo: React.FC = () => {
             </Tabs.ListContainer>
           </Tabs>
         </SettingItem>
-        {platform === 'linux' && corePermissionMode === 'service' && (
-          <SettingItem compatKey="legacy" title="服务核心运行方式" divider>
-            <Tabs
-              selectedKey={serviceRunMode}
-              onSelectionChange={(key) => handleConfigChangeWithRestart('serviceRunMode', key)}
-              data-color="primary"
-              data-size="sm"
-              data-full-width={false}
-            >
-              <Tabs.ListContainer>
-                <Tabs.List aria-label="选项">
-                  <Tabs.Tab key="auto" id="auto">
-                    自动
-                    <Tabs.Indicator />
-                  </Tabs.Tab>
-                  <Tabs.Tab key="sandbox" id="sandbox">
-                    沙盒
-                    <Tabs.Indicator />
-                  </Tabs.Tab>
-                  <Tabs.Tab key="direct" id="direct">
-                    直接启动
-                    <Tabs.Indicator />
-                  </Tabs.Tab>
-                </Tabs.List>
-              </Tabs.ListContainer>
-            </Tabs>
-          </SettingItem>
-        )}
         {corePermissionMode !== 'service' && (
           <SettingItem compatKey="legacy" title="启动检测方式" divider>
             <Tabs
