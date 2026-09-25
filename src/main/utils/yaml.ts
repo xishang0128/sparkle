@@ -1,83 +1,41 @@
-import yaml from 'yaml'
+import yaml, { isPair, isScalar } from 'yaml'
 
 export function parseYaml<T = unknown>(content: string): T {
-  const processedContent = addYamlTagsToProxiesShortId(content)
+  const document = yaml.parseDocument(content, {
+    merge: true
+  })
 
-  const result =
-    yaml.parse(processedContent, {
-      merge: true
-    }) || {}
-  return result as T
+  if (document.errors.length > 0) {
+    throw document.errors[0]
+  }
+
+  yaml.visit(document, {
+    Pair(_key, pair, path) {
+      if (!isRealityShortId(pair, path)) return
+
+      const value = pair.value
+      if (!isScalar(value)) return
+
+      // Preserve null, explicit tags, and already-resolved strings.
+      if (value.value === null || typeof value.value === 'string' || value.tag) return
+      if (value.source === undefined) return
+
+      value.value = value.source
+      value.tag = 'tag:yaml.org,2002:str'
+    }
+  })
+
+  return (document.toJS() || {}) as T
 }
 
 export function stringifyYaml(data: unknown): string {
   return yaml.stringify(data)
 }
 
-function addYamlTagsToProxiesShortId(yamlContent: string, includeNestedProxies = false): string {
-  if (!yamlContent.includes('proxies:') || !yamlContent.includes('short-id:')) {
-    return yamlContent
-  }
+function isRealityShortId(pair: unknown, path: readonly unknown[]): boolean {
+  if (!isPair(pair) || !isScalar(pair.key) || pair.key.value !== 'short-id') return false
 
-  const lines = yamlContent.split('\n')
-  const result: string[] = []
-  let ctx = { proxies: false, proxy: false, reality: false }
-  const lvl = { proxies: -1, proxy: -1, reality: -1 }
-  const shortIdRegex = /^(\s*short-id:\s*)([^\s#]+)(.*)$/
-
-  for (const line of lines) {
-    const trimmed = line.trim()
-    if (!trimmed || trimmed.startsWith('#')) {
-      result.push(line)
-      continue
-    }
-
-    const indent = line.length - line.trimStart().length
-
-    if (trimmed.startsWith('proxies:') && (includeNestedProxies || indent === 0)) {
-      ctx = { proxies: true, proxy: false, reality: false }
-      lvl.proxies = indent
-    } else if (ctx.proxies && indent <= lvl.proxies && !trimmed.startsWith('-')) {
-      ctx = { proxies: false, proxy: false, reality: false }
-    }
-
-    if (ctx.proxies) {
-      if (trimmed.startsWith('-')) {
-        ctx = { ...ctx, proxy: true, reality: false }
-        lvl.proxy = indent
-      } else if (ctx.proxy && indent <= lvl.proxy) {
-        ctx = { ...ctx, proxy: false, reality: false }
-      }
-
-      if (ctx.proxy) {
-        if (trimmed.startsWith('reality-opts:')) {
-          ctx.reality = true
-          lvl.reality = indent
-        } else if (ctx.reality && indent <= lvl.reality) {
-          ctx.reality = false
-        }
-
-        if (ctx.reality && trimmed.includes('short-id:')) {
-          const match = line.match(shortIdRegex)
-          if (match) {
-            const [, prefix, value, suffix] = match
-            if (
-              value.toLowerCase() !== 'null' &&
-              value !== '~' &&
-              !value.startsWith('!!') &&
-              !value.startsWith('{') &&
-              !value.startsWith('[')
-            ) {
-              result.push(`${prefix}!!str ${value}${suffix}`)
-              continue
-            }
-          }
-        }
-      }
-    }
-
-    result.push(line)
-  }
-
-  return result.join('\n')
+  return path.some(
+    (node) => isPair(node) && isScalar(node.key) && node.key.value === 'reality-opts'
+  )
 }
