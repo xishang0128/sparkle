@@ -39,7 +39,7 @@ const detectCardCollision: CollisionDetection = (args) => {
   return pointerCollisions.length > 0 ? pointerCollisions : closestCenter(visibleArgs)
 }
 
-const interactiveSelector = 'button:not(.pointer-events-none), [role="switch"]'
+const interactiveSelector = 'button:not(.pointer-events-none), [role="switch"], .border-switch'
 
 const defaultSiderOrder = [
   'sysproxy',
