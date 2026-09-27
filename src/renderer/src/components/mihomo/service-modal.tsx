@@ -59,6 +59,9 @@ const ServiceModal: React.FC<Props> = (props) => {
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatusType>('checking')
   const cpuCount = Math.max(1, navigator.hardwareConcurrency || 1)
   const cpuList = Array.from({ length: cpuCount }, (_, index) => index)
+  const cpuRows = Array.from({ length: Math.ceil(cpuList.length / 12) }, (_, row) =>
+    cpuList.slice(row * 12, row * 12 + 12)
+  )
 
   const toggleCpu = (cpu: number): void => {
     const next = serviceCpuAffinity.includes(cpu)
@@ -205,29 +208,36 @@ const ServiceModal: React.FC<Props> = (props) => {
               )}
 
               {(platform === 'linux' || platform === 'win32') && (
-                <div className="flex h-11 items-center gap-3">
-                  <span className="w-20 shrink-0 text-sm">核心绑定</span>
-                  <div className="flex min-w-0 flex-1 items-center justify-end gap-1">
-                    {cpuList.map((cpu) => {
-                      const selected = serviceCpuAffinity.includes(cpu)
-                      return (
-                        <button
-                          key={cpu}
-                          type="button"
-                          aria-label={`核心 ${cpu}`}
-                          aria-pressed={selected}
-                          disabled={loading}
-                          className={`flex size-6 shrink-0 items-center justify-center rounded-md text-xs font-medium tabular-nums transition-all disabled:pointer-events-none disabled:opacity-50 ${
-                            selected
-                              ? 'bg-primary text-primary-foreground shadow-sm'
-                              : 'bg-default-100 text-default-500 hover:bg-default-200 hover:text-foreground'
-                          }`}
-                          onClick={() => toggleCpu(cpu)}
-                        >
-                          {cpu}
-                        </button>
-                      )
-                    })}
+                <div className="flex min-h-11 items-start gap-3 py-2">
+                  <span className="w-20 shrink-0 pt-1 text-sm">核心绑定</span>
+                  <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+                    {cpuRows.map((row, rowIndex) => (
+                      <div
+                        key={rowIndex}
+                        className={`flex gap-0.5 ${cpuRows.length === 1 ? 'justify-end' : 'justify-start'}`}
+                      >
+                        {row.map((cpu) => {
+                          const selected = serviceCpuAffinity.includes(cpu)
+                          return (
+                            <button
+                              key={cpu}
+                              type="button"
+                              aria-label={`核心 ${cpu}`}
+                              aria-pressed={selected}
+                              disabled={loading}
+                              className={`flex size-6 shrink-0 items-center justify-center rounded-md text-xs font-medium tabular-nums transition-all disabled:pointer-events-none disabled:opacity-50 ${
+                                selected
+                                  ? 'bg-primary text-primary-foreground shadow-sm'
+                                  : 'bg-default-100 text-default-500 hover:bg-default-200 hover:text-foreground'
+                              }`}
+                              onClick={() => toggleCpu(cpu)}
+                            >
+                              {cpu}
+                            </button>
+                          )
+                        })}
+                      </div>
+                    ))}
                   </div>
                 </div>
               )}
