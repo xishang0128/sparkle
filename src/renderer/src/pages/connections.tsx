@@ -52,8 +52,12 @@ const Connections: React.FC = () => {
   const [connectionsInfo, setConnectionsInfo] = useState<ControllerConnections>()
   const [allConnections, setAllConnections] =
     useState<ControllerConnectionDetail[]>(cachedConnections)
-  const [activeConnections, setActiveConnections] = useState<ControllerConnectionDetail[]>([])
-  const [closedConnections, setClosedConnections] = useState<ControllerConnectionDetail[]>([])
+  const [activeConnections, setActiveConnections] = useState<ControllerConnectionDetail[]>(() =>
+    cachedConnections.filter((connection) => connection.isActive)
+  )
+  const [closedConnections, setClosedConnections] = useState<ControllerConnectionDetail[]>(() =>
+    cachedConnections.filter((connection) => !connection.isActive)
+  )
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false)
   const [isSettingDrawerOpen, setIsSettingDrawerOpen] = useState(false)
   const [settingDrawerReopenSignal, setSettingDrawerReopenSignal] = useState(0)
