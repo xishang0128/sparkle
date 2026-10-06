@@ -1,22 +1,23 @@
-import { Button, Tooltip, Card } from '@heroui/react'
+import { Button, Card } from '@heroui/react'
 
 import React from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { useLocation } from 'react-router-dom'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { IoLayersOutline } from 'react-icons/io5'
 import { useAppConfig } from '@renderer/hooks/use-app-config'
+import SiderItem from './sider-item'
 
 interface Props {
   iconOnly?: boolean
+  expanded?: boolean
 }
 
 const ResourceCard: React.FC<Props> = (props) => {
   const { appConfig } = useAppConfig()
-  const { iconOnly } = props
+  const { iconOnly, expanded } = props
   const { resourceCardStatus = 'col-span-1', disableAnimation = false } = appConfig || {}
   const location = useLocation()
-  const navigate = useNavigate()
   const match = location.pathname.includes('/resources')
   const {
     attributes,
@@ -32,22 +33,13 @@ const ResourceCard: React.FC<Props> = (props) => {
 
   if (iconOnly) {
     return (
-      <div className={`${resourceCardStatus} flex justify-center`}>
-        <Tooltip delay={0}>
-          <Button
-            size="sm"
-            isIconOnly
-            onPress={() => {
-              navigate('/resources')
-            }}
-            variant={match ? 'primary' : 'ghost'}
-            data-color={match ? 'primary' : 'default'}
-          >
-            <IoLayersOutline className="text-[20px]" />
-          </Button>
-          <Tooltip.Content placement="right">{'外部资源'}</Tooltip.Content>
-        </Tooltip>
-      </div>
+      <SiderItem
+        className={resourceCardStatus}
+        title="外部资源"
+        route="/resources"
+        icon={<IoLayersOutline className="text-[20px]" />}
+        expanded={expanded}
+      />
     )
   }
   return (

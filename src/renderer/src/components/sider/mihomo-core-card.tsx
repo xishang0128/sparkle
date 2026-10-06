@@ -1,4 +1,4 @@
-import { Button, Tooltip, Card } from '@heroui/react'
+import { Button, Card } from '@heroui/react'
 
 import { calcTraffic } from '@renderer/utils/calc'
 import { mihomoVersion, restartCore } from '@renderer/utils/ipc'
@@ -6,27 +6,28 @@ import React, { useEffect, useState } from 'react'
 import { IoMdRefresh } from 'react-icons/io'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { useLocation } from 'react-router-dom'
 import PubSub from 'pubsub-js'
 import useSWR from 'swr'
 import { useAppConfig } from '@renderer/hooks/use-app-config'
 import { LuCpu } from 'react-icons/lu'
 import { notify } from '@renderer/utils/notification'
+import SiderItem from './sider-item'
 
 interface Props {
   iconOnly?: boolean
+  expanded?: boolean
 }
 
 const MihomoCoreCard: React.FC<Props> = (props) => {
   const { appConfig } = useAppConfig()
-  const { iconOnly } = props
+  const { iconOnly, expanded } = props
   const { mihomoCoreCardStatus = 'col-span-2', disableAnimation = false } = appConfig || {}
   const { data: version, mutate } = useSWR('mihomoVersion', mihomoVersion, {
     errorRetryInterval: 200,
     errorRetryCount: 10
   })
   const location = useLocation()
-  const navigate = useNavigate()
   const match = location.pathname.includes('/mihomo')
   const {
     attributes,
@@ -64,22 +65,13 @@ const MihomoCoreCard: React.FC<Props> = (props) => {
 
   if (iconOnly) {
     return (
-      <div className={`${mihomoCoreCardStatus} flex justify-center`}>
-        <Tooltip delay={0}>
-          <Button
-            size="sm"
-            isIconOnly
-            onPress={() => {
-              navigate('/mihomo')
-            }}
-            variant={match ? 'primary' : 'ghost'}
-            data-color={match ? 'primary' : 'default'}
-          >
-            <LuCpu className="text-[20px]" />
-          </Button>
-          <Tooltip.Content placement="right">{'内核设置'}</Tooltip.Content>
-        </Tooltip>
-      </div>
+      <SiderItem
+        className={mihomoCoreCardStatus}
+        title="内核设置"
+        route="/mihomo"
+        icon={<LuCpu className="text-[20px]" />}
+        expanded={expanded}
+      />
     )
   }
 

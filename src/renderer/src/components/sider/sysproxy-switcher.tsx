@@ -1,7 +1,7 @@
-import { Button, Tooltip, Card } from '@heroui/react'
+import { Button, Card } from '@heroui/react'
 
 import BorderSwitch from '@renderer/components/base/border-swtich'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { useLocation } from 'react-router-dom'
 import { useAppConfig } from '@renderer/hooks/use-app-config'
 import { useControledMihomoConfig } from '@renderer/hooks/use-controled-mihomo-config'
 import { triggerSysProxy } from '@renderer/utils/ipc'
@@ -10,15 +10,16 @@ import React from 'react'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { notify } from '@renderer/utils/notification'
+import SiderItem from './sider-item'
 
 interface Props {
   iconOnly?: boolean
+  expanded?: boolean
 }
 
 const SysproxySwitcher: React.FC<Props> = (props) => {
-  const { iconOnly } = props
+  const { iconOnly, expanded } = props
   const location = useLocation()
-  const navigate = useNavigate()
   const match = location.pathname.includes('/sysproxy')
   const { appConfig, patchAppConfig } = useAppConfig()
   const {
@@ -57,22 +58,20 @@ const SysproxySwitcher: React.FC<Props> = (props) => {
 
   if (iconOnly) {
     return (
-      <div className={`${sysproxyCardStatus} flex justify-center`}>
-        <Tooltip delay={0}>
-          <Button
-            size="sm"
-            isIconOnly
-            onPress={() => {
-              navigate('/sysproxy')
-            }}
-            variant={match ? 'primary' : 'ghost'}
-            data-color={match ? 'primary' : 'default'}
-          >
-            <AiOutlineGlobal className="text-[20px]" />
-          </Button>
-          <Tooltip.Content placement="right">{'系统代理'}</Tooltip.Content>
-        </Tooltip>
-      </div>
+      <SiderItem
+        className={sysproxyCardStatus}
+        title="系统代理"
+        route="/sysproxy"
+        icon={<AiOutlineGlobal className="text-[20px]" />}
+        expanded={expanded}
+      >
+        <BorderSwitch
+          isShowBorder={match && enable}
+          isSelected={!(mode != 'auto' && disabled) && enable}
+          isDisabled={mode == 'manual' && disabled}
+          onValueChange={onChange}
+        />
+      </SiderItem>
     )
   }
 

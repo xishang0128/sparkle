@@ -1,28 +1,29 @@
-import { Button, Tooltip, Card } from '@heroui/react'
+import { Button, Card } from '@heroui/react'
 
 import BorderSwitch from '@renderer/components/base/border-swtich'
 import { RiScan2Fill } from 'react-icons/ri'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { useLocation } from 'react-router-dom'
 import { patchMihomoConfig } from '@renderer/utils/ipc'
 import { useControledMihomoConfig } from '@renderer/hooks/use-controled-mihomo-config'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { useAppConfig } from '@renderer/hooks/use-app-config'
 import React from 'react'
+import SiderItem from './sider-item'
 
 interface Props {
   iconOnly?: boolean
+  expanded?: boolean
 }
 const SniffCard: React.FC<Props> = (props) => {
   const { appConfig } = useAppConfig()
-  const { iconOnly } = props
+  const { iconOnly, expanded } = props
   const {
     sniffCardStatus = 'col-span-1',
     controlSniff = true,
     disableAnimation = false
   } = appConfig || {}
   const location = useLocation()
-  const navigate = useNavigate()
   const match = location.pathname.includes('/sniffer')
   const { controledMihomoConfig, patchControledMihomoConfig } = useControledMihomoConfig()
   const { sniffer } = controledMihomoConfig || {}
@@ -45,22 +46,15 @@ const SniffCard: React.FC<Props> = (props) => {
 
   if (iconOnly) {
     return (
-      <div className={`${sniffCardStatus} ${!controlSniff ? 'hidden' : ''} flex justify-center`}>
-        <Tooltip delay={0}>
-          <Button
-            size="sm"
-            isIconOnly
-            onPress={() => {
-              navigate('/sniffer')
-            }}
-            variant={match ? 'primary' : 'ghost'}
-            data-color={match ? 'primary' : 'default'}
-          >
-            <RiScan2Fill className="text-[20px]" />
-          </Button>
-          <Tooltip.Content placement="right">{'域名嗅探'}</Tooltip.Content>
-        </Tooltip>
-      </div>
+      <SiderItem
+        className={`${sniffCardStatus} ${!controlSniff ? 'hidden' : ''}`}
+        title="域名嗅探"
+        route="/sniffer"
+        icon={<RiScan2Fill className="text-[20px]" />}
+        expanded={expanded}
+      >
+        <BorderSwitch isShowBorder={match && enable} isSelected={enable} onValueChange={onChange} />
+      </SiderItem>
     )
   }
 

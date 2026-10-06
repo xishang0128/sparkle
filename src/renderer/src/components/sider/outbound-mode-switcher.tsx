@@ -6,9 +6,10 @@ import { mihomoCloseConnections, patchMihomoConfig } from '@renderer/utils/ipc'
 
 interface Props {
   iconOnly?: boolean
+  expanded?: boolean
 }
 
-const OutboundModeSwitcher: React.FC<Props> = ({ iconOnly }: Props) => {
+const OutboundModeSwitcher: React.FC<Props> = ({ iconOnly, expanded = false }: Props) => {
   const { controledMihomoConfig, patchControledMihomoConfig } = useControledMihomoConfig()
   const { mutate: mutateGroups } = useGroups()
   const { appConfig } = useAppConfig()
@@ -32,7 +33,8 @@ const OutboundModeSwitcher: React.FC<Props> = ({ iconOnly }: Props) => {
       onSelectionChange={(key) => onChangeMode(key as OutboundMode)}
       data-color="primary"
       data-size="md"
-      data-full-width={!iconOnly}
+      data-full-width
+      className={iconOnly ? 'sider-outbound-modes' : undefined}
     >
       <Tabs.List aria-label="出站模式" className="bg-content1 shadow-medium outbound-mode-card">
         {[
@@ -45,7 +47,16 @@ const OutboundModeSwitcher: React.FC<Props> = ({ iconOnly }: Props) => {
             id={option.id}
             className={mode === option.id ? 'font-bold' : ''}
           >
-            {iconOnly ? option.shortLabel : option.label}
+            {iconOnly ? (
+              <>
+                <span className="sider-mode-icon">{option.shortLabel}</span>
+                <span className="sider-item-label" aria-hidden={!expanded}>
+                  {option.label}
+                </span>
+              </>
+            ) : (
+              option.label
+            )}
             <Tabs.Indicator />
           </Tabs.Tab>
         ))}

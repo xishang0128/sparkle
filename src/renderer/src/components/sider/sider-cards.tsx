@@ -95,9 +95,13 @@ const componentMap = {
 
 interface Props {
   iconOnly?: boolean
+  expanded?: boolean
 }
 
-export default function SiderCards({ iconOnly = false }: Props): React.JSX.Element {
+export default function SiderCards({
+  iconOnly = false,
+  expanded = false
+}: Props): React.JSX.Element {
   const { appConfig, patchAppConfig } = useAppConfig()
   const siderOrder = appConfig?.siderOrder ?? defaultSiderOrder
   const [order, setOrder] = useState(siderOrder)
@@ -168,7 +172,7 @@ export default function SiderCards({ iconOnly = false }: Props): React.JSX.Eleme
   const cards = order.map((key: string) => {
     const Component = componentMap[key]
     if (!Component) return null
-    return <Component key={key} iconOnly={iconOnly} />
+    return <Component key={key} iconOnly={iconOnly} expanded={expanded} />
   })
 
   if (iconOnly) {

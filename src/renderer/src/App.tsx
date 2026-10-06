@@ -1,7 +1,7 @@
 import { Button, Separator } from '@heroui/react'
 
 import { useTheme } from 'next-themes'
-import { lazy, Suspense, useEffect, useRef, useState } from 'react'
+import { lazy, Suspense, useEffect, useRef, useState, type CSSProperties } from 'react'
 import { NavigateFunction, useLocation, useNavigate, useRoutes } from 'react-router-dom'
 import OutboundModeSwitcher from '@renderer/components/sider/outbound-mode-switcher'
 import { IoSettings } from 'react-icons/io5'
@@ -11,12 +11,16 @@ import { applyTheme, checkUpdate, setNativeTheme, setTitleBarOverlay } from '@re
 import { platform } from '@renderer/utils/init'
 import { TitleBarOverlayOptions } from 'electron'
 import MihomoIcon from './components/base/mihomo-icon'
+import SiderItem from './components/sider/sider-item'
 import useSWR from 'swr'
 
 const ConfirmModal = lazy(() => import('@renderer/components/base/base-confirm'))
 const siderCardsPromise = import('@renderer/components/sider/sider-cards')
 const SiderCards = lazy(() => siderCardsPromise)
 const UpdaterButton = lazy(() => import('@renderer/components/updater/updater-button'))
+
+const siderHoverOpenDelay = 1000
+const siderHoverCloseDelay = 400
 
 let navigate: NavigateFunction
 
@@ -38,6 +42,29 @@ const App: React.FC = () => {
   const [resizing, setResizing] = useState(false)
   const resizingRef = useRef(resizing)
   const resizePointerIdRef = useRef<number | null>(null)
+  const [siderHovered, setSiderHovered] = useState(false)
+  const siderHoverTimerRef = useRef<number | undefined>(undefined)
+  const siderPointerInsideRef = useRef(false)
+  const siderCollapsed = siderWidthValue === narrowWidth
+  const siderExpandedOnHover = siderCollapsed && siderHovered && !resizing
+  const displayedSiderWidth = siderExpandedOnHover ? narrowWidth + 120 : siderWidthValue
+
+  const scheduleSiderHover = (expanded: boolean): void => {
+    window.clearTimeout(siderHoverTimerRef.current)
+    siderHoverTimerRef.current = window.setTimeout(
+      () => setSiderHovered(expanded),
+      expanded ? siderHoverOpenDelay : siderHoverCloseDelay
+    )
+  }
+
+  const resetSiderHoverTimer = (): void => {
+    if (!siderCollapsed || resizing) return
+    if (siderPointerInsideRef.current === siderExpandedOnHover) {
+      window.clearTimeout(siderHoverTimerRef.current)
+    } else {
+      scheduleSiderHover(siderPointerInsideRef.current)
+    }
+  }
   const { setTheme, systemTheme } = useTheme()
   navigate = useNavigate()
   const location = useLocation()
@@ -73,6 +100,12 @@ const App: React.FC = () => {
     siderWidthValueRef.current = siderWidthValue
     resizingRef.current = resizing
   }, [siderWidthValue, resizing])
+
+  useEffect(() => {
+    window.clearTimeout(siderHoverTimerRef.current)
+    setSiderHovered(false)
+    return (): void => window.clearTimeout(siderHoverTimerRef.current)
+  }, [siderCollapsed, resizing])
 
   useEffect(() => {
     const tourShown = window.localStorage.getItem('tourShown')
@@ -290,81 +323,121 @@ const App: React.FC = () => {
           />
         )}
       </Suspense>
-      {siderWidthValue === narrowWidth ? (
-        <div style={{ width: `${narrowWidth}px` }} className="side h-full flex flex-col">
-          <div className="app-drag flex shrink-0 justify-center items-center z-40 bg-transparent h-11.25">
-            {platform !== 'darwin' && <MihomoIcon className="h-8 leading-8 text-lg mx-px" />}
-          </div>
-          <Suspense fallback={<div className="min-h-0 flex-1" />}>
-            <SiderCards iconOnly />
-          </Suspense>
-          <div className="px-2 pt-2 pb-4 flex shrink-0 flex-col items-center space-y-2">
-            {latest && latest.version && (
-              <Suspense fallback={null}>
-                <UpdaterButton
-                  iconOnly={true}
-                  latest={latest}
-                  showButtonAfterNotification={showUpdateButtonAfterNotification}
-                />
-              </Suspense>
-            )}
-            <OutboundModeSwitcher iconOnly />
-            <Button
-              size="sm"
-              isIconOnly
-              onPress={() => navigate('/settings')}
-              variant={location.pathname.includes('/settings') ? 'primary' : 'ghost'}
-              data-color={location.pathname.includes('/settings') ? 'primary' : 'default'}
-              className="app-nodrag"
-            >
-              <IoSettings className="text-[20px]" />
-            </Button>
-          </div>
-        </div>
-      ) : (
-        <div
-          style={{ width: `${siderWidthValue}px` }}
-          className="side h-full overflow-y-auto no-scrollbar"
-        >
+      <div
+        style={{ width: siderWidthValue }}
+        className="relative z-20 h-full shrink-0"
+        onPointerEnter={(event) => {
+          if (event.pointerType === 'touch' || !siderCollapsed || resizing) return
+          siderPointerInsideRef.current = true
+          resetSiderHoverTimer()
+        }}
+        onPointerLeave={() => {
+          siderPointerInsideRef.current = false
+          resetSiderHoverTimer()
+        }}
+        onPointerDownCapture={() => {
+          if (siderCollapsed && !resizing) {
+            window.clearTimeout(siderHoverTimerRef.current)
+          }
+        }}
+        onPointerCancelCapture={resetSiderHoverTimer}
+        onClickCapture={resetSiderHoverTimer}
+      >
+        {siderCollapsed ? (
           <div
-            className={`app-drag sticky top-0 z-40 ${disableAnimation ? 'bg-background/95 backdrop-blur-sm' : 'bg-transparent backdrop-blur'} h-12.25`}
+            style={
+              {
+                width: displayedSiderWidth,
+                '--sider-icon-width': `${narrowWidth - 16}px`
+              } as CSSProperties
+            }
+            data-expanded={siderExpandedOnHover}
+            data-animated={!disableAnimation && !resizing}
+            className="side sider-rail absolute inset-y-0 left-0 h-full flex flex-col"
           >
-            <div
-              className={`flex justify-between p-2 ${!useWindowFrame && platform === 'darwin' ? 'ml-16.5' : ''}`}
-            >
-              <div className="flex ml-1">
-                <h3 className="text-lg font-bold leading-8">Sparkle</h3>
+            <div className="app-drag flex shrink-0 items-center z-40 bg-transparent h-11.25">
+              <div style={{ width: narrowWidth }} className="flex shrink-0 justify-center">
+                {platform !== 'darwin' && <MihomoIcon className="h-8 leading-8 text-lg mx-px" />}
               </div>
+              <span
+                className="sider-item-label text-lg font-bold"
+                aria-hidden={!siderExpandedOnHover}
+              >
+                Sparkle
+              </span>
+            </div>
+            <Suspense fallback={<div className="min-h-0 flex-1" />}>
+              <SiderCards iconOnly expanded={siderExpandedOnHover} />
+            </Suspense>
+            <div className="pt-2 pb-4 flex shrink-0 flex-col space-y-2">
               {latest && latest.version && (
                 <Suspense fallback={null}>
-                  <UpdaterButton
-                    latest={latest}
-                    showButtonAfterNotification={showUpdateButtonAfterNotification}
-                  />
+                  <div className="flex justify-center">
+                    <UpdaterButton
+                      iconOnly={true}
+                      latest={latest}
+                      showButtonAfterNotification={showUpdateButtonAfterNotification}
+                    />
+                  </div>
                 </Suspense>
               )}
-              <Button
-                size="sm"
-                isIconOnly
-                onPress={() => {
-                  navigate('/settings')
-                }}
-                variant={location.pathname.includes('/settings') ? 'primary' : 'ghost'}
-                data-color={location.pathname.includes('/settings') ? 'primary' : 'default'}
+              <div className="px-2 flex justify-center">
+                <OutboundModeSwitcher iconOnly expanded={siderExpandedOnHover} />
+              </div>
+              <SiderItem
+                title="设置"
+                route="/settings"
+                icon={<IoSettings className="text-[20px]" />}
+                expanded={siderExpandedOnHover}
                 className="app-nodrag"
-              >
-                <IoSettings className="text-[20px]" />
-              </Button>
+              />
             </div>
           </div>
-          <div className="mt-2 mx-2">
-            <OutboundModeSwitcher />
+        ) : (
+          <div
+            style={{ width: displayedSiderWidth }}
+            className="side h-full overflow-y-auto no-scrollbar"
+          >
+            <div
+              className={`app-drag sticky top-0 z-40 ${disableAnimation ? 'bg-background/95 backdrop-blur-sm' : 'bg-transparent backdrop-blur'} h-12.25`}
+            >
+              <div
+                className={`flex justify-between p-2 ${!useWindowFrame && platform === 'darwin' ? 'ml-16.5' : ''}`}
+              >
+                <div className="flex ml-1">
+                  <h3 className="text-lg font-bold leading-8">Sparkle</h3>
+                </div>
+                {latest && latest.version && (
+                  <Suspense fallback={null}>
+                    <UpdaterButton
+                      latest={latest}
+                      showButtonAfterNotification={showUpdateButtonAfterNotification}
+                    />
+                  </Suspense>
+                )}
+                <Button
+                  size="sm"
+                  isIconOnly
+                  onPress={() => {
+                    navigate('/settings')
+                  }}
+                  variant={location.pathname.includes('/settings') ? 'primary' : 'ghost'}
+                  data-color={location.pathname.includes('/settings') ? 'primary' : 'default'}
+                  className="app-nodrag"
+                >
+                  <IoSettings className="text-[20px]" />
+                </Button>
+              </div>
+            </div>
+            <div className="mt-2 mx-2">
+              <OutboundModeSwitcher />
+            </div>
+            <Suspense fallback={null}>
+              <SiderCards />
+            </Suspense>
           </div>
-          <Suspense fallback={null}>
-            <SiderCards />
-          </Suspense>
-        </div>
-      )}
+        )}
+      </div>
 
       <div
         onPointerDown={(event) => {
@@ -376,13 +449,14 @@ const App: React.FC = () => {
         style={{
           position: 'fixed',
           zIndex: 50,
-          left: `${siderWidthValue - 6}px`,
+          left: `${displayedSiderWidth - 6}px`,
           width: '12px',
           height: '100vh',
           cursor: 'ew-resize',
           touchAction: 'none'
         }}
-        className="group flex justify-center"
+        data-animated={siderCollapsed && !disableAnimation && !resizing}
+        className="sider-resize-handle group flex justify-center"
       >
         <div
           className={`h-full w-0.5 transition-colors ${resizing ? 'bg-primary' : 'bg-transparent group-hover:bg-primary/60'}`}
@@ -391,7 +465,7 @@ const App: React.FC = () => {
       <Separator orientation="vertical" />
       <div
         style={{ width: `calc(100% - ${siderWidthValue + 1}px)` }}
-        className="main grow h-full overflow-y-auto"
+        className="main relative z-0 grow h-full overflow-y-auto"
       >
         <Suspense fallback={null}>{page}</Suspense>
       </div>

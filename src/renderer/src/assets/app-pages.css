@@ -1,4 +1,95 @@
 /* Page layouts and scoped control sizing. Shared controls live in app-controls.css. */
+.sider-rail {
+  isolation: isolate;
+  overflow-x: clip;
+  transition:
+    width 280ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 200ms ease;
+}
+
+.sider-rail[data-expanded='true'] {
+  box-shadow: 4px 0 12px rgb(0 0 0 / 0.06);
+}
+
+.sider-rail::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  /* Image themes may make --background invalid and --surface translucent. */
+  background-color: rgb(from var(--surface, white) r g b / 1);
+  border-right: 1px solid var(--border);
+  opacity: 0;
+  transition: opacity 200ms ease;
+}
+
+.sider-rail[data-expanded='true']::before {
+  opacity: 1;
+}
+
+.sider-item-label {
+  min-width: 0;
+  white-space: nowrap;
+  opacity: 0;
+  transform: translateX(-4px);
+  transition:
+    opacity 180ms ease,
+    transform 240ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.sider-rail[data-expanded='true'] .sider-item-label {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.sider-item-action {
+  width: 0;
+  flex-shrink: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition:
+    width 280ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 180ms ease;
+}
+
+.sider-item[data-expanded='true'] .sider-item-action {
+  width: 56px;
+  opacity: 1;
+}
+
+.sider-outbound-modes .tabs__tab {
+  justify-content: flex-start;
+  gap: 0;
+  padding-inline: 0;
+}
+
+.sider-mode-icon {
+  display: flex;
+  width: calc(var(--sider-icon-width, 44px) - 8px);
+  flex-shrink: 0;
+  justify-content: center;
+}
+
+.sider-resize-handle[data-animated='true'] {
+  transition: left 280ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.sider-rail[data-animated='false'],
+.sider-rail[data-animated='false']::before,
+.sider-rail[data-animated='false'] :is(.sider-item-label, .sider-item-action) {
+  transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sider-rail,
+  .sider-rail::before,
+  .sider-rail :is(.sider-item-label, .sider-item-action),
+  .sider-resize-handle[data-animated='true'] {
+    transition: none;
+  }
+}
+
 .sider-cards > div {
   /* Measure each card's natural height, not the height of its taller neighbour. */
   align-self: start;

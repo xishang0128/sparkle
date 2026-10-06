@@ -1,23 +1,24 @@
-import { Button, Tooltip, Chip, Card } from '@heroui/react'
+import { Button, Chip, Card } from '@heroui/react'
 
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { LuGroup } from 'react-icons/lu'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { useLocation } from 'react-router-dom'
 import { useGroups } from '@renderer/hooks/use-groups'
 import { useAppConfig } from '@renderer/hooks/use-app-config'
 import React from 'react'
+import SiderItem from './sider-item'
 
 interface Props {
   iconOnly?: boolean
+  expanded?: boolean
 }
 
 const ProxyCard: React.FC<Props> = (props) => {
   const { appConfig } = useAppConfig()
-  const { iconOnly } = props
+  const { iconOnly, expanded } = props
   const { proxyCardStatus = 'col-span-2', disableAnimation = false } = appConfig || {}
   const location = useLocation()
-  const navigate = useNavigate()
   const match = location.pathname.includes('/proxies')
   const { groups = [] } = useGroups()
   const {
@@ -34,22 +35,13 @@ const ProxyCard: React.FC<Props> = (props) => {
 
   if (iconOnly) {
     return (
-      <div className={`${proxyCardStatus} flex justify-center`}>
-        <Tooltip delay={0}>
-          <Button
-            size="sm"
-            isIconOnly
-            onPress={() => {
-              navigate('/proxies')
-            }}
-            variant={match ? 'primary' : 'ghost'}
-            data-color={match ? 'primary' : 'default'}
-          >
-            <LuGroup className="text-[20px]" />
-          </Button>
-          <Tooltip.Content placement="right">{'代理组'}</Tooltip.Content>
-        </Tooltip>
-      </div>
+      <SiderItem
+        className={proxyCardStatus}
+        title="代理组"
+        route="/proxies"
+        icon={<LuGroup className="text-[20px]" />}
+        expanded={expanded}
+      />
     )
   }
   return (

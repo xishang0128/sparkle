@@ -1,23 +1,24 @@
-import { Button, Tooltip, Card } from '@heroui/react'
+import { Button, Card } from '@heroui/react'
 
 import { useControledMihomoConfig } from '@renderer/hooks/use-controled-mihomo-config'
 import BorderSwitch from '@renderer/components/base/border-swtich'
 import { TbDeviceIpadHorizontalBolt } from 'react-icons/tb'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { useLocation } from 'react-router-dom'
 import { restartCore } from '@renderer/utils/ipc'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import React from 'react'
 import { useAppConfig } from '@renderer/hooks/use-app-config'
+import SiderItem from './sider-item'
 
 interface Props {
   iconOnly?: boolean
+  expanded?: boolean
 }
 
 const TunSwitcher: React.FC<Props> = (props) => {
-  const { iconOnly } = props
+  const { iconOnly, expanded } = props
   const location = useLocation()
-  const navigate = useNavigate()
   const match = location.pathname.includes('/tun') || false
   const { appConfig } = useAppConfig()
   const { tunCardStatus = 'col-span-1', disableAnimation = false } = appConfig || {}
@@ -48,22 +49,15 @@ const TunSwitcher: React.FC<Props> = (props) => {
 
   if (iconOnly) {
     return (
-      <div className={`${tunCardStatus} flex justify-center`}>
-        <Tooltip delay={0}>
-          <Button
-            size="sm"
-            isIconOnly
-            onPress={() => {
-              navigate('/tun')
-            }}
-            variant={match ? 'primary' : 'ghost'}
-            data-color={match ? 'primary' : 'default'}
-          >
-            <TbDeviceIpadHorizontalBolt className="text-[20px]" />
-          </Button>
-          <Tooltip.Content placement="right">{'虚拟网卡'}</Tooltip.Content>
-        </Tooltip>
-      </div>
+      <SiderItem
+        className={tunCardStatus}
+        title="虚拟网卡"
+        route="/tun"
+        icon={<TbDeviceIpadHorizontalBolt className="text-[20px]" />}
+        expanded={expanded}
+      >
+        <BorderSwitch isShowBorder={match && enable} isSelected={enable} onValueChange={onChange} />
+      </SiderItem>
     )
   }
 

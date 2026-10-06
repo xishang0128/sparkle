@@ -1,28 +1,29 @@
-import { Button, Tooltip, Card } from '@heroui/react'
+import { Button, Card } from '@heroui/react'
 
 import { useControledMihomoConfig } from '@renderer/hooks/use-controled-mihomo-config'
 import BorderSwitch from '@renderer/components/base/border-swtich'
 import { LuServer } from 'react-icons/lu'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { useLocation } from 'react-router-dom'
 import { patchMihomoConfig } from '@renderer/utils/ipc'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { useAppConfig } from '@renderer/hooks/use-app-config'
 import React from 'react'
+import SiderItem from './sider-item'
 
 interface Props {
   iconOnly?: boolean
+  expanded?: boolean
 }
 const DNSCard: React.FC<Props> = (props) => {
   const { appConfig } = useAppConfig()
-  const { iconOnly } = props
+  const { iconOnly, expanded } = props
   const {
     dnsCardStatus = 'col-span-1',
     controlDns = true,
     disableAnimation = false
   } = appConfig || {}
   const location = useLocation()
-  const navigate = useNavigate()
   const match = location.pathname.includes('/dns')
   const { controledMihomoConfig, patchControledMihomoConfig } = useControledMihomoConfig()
   const { dns, tun } = controledMihomoConfig || {}
@@ -45,22 +46,20 @@ const DNSCard: React.FC<Props> = (props) => {
 
   if (iconOnly) {
     return (
-      <div className={`${dnsCardStatus} ${!controlDns ? 'hidden' : ''} flex justify-center`}>
-        <Tooltip delay={0}>
-          <Button
-            size="sm"
-            isIconOnly
-            onPress={() => {
-              navigate('/dns')
-            }}
-            variant={match ? 'primary' : 'ghost'}
-            data-color={match ? 'primary' : 'default'}
-          >
-            <LuServer className="text-[20px]" />
-          </Button>
-          <Tooltip.Content placement="right">{'DNS'}</Tooltip.Content>
-        </Tooltip>
-      </div>
+      <SiderItem
+        className={`${dnsCardStatus} ${!controlDns ? 'hidden' : ''}`}
+        title="DNS"
+        route="/dns"
+        icon={<LuServer className="text-[20px]" />}
+        expanded={expanded}
+      >
+        <BorderSwitch
+          isShowBorder={match && enable}
+          isSelected={enable}
+          isDisabled={tun?.enable}
+          onValueChange={onChange}
+        />
+      </SiderItem>
     )
   }
 

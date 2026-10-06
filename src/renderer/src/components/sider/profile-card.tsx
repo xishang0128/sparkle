@@ -1,7 +1,7 @@
 import { Button, Tooltip, Card, Chip, Meter } from '@heroui/react'
 
 import { useProfileConfig } from '@renderer/hooks/use-profile-config'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { useLocation } from 'react-router-dom'
 import { calcTraffic } from '@renderer/utils/calc'
 import { CgLoadbarDoc } from 'react-icons/cg'
 import { IoMdRefresh } from 'react-icons/io'
@@ -14,24 +14,25 @@ import React, { useState } from 'react'
 import ConfigViewer from './config-viewer'
 import { useAppConfig } from '@renderer/hooks/use-app-config'
 import { TiFolder } from 'react-icons/ti'
+import SiderItem from './sider-item'
 
 dayjs.extend(relativeTime)
 dayjs.locale('zh-cn')
 
 interface Props {
   iconOnly?: boolean
+  expanded?: boolean
 }
 
 const ProfileCard: React.FC<Props> = (props) => {
   const { appConfig, patchAppConfig } = useAppConfig()
-  const { iconOnly } = props
+  const { iconOnly, expanded } = props
   const {
     profileCardStatus = 'col-span-2',
     profileDisplayDate = 'expire',
     disableAnimation = false
   } = appConfig || {}
   const location = useLocation()
-  const navigate = useNavigate()
   const match = location.pathname.includes('/profiles')
   const [updating, setUpdating] = useState(false)
   const [showRuntimeConfig, setShowRuntimeConfig] = useState(false)
@@ -60,22 +61,13 @@ const ProfileCard: React.FC<Props> = (props) => {
 
   if (iconOnly) {
     return (
-      <div className={`${profileCardStatus} flex justify-center`}>
-        <Tooltip delay={0}>
-          <Button
-            size="sm"
-            isIconOnly
-            onPress={() => {
-              navigate('/profiles')
-            }}
-            variant={match ? 'primary' : 'ghost'}
-            data-color={match ? 'primary' : 'default'}
-          >
-            <TiFolder className="text-[20px]" />
-          </Button>
-          <Tooltip.Content placement="right">{'订阅管理'}</Tooltip.Content>
-        </Tooltip>
-      </div>
+      <SiderItem
+        className={profileCardStatus}
+        title="订阅管理"
+        route="/profiles"
+        icon={<TiFolder className="text-[20px]" />}
+        expanded={expanded}
+      />
     )
   }
 

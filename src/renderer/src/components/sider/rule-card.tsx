@@ -1,23 +1,24 @@
-import { Button, Tooltip, Chip, Card } from '@heroui/react'
+import { Button, Chip, Card } from '@heroui/react'
 
 import { MdOutlineAltRoute } from 'react-icons/md'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { useLocation } from 'react-router-dom'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { useRules } from '@renderer/hooks/use-rules'
 import { useAppConfig } from '@renderer/hooks/use-app-config'
 import React from 'react'
+import SiderItem from './sider-item'
 
 interface Props {
   iconOnly?: boolean
+  expanded?: boolean
 }
 
 const RuleCard: React.FC<Props> = (props) => {
   const { appConfig } = useAppConfig()
-  const { iconOnly } = props
+  const { iconOnly, expanded } = props
   const { ruleCardStatus = 'col-span-1', disableAnimation = false } = appConfig || {}
   const location = useLocation()
-  const navigate = useNavigate()
   const match = location.pathname.includes('/rules')
   const { rules } = useRules()
   const {
@@ -34,22 +35,13 @@ const RuleCard: React.FC<Props> = (props) => {
 
   if (iconOnly) {
     return (
-      <div className={`${ruleCardStatus} flex justify-center`}>
-        <Tooltip delay={0}>
-          <Button
-            size="sm"
-            isIconOnly
-            onPress={() => {
-              navigate('/rules')
-            }}
-            variant={match ? 'primary' : 'ghost'}
-            data-color={match ? 'primary' : 'default'}
-          >
-            <MdOutlineAltRoute className="text-[20px]" />
-          </Button>
-          <Tooltip.Content placement="right">{'规则'}</Tooltip.Content>
-        </Tooltip>
-      </div>
+      <SiderItem
+        className={ruleCardStatus}
+        title="规则"
+        route="/rules"
+        icon={<MdOutlineAltRoute className="text-[20px]" />}
+        expanded={expanded}
+      />
     )
   }
   return (

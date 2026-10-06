@@ -1,26 +1,27 @@
-import { Button, Tooltip, Card } from '@heroui/react'
+import { Button, Card } from '@heroui/react'
 
-import { useLocation, useNavigate } from 'react-router-dom'
+import { useLocation } from 'react-router-dom'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import SubStoreIcon from '../base/substore-icon'
 import { useAppConfig } from '@renderer/hooks/use-app-config'
 import React from 'react'
+import SiderItem from './sider-item'
 
 interface Props {
   iconOnly?: boolean
+  expanded?: boolean
 }
 
 const SubStoreCard: React.FC<Props> = (props) => {
   const { appConfig } = useAppConfig()
-  const { iconOnly } = props
+  const { iconOnly, expanded } = props
   const {
     substoreCardStatus = 'col-span-1',
     useSubStore = true,
     disableAnimation = false
   } = appConfig || {}
   const location = useLocation()
-  const navigate = useNavigate()
   const match = location.pathname.includes('/substore')
   const {
     attributes,
@@ -36,22 +37,13 @@ const SubStoreCard: React.FC<Props> = (props) => {
 
   if (iconOnly) {
     return (
-      <div className={`${substoreCardStatus} ${!useSubStore ? 'hidden' : ''} flex justify-center`}>
-        <Tooltip delay={0}>
-          <Button
-            size="sm"
-            isIconOnly
-            onPress={() => {
-              navigate('/substore')
-            }}
-            variant={match ? 'primary' : 'ghost'}
-            data-color={match ? 'primary' : 'default'}
-          >
-            <SubStoreIcon className="text-[20px]" />
-          </Button>
-          <Tooltip.Content placement="right">{'Sub-Store'}</Tooltip.Content>
-        </Tooltip>
-      </div>
+      <SiderItem
+        className={`${substoreCardStatus} ${!useSubStore ? 'hidden' : ''}`}
+        title="Sub-Store"
+        route="/substore"
+        icon={<SubStoreIcon className="text-[20px]" />}
+        expanded={expanded}
+      />
     )
   }
 
