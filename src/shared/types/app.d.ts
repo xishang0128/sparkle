@@ -33,6 +33,7 @@ interface IHost {
 }
 
 interface AppConfig {
+  webhook?: WebhookConfig
   updateChannel: AppUpdateChannel
   notificationMode?: AppNotificationMode
   showUpdateButtonAfterNotification?: boolean

@@ -124,6 +124,10 @@ export async function getAppConfig(force = false): Promise<AppConfig> {
   return ipcErrorWrapper(await window.electron.ipcRenderer.invoke('getAppConfig', force))
 }
 
+export async function testWebhook(config: WebhookTarget): Promise<void> {
+  return ipcErrorWrapper(await window.electron.ipcRenderer.invoke('testWebhook', config))
+}
+
 export async function getCachedMihomoLogs(): Promise<
   Array<ControllerLog & { id?: string; seq?: number }>
 > {

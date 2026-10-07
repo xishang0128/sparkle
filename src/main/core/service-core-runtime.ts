@@ -27,6 +27,7 @@ import {
 import { shouldSkipServiceUnavailableFallback } from '../service/fallback'
 import { appendAppLog, setMihomoLogSource } from '../utils/log'
 import { showNotification } from '../utils/notification'
+import { emitWebhook, notifyCoreStarted, notifyCoreStopped } from '../resolve/webhook'
 
 interface ServiceCoreRuntimeOptions {
   notifyCoreLog: (source: ServiceCoreEvent) => void
@@ -237,6 +238,7 @@ export function createServiceCoreRuntime(options: ServiceCoreRuntimeOptions) {
 
     switch (event.type) {
       case 'started':
+        if (event.running) notifyCoreStarted('service', event.pid)
         serviceCoreState.autoResumePaused = false
         serviceCoreState.managed = true
         await getAxios(true).catch(() => {})
@@ -250,6 +252,7 @@ export function createServiceCoreRuntime(options: ServiceCoreRuntimeOptions) {
         break
       case 'takeover':
       case 'ready':
+        if (event.running) notifyCoreStarted('service', event.pid)
         serviceCoreState.autoResumePaused = false
         serviceCoreState.managed = true
         await getAxios(true).catch(() => {})
@@ -262,6 +265,16 @@ export function createServiceCoreRuntime(options: ServiceCoreRuntimeOptions) {
       case 'exited':
       case 'failed':
       case 'restart_failed':
+        if (event.type === 'exited') {
+          notifyCoreStopped('service', event.old_pid ?? event.pid, 'exited')
+        } else {
+          emitWebhook(
+            'lifecycle',
+            'core.failed',
+            { mode: 'service', reason: event.type },
+            'failure'
+          )
+        }
         clearStreams()
         setMihomoLogSource('out')
         mainWindow?.webContents.send('core-stopped', event)
@@ -273,6 +286,7 @@ export function createServiceCoreRuntime(options: ServiceCoreRuntimeOptions) {
         }
         break
       case 'stopped':
+        notifyCoreStopped('service', event.old_pid ?? event.pid)
         serviceCoreState.autoResumePaused = true
         serviceCoreState.managed = false
         serviceCoreState.streamsActive = false
