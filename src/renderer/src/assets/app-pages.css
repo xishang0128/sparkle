@@ -17,11 +17,11 @@
   inset: 0;
   z-index: -1;
   pointer-events: none;
-  /* Image themes may make --background invalid and --surface translucent. */
-  background-color: rgb(from var(--surface, white) r g b / 1);
+  background-color: var(--surface);
+  backdrop-filter: blur(var(--blur-lg, 16px));
   border-right: 1px solid var(--border);
   opacity: 0;
-  transition: opacity 200ms ease;
+  transition: opacity 280ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .sider-rail[data-expanded='true']::before {
