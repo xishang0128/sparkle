@@ -128,6 +128,8 @@ jobs:
     if: needs.prepare.outputs.should_release == 'true'
     needs: [prepare, build]
     runs-on: ubuntu-latest
+    outputs:
+      commit_sha: ${{ steps.update.outputs.commit_sha }}
     steps:
       - name: Checkout Default Branch
         uses: actions/checkout@v6
@@ -135,6 +137,7 @@ jobs:
           ref: ${{ github.event.repository.default_branch }}
 
       - name: Update Version
+        id: update
         env:
           DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
           RELEASE_VERSION: ${{ needs.prepare.outputs.version }}
@@ -142,6 +145,7 @@ jobs:
         run: |
           jq --arg version "$RELEASE_VERSION" '.version = $version' package.json > tmp.json && mv tmp.json package.json
           if git diff --quiet -- package.json; then
+            echo "commit_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
@@ -150,6 +154,7 @@ jobs:
           git add package.json
           git commit -m "update version to $RELEASE_VERSION"
           git push origin "HEAD:$DEFAULT_BRANCH"
+          echo "commit_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
   publish:
     if: needs.prepare.outputs.should_release == 'true'
@@ -261,7 +266,7 @@ jobs:
         with:
           tag_name: ${{ needs.prepare.outputs.tag }}
           name: ${{ needs.prepare.outputs.version }}
-          target_commitish: ${{ github.sha }}
+          target_commitish: ${{ needs.update-version.outputs.commit_sha }}
           body_path: changelog.md
           files: |
             latest.yml
