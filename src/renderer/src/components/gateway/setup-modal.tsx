@@ -381,7 +381,7 @@ export default function GatewaySetup({
                             isIPv6
                           )}
                           <p className="text-xs text-default-500">
-                            定向宣告留空时向局域网发送 RA。是否经过本机，以实际观察到的流量为准。
+                            IPv6 RA 仅发送给已开启接管的设备。
                           </p>
                         </>
                       )}

@@ -1,7 +1,7 @@
 import { useLayoutEffect, type ReactNode } from 'react'
 import { Navigate } from 'react-router-dom'
 import { markInitialContentPartReady } from '@renderer/utils/startup'
-import { platform } from '@renderer/utils/init'
+import { supportsGateway } from '@renderer/utils/init'
 import {
   Connections,
   DNS,
@@ -36,7 +36,7 @@ function startupRoute(element: ReactNode): ReactNode {
 const routes = [
   {
     path: '/gateway',
-    element: startupRoute(platform === 'linux' ? <Gateway /> : <Navigate to="/proxies" replace />)
+    element: startupRoute(supportsGateway ? <Gateway /> : <Navigate to="/proxies" replace />)
   },
   {
     path: '/mihomo',

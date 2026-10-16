@@ -15,6 +15,7 @@ import { getVersion } from './ipc'
 // }
 
 export const platform: NodeJS.Platform = window.api.platform
+export const supportsGateway = platform === 'linux' || platform === 'darwin'
 export let version: string = ''
 
 export async function init(): Promise<void> {

@@ -16,7 +16,7 @@ import DNSCard from './dns-card'
 import LogCard from './log-card'
 import MihomoCoreCard from './mihomo-core-card'
 import GatewayCard from './gateway-card'
-import { platform } from '@renderer/utils/init'
+import { supportsGateway } from '@renderer/utils/init'
 import OverrideCard from './override-card'
 import ProfileCard from './profile-card'
 import ProxyCard from './proxy-card'
@@ -109,9 +109,9 @@ export default function SiderCards({
   const { appConfig, patchAppConfig } = useAppConfig()
   const siderOrder = useMemo(() => {
     const saved = appConfig?.siderOrder ?? defaultSiderOrder
-    return platform === 'linux' && !saved.includes('gateway')
+    return supportsGateway && !saved.includes('gateway')
       ? [...saved, 'gateway']
-      : saved.filter((key) => key !== 'gateway' || platform === 'linux')
+      : saved.filter((key) => key !== 'gateway' || supportsGateway)
   }, [appConfig?.siderOrder])
   const [order, setOrder] = useState(siderOrder)
   const gridRef = useRef<HTMLDivElement>(null)

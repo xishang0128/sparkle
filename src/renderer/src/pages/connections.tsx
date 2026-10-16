@@ -26,7 +26,7 @@ import { includesIgnoreCase } from '@renderer/utils/includes'
 import { getIconDataURL, getAppName } from '@renderer/utils/ipc'
 import { HiSortAscending, HiSortDescending } from 'react-icons/hi'
 import { cropAndPadTransparent } from '@renderer/utils/image'
-import { platform } from '@renderer/utils/init'
+import { platform, supportsGateway } from '@renderer/utils/init'
 import { useControledMihomoConfig } from '@renderer/hooks/use-controled-mihomo-config'
 import { MdTune } from 'react-icons/md'
 import { IoPause, IoPlay } from 'react-icons/io5'
@@ -41,14 +41,10 @@ import {
 let cachedConnections: ControllerConnectionDetail[] = []
 
 const Connections: React.FC = () => {
-  const { data: gateway } = useSWR(
-    platform === 'linux' ? 'lantern-status' : null,
-    getLanternStatus,
-    {
-      refreshInterval: 5000,
-      shouldRetryOnError: false
-    }
-  )
+  const { data: gateway } = useSWR(supportsGateway ? 'lantern-status' : null, getLanternStatus, {
+    refreshInterval: 5000,
+    shouldRetryOnError: false
+  })
   const deviceNames = useMemo(() => gatewayDeviceNames(gateway), [gateway])
   const { controledMihomoConfig } = useControledMihomoConfig()
   const { 'find-process-mode': findProcessMode = 'always' } = controledMihomoConfig || {}

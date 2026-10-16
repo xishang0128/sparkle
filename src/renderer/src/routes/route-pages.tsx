@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { onInitialContentReady } from '@renderer/utils/startup'
-import { platform } from '@renderer/utils/init'
+import { supportsGateway } from '@renderer/utils/init'
 import { createPreloadablePage } from './preloadable-page'
 
 const OverridePage = createPreloadablePage(() => import('@renderer/pages/override'))
@@ -43,7 +43,7 @@ const remainingPageLoaders: Array<() => Promise<unknown>> = [
   ConnectionsPage.preload,
   RulesPage.preload,
   MihomoPage.preload,
-  ...(platform === 'linux' ? [GatewayPage.preload] : []),
+  ...(supportsGateway ? [GatewayPage.preload] : []),
   SysproxyPage.preload,
   TunPage.preload,
   DNSPage.preload,
