@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState, type MouseEvent } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type MouseEvent } from 'react'
 import {
   closestCenter,
   DndContext,
@@ -15,6 +15,8 @@ import ConnCard from './conn-card'
 import DNSCard from './dns-card'
 import LogCard from './log-card'
 import MihomoCoreCard from './mihomo-core-card'
+import GatewayCard from './gateway-card'
+import { platform } from '@renderer/utils/init'
 import OverrideCard from './override-card'
 import ProfileCard from './profile-card'
 import ProxyCard from './proxy-card'
@@ -63,6 +65,7 @@ const siderCardRouteMap = {
   'profile-card': '/profiles',
   'proxy-card': '/proxies',
   'mihomo-core-card': '/mihomo',
+  'gateway-card': '/gateway',
   'conn-card': '/connections',
   'dns-card': '/dns',
   'sniff-card': '/sniffer',
@@ -83,6 +86,7 @@ const componentMap = {
   profile: ProfileCard,
   proxy: ProxyCard,
   mihomo: MihomoCoreCard,
+  gateway: GatewayCard,
   connection: ConnCard,
   dns: DNSCard,
   sniff: SniffCard,
@@ -103,7 +107,12 @@ export default function SiderCards({
   expanded = false
 }: Props): React.JSX.Element {
   const { appConfig, patchAppConfig } = useAppConfig()
-  const siderOrder = appConfig?.siderOrder ?? defaultSiderOrder
+  const siderOrder = useMemo(() => {
+    const saved = appConfig?.siderOrder ?? defaultSiderOrder
+    return platform === 'linux' && !saved.includes('gateway')
+      ? [...saved, 'gateway']
+      : saved.filter((key) => key !== 'gateway' || platform === 'linux')
+  }, [appConfig?.siderOrder])
   const [order, setOrder] = useState(siderOrder)
   const gridRef = useRef<HTMLDivElement>(null)
   const suppressClickRef = useRef(false)

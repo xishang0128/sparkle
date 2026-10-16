@@ -1,3 +1,5 @@
+import { deviceAddressKey } from '@renderer/utils/gateway-devices'
+
 export type ConnectionGroupSort =
   'name' | 'count' | 'upload' | 'download' | 'uploadSpeed' | 'downloadSpeed'
 
@@ -23,7 +25,8 @@ export function groupKey(conn: ControllerConnectionDetail): string {
 export function buildConnectionGroups(
   connections: ControllerConnectionDetail[],
   sort: ConnectionGroupSort,
-  asc: boolean
+  asc: boolean,
+  deviceNames?: ReadonlyMap<string, string>
 ): ConnectionGroup[] {
   const groups = new Map<string, ConnectionGroup>()
 
@@ -34,7 +37,11 @@ export function buildConnectionGroups(
     if (!group) {
       group = {
         key,
-        label: process !== '' ? process : conn.metadata.sourceIP || '',
+        label:
+          process ||
+          deviceNames?.get(deviceAddressKey(conn.metadata.sourceIP || '')) ||
+          conn.metadata.sourceIP ||
+          '',
         process,
         processPath: conn.metadata.processPath || '',
         sourceIP: conn.metadata.sourceIP || '',

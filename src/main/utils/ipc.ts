@@ -92,7 +92,17 @@ import {
   testServiceConnection,
   restartService
 } from '../service/manager'
-import { patchCoreProfile } from '../service/api'
+import {
+  patchCoreProfile,
+  getLanternStatus,
+  getLanternInterfaces,
+  startLantern,
+  stopLantern,
+  configureLantern,
+  probeLanternDHCP,
+  resumeLanternDHCP,
+  setLanternGatewayDevices
+} from '../service/api'
 import { coreLogPath, findSystemMihomo, logDir } from './dirs'
 import { systemCoreOnlyBuild } from '../../shared/build-flags'
 import {
@@ -345,6 +355,18 @@ export function registerIpcMainHandlers(): void {
   }
   handle('serviceStatus', () => ipcErrorWrapper(serviceStatus)())
   handle('testServiceConnection', () => ipcErrorWrapper(testServiceConnection)())
+  handle('getLanternStatus', () => ipcErrorWrapper(getLanternStatus)())
+  handle('getLanternInterfaces', () => ipcErrorWrapper(getLanternInterfaces)())
+  handle('startLantern', (_e, options: LanternOptions) => ipcErrorWrapper(startLantern)(options))
+  handle('stopLantern', () => ipcErrorWrapper(stopLantern)())
+  handle('configureLantern', (_e, options: LanternOptions) =>
+    ipcErrorWrapper(configureLantern)(options)
+  )
+  handle('probeLanternDHCP', (_e, name: string) => ipcErrorWrapper(probeLanternDHCP)(name))
+  handle('resumeLanternDHCP', () => ipcErrorWrapper(resumeLanternDHCP)())
+  handle('setLanternGatewayDevices', (_e, macs: string[]) =>
+    ipcErrorWrapper(setLanternGatewayDevices)(macs)
+  )
   handle('initService', () => ipcErrorWrapper(initService)())
   handle('installService', () => ipcErrorWrapper(installService)())
   handle('uninstallService', () => ipcErrorWrapper(uninstallService)())

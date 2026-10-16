@@ -17,6 +17,7 @@ import { BiCopy } from 'react-icons/bi'
 
 interface Props {
   connection: ControllerConnectionDetail
+  deviceName?: string
   onClose: () => void
 }
 
@@ -107,7 +108,7 @@ function buildCopyMenuItems(value: string | string[], displayName?: string, pref
   ]
 }
 
-const ConnectionDetailModal = ({ connection, onClose }: Props) => {
+const ConnectionDetailModal = ({ connection, deviceName, onClose }: Props) => {
   const [viewMode, setViewMode] = useState<'detail' | 'raw'>('detail')
   const rawJson = useMemo(() => JSON.stringify(connection, null, 2), [connection])
 
@@ -196,6 +197,7 @@ const ConnectionDetailModal = ({ connection, onClose }: Props) => {
   }
 
   const rows: Array<StaticRow | CopyRow> = [
+    ...(deviceName ? [{ kind: 'static' as const, title: '来源设备', content: deviceName }] : []),
     { kind: 'static', title: '连接建立时间', content: dayjs(connection.start).fromNow() },
     {
       kind: 'static',

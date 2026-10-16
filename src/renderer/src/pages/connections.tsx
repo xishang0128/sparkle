@@ -1,7 +1,13 @@
 import { Button, Badge, Tooltip, Separator, Select, Tabs, ListBox, InputGroup } from '@heroui/react'
 
 import BasePage from '@renderer/components/base/base-page'
-import { mihomoCloseConnections, mihomoCloseConnection } from '@renderer/utils/ipc'
+import {
+  getLanternStatus,
+  mihomoCloseConnections,
+  mihomoCloseConnection
+} from '@renderer/utils/ipc'
+import { deviceAddressKey, gatewayDeviceNames } from '@renderer/utils/gateway-devices'
+import useSWR from 'swr'
 import React, { Key, KeyboardEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { flushSync } from 'react-dom'
 import { calcTraffic } from '@renderer/utils/calc'
@@ -35,6 +41,15 @@ import {
 let cachedConnections: ControllerConnectionDetail[] = []
 
 const Connections: React.FC = () => {
+  const { data: gateway } = useSWR(
+    platform === 'linux' ? 'lantern-status' : null,
+    getLanternStatus,
+    {
+      refreshInterval: 5000,
+      shouldRetryOnError: false
+    }
+  )
+  const deviceNames = useMemo(() => gatewayDeviceNames(gateway), [gateway])
   const { controledMihomoConfig } = useControledMihomoConfig()
   const { 'find-process-mode': findProcessMode = 'always' } = controledMihomoConfig || {}
   const [filter, setFilter] = useState('')
@@ -101,6 +116,7 @@ const Connections: React.FC = () => {
     () =>
       compileAdvancedFilter(filter, (connection: ControllerConnectionDetail, query: string) => {
         const searchableFields = [
+          deviceNames.get(deviceAddressKey(connection.metadata.sourceIP || '')),
           connection.metadata.process,
           connection.metadata.host,
           connection.metadata.destinationIP,
@@ -114,7 +130,7 @@ const Connections: React.FC = () => {
 
         return includesIgnoreCase(searchableFields, query)
       }),
-    [filter]
+    [filter, deviceNames]
   )
   const filterSuggestions = useMemo(
     () => getEnhancedConnectionFilterSuggestions(filter, filterCursor),
@@ -162,7 +178,15 @@ const Connections: React.FC = () => {
           break
         case 'process':
           comparator = (a, b) =>
-            (a.metadata.process || '').localeCompare(b.metadata.process || '') * dir
+            (
+              deviceNames.get(deviceAddressKey(a.metadata.sourceIP || '')) ||
+              a.metadata.process ||
+              ''
+            ).localeCompare(
+              deviceNames.get(deviceAddressKey(b.metadata.sourceIP || '')) ||
+                b.metadata.process ||
+                ''
+            ) * dir
           break
         default:
           return filtered
@@ -176,6 +200,7 @@ const Connections: React.FC = () => {
     closedConnections,
     filter,
     compiledFilter,
+    deviceNames,
     connectionDirection,
     connectionOrderBy,
     tab
@@ -188,9 +213,10 @@ const Connections: React.FC = () => {
     return buildConnectionGroups(
       filteredConnections,
       connectionGroupSort,
-      connectionGroupDirection === 'asc'
+      connectionGroupDirection === 'asc',
+      deviceNames
     )
-  }, [grouped, filteredConnections, connectionGroupSort, connectionGroupDirection])
+  }, [grouped, filteredConnections, connectionGroupSort, connectionGroupDirection, deviceNames])
 
   const { groupCounts, flatMembers, flatMemberLocalIndex } = useMemo(() => {
     const counts: number[] = []
@@ -741,9 +767,10 @@ const Connections: React.FC = () => {
       const iconUrl = (displayIcon && findProcessMode !== 'off' && iconMap[path]) || ''
       const itemKey = i === 0 ? `${connection.id}-${firstItemRefreshTrigger}` : connection.id
       const displayName =
-        displayAppName && connection.metadata.processPath
+        deviceNames.get(deviceAddressKey(connection.metadata.sourceIP || '')) ||
+        (displayAppName && connection.metadata.processPath
           ? appNameCache[connection.metadata.processPath]
-          : undefined
+          : undefined)
 
       return (
         <ConnectionItem
@@ -767,6 +794,7 @@ const Connections: React.FC = () => {
       selected,
       closeConnection,
       appNameCache,
+      deviceNames,
       findProcessMode,
       displayAppName
     ]
@@ -951,7 +979,11 @@ const Connections: React.FC = () => {
       }
     >
       {isDetailModalOpen && selected && (
-        <ConnectionDetailModal onClose={() => setIsDetailModalOpen(false)} connection={selected} />
+        <ConnectionDetailModal
+          onClose={() => setIsDetailModalOpen(false)}
+          connection={selected}
+          deviceName={deviceNames.get(deviceAddressKey(selected.metadata.sourceIP || ''))}
+        />
       )}
       {isSettingDrawerOpen && (
         <ConnectionSettingDrawer
