@@ -1,7 +1,15 @@
 import { servicePath } from '../utils/dirs'
 import { execWithElevation } from '../utils/elevation'
 import { KeyManager, type KeyPair, computeKeyId } from './key'
-import { initServiceAPI, getServiceAxios, ping, test, ServiceAPIError } from './api'
+import {
+  initServiceAPI,
+  getServiceAxios,
+  getCoreStatus,
+  restartCore as restartServiceCore,
+  ping,
+  test,
+  ServiceAPIError
+} from './api'
 import { getAppConfig, patchAppConfig } from '../config/app'
 import { execFile } from 'child_process'
 import { promisify } from 'util'
@@ -329,6 +337,13 @@ export async function stopService(): Promise<void> {
 
 export async function restartService(): Promise<void> {
   const execPath = servicePath()
+  const { corePermissionMode } = await getAppConfig()
+  const restartManagedCore =
+    corePermissionMode === 'service' &&
+    (await getCoreStatus().then(
+      () => true,
+      () => false
+    ))
 
   try {
     await execWithElevation(execPath, ['service', 'restart'])
@@ -337,6 +352,11 @@ export async function restartService(): Promise<void> {
       throw new UserCancelledError()
     }
     throw new Error(`服务重启失败：${serviceCommandErrorMessage(error)}`)
+  }
+
+  if (restartManagedCore) {
+    await waitForServiceReady()
+    await restartServiceCore()
   }
 }
 
