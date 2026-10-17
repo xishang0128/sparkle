@@ -161,7 +161,7 @@ export default function Gateway(): React.JSX.Element {
         {data && !data.supported && (
           <p className="mb-3 text-xs text-warning">当前平台暂不支持网关模式</p>
         )}
-        {messages.length > 0 && (
+        {gateway && messages.length > 0 && (
           <Surface variant="transparent" className="mb-3 space-y-1 text-xs text-warning">
             {messages.map((message) => (
               <p key={message} className="wrap-break-word">
