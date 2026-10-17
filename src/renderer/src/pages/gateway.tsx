@@ -95,12 +95,18 @@ export default function Gateway(): React.JSX.Element {
     new Set(
       [
         ...(data?.status.problems || []),
-        data?.status.ra.suspended_reason,
-        data?.status.ra.last_error,
-        data?.status.dhcp.paused_reason,
-        data?.status.dhcp.last_error
+        ...[data?.status.ra.suspended_reason, data?.status.ra.last_error]
+          .filter(Boolean)
+          .map((message) => `RA: ${message}`),
+        ...[data?.status.dhcp.paused_reason, data?.status.dhcp.last_error]
+          .filter(Boolean)
+          .map((message) => `DHCP: ${message}`)
       ].filter(Boolean)
     )
+  ).map((message) =>
+    message === 'RA: waiting for RA from selected physical upstream'
+      ? 'IPv6：等待所选主路由的路由宣告'
+      : message
   )
 
   return (
