@@ -1,4 +1,5 @@
 import AdmZip from 'adm-zip'
+import extract from 'extract-zip'
 import fs from 'fs'
 import os from 'os'
 import path from 'path'
@@ -93,8 +94,12 @@ async function main(): Promise<void> {
   fs.rmSync(distPath, { recursive: true, force: true })
   fs.mkdirSync(distPath, { recursive: true })
 
-  const zip = new AdmZip(zipPath)
-  zip.extractAllTo(distPath, true)
+  if (platform === 'darwin' || platform === 'mas') {
+    await extract(zipPath, { dir: path.resolve(distPath) })
+  } else {
+    const zip = new AdmZip(zipPath)
+    zip.extractAllTo(distPath, true)
+  }
 
   const srcTypeDefPath = path.join(distPath, 'electron.d.ts')
   const targetTypeDefPath = path.join(electronDir, 'electron.d.ts')
