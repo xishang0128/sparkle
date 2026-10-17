@@ -3,9 +3,11 @@ import React from 'react'
 import SettingCard from '../base/base-setting-card'
 import SettingItem from '../base/base-setting-item'
 import { useAppConfig } from '@renderer/hooks/use-app-config'
+import { supportsGateway } from '@renderer/utils/init'
 const titleMap = {
   sysproxyCardStatus: '系统代理',
   tunCardStatus: '虚拟网卡',
+  gatewayCardStatus: '网关模式',
   profileCardStatus: '订阅管理',
   proxyCardStatus: '代理组',
   ruleCardStatus: '规则',
@@ -23,6 +25,7 @@ const SiderConfig: React.FC = () => {
   const {
     sysproxyCardStatus = 'col-span-1',
     tunCardStatus = 'col-span-1',
+    gatewayCardStatus = 'col-span-1',
     profileCardStatus = 'col-span-2',
     proxyCardStatus = 'col-span-2',
     ruleCardStatus = 'col-span-1',
@@ -39,6 +42,7 @@ const SiderConfig: React.FC = () => {
   const cardStatus = {
     sysproxyCardStatus,
     tunCardStatus,
+    ...(supportsGateway ? { gatewayCardStatus } : {}),
     profileCardStatus,
     proxyCardStatus,
     ruleCardStatus,

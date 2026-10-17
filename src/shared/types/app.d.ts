@@ -79,6 +79,7 @@ interface AppConfig {
   substoreCardStatus?: CardStatus
   sysproxyCardStatus?: CardStatus
   tunCardStatus?: CardStatus
+  gatewayCardStatus?: CardStatus
   githubToken?: string
   gistSyncEnabled?: boolean
   gistEncrypted?: boolean

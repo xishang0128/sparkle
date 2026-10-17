@@ -3,6 +3,7 @@ import BorderSwitch from '@renderer/components/base/border-swtich'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { useLocation } from 'react-router-dom'
+import { useAppConfig } from '@renderer/hooks/use-app-config'
 import GatewaySetup from '@renderer/components/gateway/setup-modal'
 import { useState } from 'react'
 import useSWR from 'swr'
@@ -23,6 +24,8 @@ export default function GatewayCard({
   iconOnly?: boolean
   expanded?: boolean
 }): React.JSX.Element {
+  const { appConfig } = useAppConfig()
+  const { gatewayCardStatus = 'col-span-1' } = appConfig || {}
   const active = useLocation().pathname === '/gateway'
   const { data, error, mutate } = useSWR('lantern-status', getLanternStatus, {
     refreshInterval: 5000,
@@ -75,6 +78,7 @@ export default function GatewayCard({
     return (
       <>
         <SiderItem
+          className={gatewayCardStatus}
           title="网关模式"
           route="/gateway"
           icon={<LuNetwork className="text-[20px]" />}
@@ -97,7 +101,7 @@ export default function GatewayCard({
           ),
           transition
         }}
-        className={`gateway-card col-span-1 ${active ? 'bg-primary text-primary-foreground' : 'hover:bg-primary/30'}`}
+        className={`gateway-card ${gatewayCardStatus} ${active ? 'bg-primary text-primary-foreground' : 'hover:bg-primary/30'}`}
       >
         <Card.Content className="flex-row items-center justify-between pb-1 pt-0 px-0 overflow-y-visible">
           <Button
