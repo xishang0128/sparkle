@@ -383,6 +383,7 @@ export const getCoreStatus = async (): Promise<Record<string, unknown>> => {
 
 export interface ServiceCoreLaunchProfile {
   core_path?: string
+  skip_hardening?: boolean
   args?: string[]
   mode?: 'auto' | 'sandbox' | 'direct'
   safe_paths?: string[]
