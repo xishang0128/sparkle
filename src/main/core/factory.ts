@@ -321,9 +321,16 @@ async function overrideProfile(
   current: string | undefined,
   profile: MihomoConfig
 ): Promise<MihomoConfig> {
+  const { override = [] } = (await getProfileItem(current)) || {}
+  return applyProfileOverrides(profile, override)
+}
+
+export async function applyProfileOverrides(
+  profile: MihomoConfig,
+  override: string[]
+): Promise<MihomoConfig> {
   const { items = [] } = (await getOverrideConfig()) || {}
   const globalOverride = items.filter((item) => item.global).map((item) => item.id)
-  const { override = [] } = (await getProfileItem(current)) || {}
   for (const ov of new Set(globalOverride.concat(override))) {
     const item = await getOverrideItem(ov)
     const content = await getOverride(ov, item?.ext || 'js')

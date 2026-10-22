@@ -1,6 +1,7 @@
 import { getControledMihomoConfig } from './controledMihomo'
 import { mihomoProfileWorkDir, mihomoWorkDir, profileConfigPath, profilePath } from '../utils/dirs'
 import { addProfileUpdater, delProfileUpdater } from '../core/profileUpdater'
+import { applyProfileOverrides } from '../core/factory'
 import { readFile, writeFile, rm, mkdir } from 'fs/promises'
 import { fileToStr } from '@uruhalushia/sparkle-native'
 import { restartCore } from '../core/manager'
@@ -21,6 +22,7 @@ import { getUserAgent } from '../utils/userAgent'
 import { execWithElevation } from '../utils/elevation'
 import { decryptAgeText, encryptAgeText, isAgeEncryptedText } from '../utils/age'
 import { isHttpUrl } from '../utils/url'
+import { showNotification } from '../utils/notification'
 
 let profileConfig: ProfileConfig // profile.yaml
 const FILE_PERMISSION_ELEVATION_REQUIRED = 'FILE_PERMISSION_ELEVATION_REQUIRED'
@@ -298,7 +300,20 @@ export async function createProfile(item: Partial<ProfileItem>): Promise<Profile
           throw new Error('订阅格式错误，无法解析为有效的配置文件\n' + (error as Error).message)
         }
       }
+      const previousContent = await readStoredProfileContent(id)
       await setProfileStr(id, data, newItem)
+      if (
+        previousContent !== undefined &&
+        previousContent !== data &&
+        (await isEffectiveProxiesChanged(previousContent, data, newItem.override))
+      ) {
+        void showNotification({
+          id: `profile-update:${id}`,
+          title: '订阅更新成功',
+          body: `${newItem.name} 内容有变动`,
+          variant: 'success'
+        })
+      }
       break
     }
     case 'local': {
@@ -348,6 +363,73 @@ async function decryptProfileContent(
     throw new Error(`${item?.name || '配置'} 已使用 age 加密，请先填写 age 私钥`)
   }
   return await decryptAgeText(content, item.ageIdentity)
+}
+
+async function readStoredProfileContent(id: string): Promise<string | undefined> {
+  if (!existsSync(profilePath(id))) return undefined
+  try {
+    const raw = await readFile(profilePath(id), 'utf-8')
+    return await decryptProfileContent(raw, await getProfileItem(id))
+  } catch {
+    return undefined
+  }
+}
+
+async function isEffectiveProxiesChanged(
+  previousContent: string,
+  newContent: string,
+  override: string[] = []
+): Promise<boolean> {
+  try {
+    const previousProfile = parseYaml<MihomoConfig>(previousContent)
+    const newProfile = parseYaml<MihomoConfig>(newContent)
+    if (
+      !previousProfile ||
+      !newProfile ||
+      typeof previousProfile !== 'object' ||
+      typeof newProfile !== 'object'
+    ) {
+      return true
+    }
+    const previousProxies = (await applyProfileOverrides(previousProfile, override)).proxies ?? []
+    const newProxies = (await applyProfileOverrides(newProfile, override)).proxies ?? []
+    return normalizeProxiesForCompare(previousProxies) !== normalizeProxiesForCompare(newProxies)
+  } catch {
+    return true
+  }
+}
+
+// 机场可能每次下发随机化的 client-fingerprint，节点名也常携带剩余流量等动态信息，
+// 比对时忽略这些字段，只比较连接参数集合（排序后），避免每次更新都误报有变动
+const VOLATILE_PROXY_FIELDS = ['name', 'client-fingerprint']
+
+function normalizeProxiesForCompare(proxies: unknown[]): string {
+  return proxies
+    .map((proxy) => {
+      if (!proxy || typeof proxy !== 'object' || Array.isArray(proxy)) {
+        return canonicalizeForCompare(proxy)
+      }
+      const rest: Record<string, unknown> = {}
+      for (const [key, value] of Object.entries(proxy as Record<string, unknown>)) {
+        if (!VOLATILE_PROXY_FIELDS.includes(key)) rest[key] = value
+      }
+      return canonicalizeForCompare(rest)
+    })
+    .sort()
+    .join('\n')
+}
+
+function canonicalizeForCompare(value: unknown): string {
+  if (Array.isArray(value)) {
+    return `[${value.map(canonicalizeForCompare).join(',')}]`
+  }
+  if (value && typeof value === 'object') {
+    const entries = Object.entries(value as Record<string, unknown>)
+      .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
+      .map(([key, v]) => `${JSON.stringify(key)}:${canonicalizeForCompare(v)}`)
+    return `{${entries.join(',')}}`
+  }
+  return JSON.stringify(value) ?? 'null'
 }
 
 async function writeProfileContent(
