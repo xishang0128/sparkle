@@ -647,6 +647,13 @@
     border-radius: 9999px;
     background: var(--app-color);
   }
+  /* Monaco shares these class names with HeroUI; keep its native control styles. */
+  .monaco-editor .find-widget .button,
+  .monaco-editor .monaco-inputbox .input,
+  .monaco-editor .monaco-inputbox .input:hover,
+  .monaco-editor .monaco-inputbox .input:focus {
+    all: revert-layer;
+  }
   @media (prefers-reduced-motion: reduce) {
     .card,
     .switch .switch__thumb {
