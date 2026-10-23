@@ -77,10 +77,8 @@ export default function GatewaySetup({
     network.interfaces.find((i) => i.name === iface)?.addresses || [],
     initialGateway4
   )
-  const [gateway4, setGateway4] = useState(initialGateway4)
-  const [gateway6, setGateway6] = useState(
-    options?.gateway_ipv6 || routes(iface).find((r) => r.gateway.includes(':'))?.gateway || ''
-  )
+  const [gateway4, setGateway4] = useState(options?.gateway_ipv4 || '')
+  const [gateway6, setGateway6] = useState(options?.gateway_ipv6 || '')
   const [raEnabled, setRAEnabled] = useState(
     options?.ra.enabled ?? routes(iface).some((r) => r.gateway.includes(':'))
   )
@@ -250,8 +248,8 @@ export default function GatewaySetup({
                           nextGateway
                         )
                         setIface(next)
-                        setGateway4(nextGateway)
-                        setGateway6(nextRoutes.find((r) => r.gateway.includes(':'))?.gateway || '')
+                        setGateway4('')
+                        setGateway6('')
                         setRAEnabled(nextRoutes.some((r) => r.gateway.includes(':')))
                         setPoolStart(start)
                         setPoolEnd(end)

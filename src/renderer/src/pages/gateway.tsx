@@ -33,11 +33,11 @@ export default function Gateway(): React.JSX.Element {
     refreshInterval: 2000,
     shouldRetryOnError: false
   })
-  const { data: network, error: networkError } = useSWR(
-    'lantern-interfaces',
-    getLanternInterfaces,
-    { shouldRetryOnError: false }
-  )
+  const {
+    data: network,
+    error: networkError,
+    mutate: refreshNetwork
+  } = useSWR('lantern-interfaces', getLanternInterfaces, { shouldRetryOnError: false })
   const [setup, setSetup] = useState(false)
   const [selected, setSelected] = useState('')
   const [sort, setSort] = useState('address')
@@ -122,7 +122,12 @@ export default function Gateway(): React.JSX.Element {
           isIconOnly
           className="app-nodrag"
           isDisabled={busy || !available}
-          onPress={() => setSetup(true)}
+          onPress={() =>
+            void act(async () => {
+              await refreshNetwork(await getLanternInterfaces(), false)
+              setSetup(true)
+            })
+          }
         >
           <LuSettings2 className="text-lg" />
         </Button>
