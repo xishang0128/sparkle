@@ -19,6 +19,33 @@ interface MonacoDiffEditorProps extends MonacoEditorProps {
   originalUri: monaco.Uri
 }
 
+// Monaco mounts its context view (the right-click menu) on document.body before
+// moving it into the editor. React Aria modals mark everything outside the
+// dialog as inert, leaving that menu visible but not clickable. Mark the view
+// as a top-layer element and clear any inert flag React Aria already applied.
+let contextViewObserver: MutationObserver | null = null
+
+function keepContextViewInteractive(view: Element): void {
+  view.setAttribute('data-react-aria-top-layer', 'true')
+  view.removeAttribute('inert')
+}
+
+function ensureContextViewInteractive(): void {
+  document.querySelectorAll('.context-view').forEach(keepContextViewInteractive)
+
+  if (contextViewObserver) return
+  contextViewObserver = new MutationObserver((mutations) => {
+    for (const mutation of mutations) {
+      for (const node of mutation.addedNodes) {
+        if (node instanceof Element && node.classList.contains('context-view')) {
+          keepContextViewInteractive(node)
+        }
+      }
+    }
+  })
+  contextViewObserver.observe(document.body, { childList: true })
+}
+
 function updateEditorValue(
   editor: monaco.editor.IStandaloneCodeEditor,
   value: string,
@@ -71,6 +98,7 @@ export const MonacoEditor: React.FC<MonacoEditorProps> = ({
       model,
       theme
     })
+    ensureContextViewInteractive()
     const subscription = editor.onDidChangeModelContent(() => {
       if (!isUpdatingRef.current) {
         onChangeRef.current?.(editor.getValue())
@@ -137,6 +165,7 @@ export const MonacoDiffEditor: React.FC<MonacoDiffEditorProps> = ({
       ...options,
       theme
     })
+    ensureContextViewInteractive()
     editor.setModel({ original: originalModel, modified: modifiedModel })
     const subscription = modifiedModel.onDidChangeContent(() => {
       if (!isUpdatingRef.current) {
