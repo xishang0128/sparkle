@@ -21,6 +21,7 @@ import { getUserAgent } from '../utils/userAgent'
 import { execWithElevation } from '../utils/elevation'
 import { decryptAgeText, encryptAgeText, isAgeEncryptedText } from '../utils/age'
 import { isHttpUrl } from '../utils/url'
+import { parseProfileUpdateInterval } from '../utils/profileInterval'
 
 let profileConfig: ProfileConfig // profile.yaml
 const FILE_PERMISSION_ELEVATION_REQUIRED = 'FILE_PERMISSION_ELEVATION_REQUIRED'
@@ -95,6 +96,11 @@ export async function updateProfileItem(item: ProfileItem): Promise<void> {
 }
 
 export async function addProfileItem(item: Partial<ProfileItem>): Promise<void> {
+  const newItem = await refreshProfileItem(item)
+  await addProfileUpdater(newItem)
+}
+
+export async function refreshProfileItem(item: Partial<ProfileItem>): Promise<ProfileItem> {
   const newItem = await createProfile(item)
   const config = await getProfileConfig()
   if (await getProfileItem(newItem.id)) {
@@ -107,7 +113,7 @@ export async function addProfileItem(item: Partial<ProfileItem>): Promise<void> 
   if (!config.current) {
     await changeCurrentProfile(newItem.id)
   }
-  await addProfileUpdater(newItem)
+  return newItem
 }
 
 export async function removeProfileItem(id: string): Promise<void> {
@@ -280,8 +286,9 @@ export async function createProfile(item: Partial<ProfileItem>): Promise<Profile
         k.toLowerCase().endsWith('profile-update-interval')
       )
       if (intervalKey) {
-        newItem.interval = parseInt(headers[intervalKey]) * 60
-        if (newItem.interval) {
+        const interval = parseProfileUpdateInterval(headers[intervalKey])
+        if (interval !== undefined) {
+          newItem.interval = interval
           newItem.locked = true
         }
       }
