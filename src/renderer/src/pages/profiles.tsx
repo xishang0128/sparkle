@@ -554,38 +554,40 @@ const Profiles: React.FC = () => {
         </div>
         <Separator />
       </div>
-      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
-        <div
-          className={`${fileOver ? 'blur-sm' : ''} grid sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 m-2`}
-        >
-          <SortableContext
-            items={sortedItems.map((item) => {
-              return item.id
-            })}
+      <div style={{ overflowX: 'clip' }}>
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
+          <div
+            className={`${fileOver ? 'blur-sm' : ''} grid sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 m-2`}
           >
-            {sortedItems.map((item) => (
-              <ProfileItem
-                key={item.id}
-                isCurrent={item.id === current}
-                addProfileItem={addProfileItem}
-                removeProfileItem={removeProfileItem}
-                mutateProfileConfig={mutateProfileConfig}
-                updateProfileItem={updateProfileItem}
-                info={item}
-                switching={switching}
-                onClick={async () => {
-                  setSwitching(true)
-                  await changeCurrentProfile(item.id)
-                  await new Promise((resolve) => {
-                    setTimeout(resolve, 500)
-                  })
-                  setSwitching(false)
-                }}
-              />
-            ))}
-          </SortableContext>
-        </div>
-      </DndContext>
+            <SortableContext
+              items={sortedItems.map((item) => {
+                return item.id
+              })}
+            >
+              {sortedItems.map((item) => (
+                <ProfileItem
+                  key={item.id}
+                  isCurrent={item.id === current}
+                  addProfileItem={addProfileItem}
+                  removeProfileItem={removeProfileItem}
+                  mutateProfileConfig={mutateProfileConfig}
+                  updateProfileItem={updateProfileItem}
+                  info={item}
+                  switching={switching}
+                  onClick={async () => {
+                    setSwitching(true)
+                    await changeCurrentProfile(item.id)
+                    await new Promise((resolve) => {
+                      setTimeout(resolve, 500)
+                    })
+                    setSwitching(false)
+                  }}
+                />
+              ))}
+            </SortableContext>
+          </div>
+        </DndContext>
+      </div>
     </BasePage>
   )
 }

@@ -317,28 +317,30 @@ const Override: React.FC = () => {
         </div>
         <Separator />
       </div>
-      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
-        <div
-          className={`${fileOver ? 'blur-sm' : ''} grid sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 m-2`}
-        >
-          <SortableContext
-            items={sortedItems.map((item) => {
-              return item.id
-            })}
+      <div style={{ overflowX: 'clip' }}>
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
+          <div
+            className={`${fileOver ? 'blur-sm' : ''} grid sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 m-2`}
           >
-            {sortedItems.map((item) => (
-              <OverrideItem
-                key={item.id}
-                addOverrideItem={addOverrideItem}
-                removeOverrideItem={removeOverrideItem}
-                mutateOverrideConfig={mutateOverrideConfig}
-                updateOverrideItem={updateOverrideItem}
-                info={item}
-              />
-            ))}
-          </SortableContext>
-        </div>
-      </DndContext>
+            <SortableContext
+              items={sortedItems.map((item) => {
+                return item.id
+              })}
+            >
+              {sortedItems.map((item) => (
+                <OverrideItem
+                  key={item.id}
+                  addOverrideItem={addOverrideItem}
+                  removeOverrideItem={removeOverrideItem}
+                  mutateOverrideConfig={mutateOverrideConfig}
+                  updateOverrideItem={updateOverrideItem}
+                  info={item}
+                />
+              ))}
+            </SortableContext>
+          </div>
+        </DndContext>
+      </div>
       {showEditModal && editingItem && (
         <EditInfoModal
           item={editingItem}
