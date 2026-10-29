@@ -20,6 +20,8 @@ const EditFileModal: React.FC<Props> = (props) => {
   const [currData, setCurrData] = useState('')
   const [originalData, setOriginalData] = useState('')
   const [isLoading, setIsLoading] = useState(true)
+  const [loadedId, setLoadedId] = useState<string | null>(null)
+  const [loadAttempt, setLoadAttempt] = useState(0)
   const [isSaving, setIsSaving] = useState(false)
   const [isDiff, setIsDiff] = useState(false)
   const [sideBySide, setSideBySide] = useState(false)
@@ -27,6 +29,7 @@ const EditFileModal: React.FC<Props> = (props) => {
   const navigate = useNavigate()
 
   const isModified = currData !== originalData
+  const canSave = !isLoading && loadedId === id && !isSaving
 
   const handleClose = (): void => {
     if (isModified) {
@@ -37,6 +40,7 @@ const EditFileModal: React.FC<Props> = (props) => {
   }
 
   const save = async (): Promise<void> => {
+    if (!canSave) return
     setIsSaving(true)
     try {
       await setProfileStr(id, currData)
@@ -48,19 +52,30 @@ const EditFileModal: React.FC<Props> = (props) => {
     }
   }
 
-  const getContent = async (): Promise<void> => {
-    try {
-      const data = await getProfileStr(id)
-      setCurrData(data)
-      setOriginalData(data)
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
   useEffect(() => {
-    getContent()
-  }, [])
+    let canceled = false
+    setIsLoading(true)
+    setLoadedId(null)
+    setCurrData('')
+    setOriginalData('')
+    const getContent = async (): Promise<void> => {
+      try {
+        const data = await getProfileStr(id)
+        if (canceled) return
+        setCurrData(data)
+        setOriginalData(data)
+        setLoadedId(id)
+      } catch (e) {
+        if (!canceled) notify(e, { variant: 'danger' })
+      } finally {
+        if (!canceled) setIsLoading(false)
+      }
+    }
+    void getContent()
+    return () => {
+      canceled = true
+    }
+  }, [id, loadAttempt])
 
   return (
     <Modal>
@@ -108,6 +123,11 @@ const EditFileModal: React.FC<Props> = (props) => {
                 <div className="flex h-full items-center justify-center">
                   <Spinner size="lg" color="accent" />
                 </div>
+              ) : loadedId !== id ? (
+                <div className="flex h-full flex-col items-center justify-center gap-3">
+                  <p>读取配置失败，无法编辑或保存</p>
+                  <Button onPress={() => setLoadAttempt((attempt) => attempt + 1)}>重试</Button>
+                </div>
               ) : (
                 <BaseEditor
                   language="yaml"
@@ -146,7 +166,13 @@ const EditFileModal: React.FC<Props> = (props) => {
                 <Button size="sm" variant="secondary" onPress={handleClose}>
                   取消
                 </Button>
-                <Button size="sm" variant="primary" isPending={isSaving} onPress={() => save()}>
+                <Button
+                  size="sm"
+                  variant="primary"
+                  isDisabled={!canSave}
+                  isPending={isSaving}
+                  onPress={() => save()}
+                >
                   保存
                 </Button>
               </div>

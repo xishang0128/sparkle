@@ -1,6 +1,6 @@
 import { Spinner, Button, Modal } from '@heroui/react'
 
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { BaseEditor } from '../base/base-editor-lazy'
 import { TextViewer } from '../base/text-viewer'
 import {
@@ -66,15 +66,23 @@ function hasManyLines(value: string, limit: number): boolean {
 
 const Viewer: React.FC<Props> = (props) => {
   const { type, path, title, format, providerType, onClose, ageSecretKey } = props
+  const source = useMemo(
+    () => ({ ageSecretKey, format, path, providerType, title, type }),
+    [ageSecretKey, format, path, providerType, title, type]
+  )
   const [currData, setCurrData] = useState('')
   const [showPermissionConfirm, setShowPermissionConfirm] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
+  const [loadedSource, setLoadedSource] = useState<typeof source | null>(null)
+  const [loadAttempt, setLoadAttempt] = useState(0)
   const language = type === 'Inline' ? 'yaml' : getDefaultLanguage(format)
   const editorLanguage = format === 'MrsRule' ? 'text' : language
   const useTextViewer = type !== 'File' && hasManyLines(currData, TEXT_VIEWER_LINE_LIMIT)
+  const canSave = type === 'File' && !isLoading && loadedSource === source && !isSaving
 
   const save = async (elevated = false): Promise<void> => {
+    if (!canSave) return
     setIsSaving(true)
     try {
       await (elevated ? saveFileStrWithElevation(path, currData) : setFileStr(path, currData))
@@ -96,10 +104,13 @@ const Viewer: React.FC<Props> = (props) => {
 
   useEffect(() => {
     let canceled = false
+    const { ageSecretKey, format, path, providerType, title, type } = source
+    setLoadedSource(null)
+    setIsLoading(true)
+    setCurrData('')
+    setShowPermissionConfirm(false)
 
     if (type !== 'Inline' && !path) {
-      setIsLoading(true)
-      setCurrData('')
       return () => {
         canceled = true
       }
@@ -116,6 +127,7 @@ const Viewer: React.FC<Props> = (props) => {
         setCurrData(
           format === 'MrsRule' ? fileContent : getViewerContent(fileContent, providerType, title)
         )
+        setLoadedSource(source)
       } catch (e) {
         if (!canceled) {
           notify(e, { variant: 'danger' })
@@ -131,7 +143,7 @@ const Viewer: React.FC<Props> = (props) => {
     return () => {
       canceled = true
     }
-  }, [ageSecretKey, format, path, providerType, title, type])
+  }, [source, loadAttempt])
 
   return (
     <Modal>
@@ -173,6 +185,11 @@ const Viewer: React.FC<Props> = (props) => {
                 <div className="flex h-full items-center justify-center">
                   <Spinner size="lg" color="accent" />
                 </div>
+              ) : loadedSource !== source ? (
+                <div className="flex h-full flex-col items-center justify-center gap-3">
+                  <p>读取文件失败，无法编辑或保存</p>
+                  <Button onPress={() => setLoadAttempt((attempt) => attempt + 1)}>重试</Button>
+                </div>
               ) : useTextViewer ? (
                 <TextViewer value={currData} />
               ) : (
@@ -189,7 +206,7 @@ const Viewer: React.FC<Props> = (props) => {
                 <Button size="sm" variant="secondary" isDisabled={isSaving} onPress={onClose}>
                   取消
                 </Button>
-                <Button size="sm" isPending={isSaving} onPress={() => save()}>
+                <Button size="sm" isDisabled={!canSave} isPending={isSaving} onPress={() => save()}>
                   保存
                 </Button>
               </Modal.Footer>
