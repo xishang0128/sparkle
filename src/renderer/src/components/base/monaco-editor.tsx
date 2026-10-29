@@ -1,6 +1,11 @@
 import React, { useEffect, useRef } from 'react'
 import * as monaco from 'monaco-editor'
 
+// Keep Monaco's shared context menu interactive inside React Aria modals.
+monaco.editor.onDidCreateEditor(() => {
+  document.querySelector('.context-view')?.setAttribute('data-react-aria-top-layer', 'true')
+})
+
 export type EditorOptions = monaco.editor.IStandaloneEditorConstructionOptions &
   monaco.editor.IStandaloneDiffEditorConstructionOptions
 
