@@ -476,6 +476,7 @@
   }
   .switch:is([data-selected='true'], [aria-checked='true']) .switch__control .switch__thumb {
     margin: 0;
+    inset-inline-start: 0;
     transform: translateX(calc(var(--app-switch-width) - var(--app-switch-thumb) - 0.5rem));
   }
   .switch.border-switch .switch__thumb {
