@@ -1,4 +1,4 @@
-import { Chip, Spinner, Button, Modal, Tabs } from '@heroui/react'
+import { Spinner, Button, Modal, Tabs } from '@heroui/react'
 
 import React, { useEffect, useState, useCallback } from 'react'
 
@@ -38,6 +38,41 @@ async function readServiceStatus(): Promise<ServiceStatusType> {
     return await serviceStatus()
   } catch {
     return 'not-installed'
+  }
+}
+
+type StatusTone = 'success' | 'warning' | 'danger' | 'default'
+
+const statusDotStyles: Record<StatusTone, string> = {
+  success: 'bg-success',
+  warning: 'bg-warning',
+  danger: 'bg-danger',
+  default: 'bg-default-400'
+}
+
+function getStatusMeta(
+  status: ServiceStatusType | null,
+  connectionStatus: ConnectionStatusType
+): { label: string; tone: StatusTone } {
+  if (status === null || connectionStatus === 'checking') {
+    return { label: '正在检查', tone: 'default' }
+  }
+
+  switch (status) {
+    case 'running':
+      return connectionStatus === 'connected'
+        ? { label: '运行中 · 已连接', tone: 'success' }
+        : { label: '运行中 · 未连接', tone: 'danger' }
+    case 'stopped':
+      return { label: '已停止', tone: 'warning' }
+    case 'not-installed':
+      return { label: '未安装', tone: 'default' }
+    case 'need-init':
+      return { label: '需要初始化', tone: 'warning' }
+    case 'paused':
+      return { label: '已暂停', tone: 'warning' }
+    default:
+      return { label: '状态未知', tone: 'default' }
   }
 }
 
@@ -119,33 +154,8 @@ const ServiceModal: React.FC<Props> = (props) => {
     void refreshServiceStatus()
   }, [refreshServiceStatus])
 
-  const summaryText =
-    status === null || connectionStatus === 'checking'
-      ? '正在检查'
-      : status === 'running'
-        ? connectionStatus === 'connected'
-          ? '运行中，已连接'
-          : '运行中，未连接'
-        : status === 'stopped'
-          ? '已停止'
-          : status === 'not-installed'
-            ? '未安装'
-            : status === 'need-init'
-              ? '需要初始化'
-              : status === 'paused'
-                ? '已暂停'
-                : '状态未知'
-
-  const statusColor: 'success' | 'warning' | 'danger' | 'default' =
-    status === null || connectionStatus === 'checking'
-      ? 'default'
-      : status === 'running' && connectionStatus === 'connected'
-        ? 'success'
-        : status === 'not-installed' || connectionStatus === 'disconnected'
-          ? 'danger'
-          : status === 'stopped' || status === 'need-init' || status === 'paused'
-            ? 'warning'
-            : 'default'
+  const isChecking = status === null || connectionStatus === 'checking'
+  const statusMeta = getStatusMeta(status, connectionStatus)
 
   return (
     <Modal>
@@ -156,20 +166,28 @@ const ServiceModal: React.FC<Props> = (props) => {
         className="top-12 h-[calc(100%-48px)]"
       >
         <Modal.Container scroll="inside">
-          <Modal.Dialog className="w-112.5">
-            <Modal.Header className="app-drag flex-col gap-1">
+          <Modal.Dialog className="w-112.5 max-w-[calc(100vw-32px)]">
+            <Modal.Header className="app-drag">
               <Modal.Heading>Sparkle 服务管理</Modal.Heading>
             </Modal.Header>
             <Modal.Body className="divide-y divide-default-200">
               <div className="flex h-11 items-center gap-3">
                 <span className="w-20 shrink-0 text-sm">服务状态</span>
-                <div className="flex min-w-0 flex-1 justify-end">
-                  <Chip size="sm" data-color={statusColor} variant="soft">
-                    {status === null || connectionStatus === 'checking' ? (
-                      <Spinner size="sm" color="current" />
-                    ) : null}
-                    <Chip.Label>{summaryText}</Chip.Label>
-                  </Chip>
+                <div
+                  role="status"
+                  aria-live="polite"
+                  aria-atomic="true"
+                  className="flex min-w-0 flex-1 items-center justify-end gap-2 text-sm"
+                >
+                  {isChecking ? (
+                    <Spinner size="sm" color="current" aria-label="正在检查服务状态" />
+                  ) : (
+                    <span
+                      className={`size-2 shrink-0 rounded-full ${statusDotStyles[statusMeta.tone]}`}
+                      aria-hidden="true"
+                    />
+                  )}
+                  <span className="whitespace-nowrap text-default-600">{statusMeta.label}</span>
                 </div>
               </div>
 
@@ -286,7 +304,7 @@ const ServiceModal: React.FC<Props> = (props) => {
                       size="sm"
                       onPress={() => handleAction(onStart, true)}
                       variant="primary"
-                      data-color="success"
+                      data-color="primary"
                       className="w-full sm:w-auto sm:min-w-18"
                       data-shadow="true"
                       isPending={loading}
