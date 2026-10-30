@@ -174,8 +174,6 @@ jobs:
 
       - name: Generate Changelog
         env:
-          API_URL: ${{ secrets.API_URL }}
-          API_KEY: ${{ secrets.API_KEY }}
           RELEASE_VERSION: ${{ needs.prepare.outputs.version }}
         shell: bash
         run: |
@@ -204,33 +202,77 @@ jobs:
             TEXT=$(git log -1 --pretty=format:%s)
           fi
 
-          QUESTION=$(printf 'Translate into Chinese:\n"""\n%s\n"""' "$TEXT")
-          PAYLOAD=$(jq -n --arg question "$QUESTION" '{
-            stream: false,
-            model: "gpt-5-mini",
-            messages: [
-              {
-                role: "system",
-                content: "You are a professional translation engine, please translate the text into a colloquial, professional, elegant and fluent content, without the style of machine translation. You must only translate the text content, never interpret it."
-              },
-              {
-                role: "user",
-                content: $question
-              }
-            ]
-          }')
-          RESPONSE=$(curl -sS -X POST "$API_URL/v1/chat/completions" \
-            -H "Authorization: Bearer $API_KEY" \
-            -H "Content-Type: application/json" \
-            -d "$PAYLOAD" \
-            --max-time 30 || true)
-          TRANSLATED_TEXT=$(printf '%s' "$RESPONSE" | jq -r '.choices[0].message.content // empty' 2>/dev/null || true)
-          if [[ -z "$TRANSLATED_TEXT" ]]; then
-            TRANSLATED_TEXT="$TEXT"
+          {
+            printf '请为 Sparkle %s 生成本次发布的中文更新日志。\n\n' "$RELEASE_VERSION"
+            printf '以下是从上一个版本以来的 Git 提交标题：\n'
+            printf '%s\n' "$TEXT"
+          } > changelog-prompt.txt
+          cat > changelog-system-prompt.txt <<'EOF'
+          你是资深开源项目发布说明编辑。请把用户提供的 Git 提交标题整理成面向最终用户的中文更新日志。
+
+          严格遵守以下要求：
+          1. 只使用提交中明确的信息，不猜测未提及的功能、行为或影响。
+          2. 忽略纯版本更新、合并提交以及没有用户价值的 CI、格式化和内部维护记录。
+          3. 合并同一变更的重复提交，按重要性排序，优先列出新功能、重要改进和问题修复。
+          4. 每条说明简洁、自然、易懂，保留必要的技术名词、平台名称和版本号。
+          5. 只输出 Markdown 无序列表，每行以 "- " 开头；不要输出标题、前言、结语、代码块或其他说明。
+          6. 即使只有一条记录，也必须遵守上述格式。
+          EOF
+          printf '%s\n' "$TEXT" > changelog-fallback.txt
+
+      - name: Install GitHub Copilot CLI
+        continue-on-error: true
+        run: npm install -g @github/copilot
+
+      - name: Generate Changelog with GitHub Copilot
+        id: copilot-changelog
+        continue-on-error: true
+        uses: actions/ai-inference@v1
+        with:
+          prompt-file: changelog-prompt.txt
+          system-prompt-file: changelog-system-prompt.txt
+          model: gemini-3.8-flash
+          token: ${{ github.token }}
+        env:
+          COPILOT_GITHUB_TOKEN: ${{ secrets.COPILOT_GITHUB_TOKEN || github.token }}
+
+      - name: Write Changelog
+        env:
+          RESPONSE_FILE: ${{ steps.copilot-changelog.outputs.response-file }}
+          API_URL: ${{ secrets.API_URL }}
+          API_KEY: ${{ secrets.API_KEY }}
+        shell: bash
+        run: |
+          if [[ -n "$RESPONSE_FILE" && -s "$RESPONSE_FILE" ]]; then
+            CHANGELOG_TEXT=$(cat "$RESPONSE_FILE")
+          else
+            FALLBACK_RESPONSE=''
+            if [[ -n "$API_URL" && -n "$API_KEY" ]]; then
+              FALLBACK_PAYLOAD=$(jq -n \
+                --arg system_prompt "$(cat changelog-system-prompt.txt)" \
+                --arg user_prompt "$(cat changelog-prompt.txt)" \
+                '{stream: false, model: "gpt-6-luna", messages: [
+                  {role: "system", content: $system_prompt},
+                  {role: "user", content: $user_prompt}
+                ]}')
+              FALLBACK_RESPONSE=$(curl -sS -X POST "$API_URL/v1/chat/completions" \
+                -H "Authorization: Bearer $API_KEY" \
+                -H "Content-Type: application/json" \
+                -d "$FALLBACK_PAYLOAD" \
+                --max-time 30 || true)
+              CHANGELOG_TEXT=$(printf '%s' "$FALLBACK_RESPONSE" |
+                jq -r '.choices[0].message.content // empty' 2>/dev/null || true)
+            fi
+            if [[ -z "$CHANGELOG_TEXT" ]]; then
+              CHANGELOG_TEXT=$(cat changelog-fallback.txt)
+            fi
           fi
 
           echo '# 更新日志' > changelog.md
-          printf '%s\n' "$TRANSLATED_TEXT" | sed 's/^/ - /' >> changelog.md
+          printf '\n' >> changelog.md
+          printf '%s\n' "$CHANGELOG_TEXT" |
+            sed -E '/^[[:space:]]*```/d; /^[[:space:]]*#/d; s/^[[:space:]]*([-*]|[0-9]+\.)[[:space:]]*/- /' |
+            awk 'NF { if ($0 !~ /^- /) $0 = "- " $0; print }' >> changelog.md
 
       - name: Set Release Version
         env:
