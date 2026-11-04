@@ -24,7 +24,8 @@ import {
   initService,
   restartService
 } from '@renderer/utils/ipc'
-import React, { useState, useEffect } from 'react'
+import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useHref, useLocation } from 'react-router-dom'
 import ControllerSetting from '@renderer/components/mihomo/controller-setting'
 import EnvSetting from '@renderer/components/mihomo/env-setting'
 import AdvancedSetting from '@renderer/components/mihomo/advanced-settings'
@@ -32,30 +33,23 @@ import LogSetting from '@renderer/components/mihomo/log-setting'
 import { notify } from '@renderer/utils/notification'
 import { systemCoreOnlyBuild } from '../../../shared/build-flags'
 
-let systemCorePathsCache: string[] | null = null
-let cachePromise: Promise<string[]> | null = null
+type SystemCorePathsResult = { paths: string[] } | { error: unknown }
+type CoreChange =
+  | { phase: 'discovering'; from: AppConfig['core']; to: 'system' }
+  | { phase: 'saving'; to: AppConfig['core'] }
 
-const getSystemCorePaths = async (): Promise<string[]> => {
-  if (systemCorePathsCache !== null) return systemCorePathsCache
-  if (cachePromise !== null) return cachePromise
+let discoveryInFlight: Promise<string[]> | undefined
+let coreSaveInFlight: Promise<void> | undefined
 
-  cachePromise = findSystemMihomo()
-    .then((paths) => {
-      systemCorePathsCache = paths
-      cachePromise = null
-      return paths
-    })
-    .catch(() => {
-      cachePromise = null
-      return []
-    })
-
-  return cachePromise
+function discoverSystemCorePaths(): Promise<string[]> {
+  discoveryInFlight ??= findSystemMihomo().finally(() => {
+    discoveryInFlight = undefined
+  })
+  return discoveryInFlight
 }
 
-getSystemCorePaths().catch(() => {})
-
 const Mihomo: React.FC = () => {
+  const routeHash = useHref(useLocation())
   const { appConfig, patchAppConfig } = useAppConfig()
   const {
     core = 'mihomo',
@@ -71,26 +65,78 @@ const Mihomo: React.FC = () => {
   const [upgrading, setUpgrading] = useState(false)
   const [showPermissionModal, setShowPermissionModal] = useState(false)
   const [showServiceModal, setShowServiceModal] = useState(false)
-  const [systemCorePaths, setSystemCorePaths] = useState<string[]>(systemCorePathsCache || [])
-  const [loadingPaths, setLoadingPaths] = useState(systemCorePathsCache === null)
+  const [pathResult, setPathResult] = useState<SystemCorePathsResult>()
+  const pathSnapshot = useRef<Promise<SystemCorePathsResult> | undefined>(undefined)
+  const [coreChange, setCoreChange] = useState<CoreChange>()
+  const [isWaitingForCoreSave, setIsWaitingForCoreSave] = useState(false)
+  const currentChange = useRef<CoreChange | undefined>(undefined)
+  const currentPage = useRef<{ appConfig: AppConfig | undefined } | undefined>(undefined)
+  const hasConfig = appConfig !== undefined
+  const systemCorePaths = pathResult && 'paths' in pathResult ? pathResult.paths : []
+  const isSavingCore = coreChange?.phase === 'saving' || isWaitingForCoreSave
+
+  const updateCoreChange = useCallback((change?: CoreChange): void => {
+    currentChange.current = change
+    setCoreChange(change)
+  }, [])
+
+  useLayoutEffect(() => {
+    currentPage.current = { appConfig }
+    const change = currentChange.current
+    if (change?.phase === 'discovering' && (!appConfig || change.from !== core)) {
+      updateCoreChange()
+    }
+    return () => {
+      currentPage.current = undefined
+    }
+  }, [appConfig, core, updateCoreChange])
+
+  useLayoutEffect(() => {
+    const save = coreSaveInFlight
+    setIsWaitingForCoreSave(Boolean(save))
+    if (!save) return
+
+    let isActive = true
+    const finishWaiting = (): void => {
+      if (isActive) setIsWaitingForCoreSave(false)
+    }
+    void save.then(finishWaiting, finishWaiting)
+    return () => {
+      isActive = false
+    }
+  }, [])
+
+  const loadSystemCorePaths = useCallback((): Promise<SystemCorePathsResult> => {
+    if (pathSnapshot.current) return pathSnapshot.current
+
+    setPathResult(undefined)
+    pathSnapshot.current = discoverSystemCorePaths()
+      .then<SystemCorePathsResult, SystemCorePathsResult>(
+        (paths) => ({ paths }),
+        (error) => ({ error })
+      )
+      .then((result) => {
+        if ('error' in result) pathSnapshot.current = undefined
+        if (currentPage.current) setPathResult(result)
+        return result
+      })
+    return pathSnapshot.current
+  }, [])
 
   useEffect(() => {
-    if (systemCorePathsCache !== null) return
-
-    getSystemCorePaths()
-      .then(setSystemCorePaths)
-      .catch(() => {})
-      .finally(() => setLoadingPaths(false))
-  }, [])
+    if (hasConfig && core === 'system' && window.location.hash === routeHash) {
+      void loadSystemCorePaths()
+    }
+  }, [hasConfig, core, loadSystemCorePaths, routeHash])
 
   const onChangeNeedRestart = async (patch: Partial<MihomoConfig>): Promise<void> => {
     await patchControledMihomoConfig(patch)
     await restartCore()
   }
 
-  const handleConfigChangeWithRestart = async (key: string, value: unknown): Promise<void> => {
+  const handleConfigChangeWithRestart = async (patch: Partial<AppConfig>): Promise<void> => {
     try {
-      await patchAppConfig({ [key]: value })
+      if (!(await patchAppConfig(patch))) return
       await restartCore()
       PubSub.publish('mihomo-core-changed')
     } catch (e) {
@@ -114,22 +160,71 @@ const Mihomo: React.FC = () => {
     }
   }
 
-  const handleCoreChange = async (newCore: 'mihomo' | 'mihomo-alpha' | 'system'): Promise<void> => {
-    if (newCore === 'system') {
-      const paths = await getSystemCorePaths()
-
-      if (paths.length === 0) {
-        notify('未找到系统内核', {
-          body: '系统中未找到可用的 mihomo 或 clash 内核，已自动切换回内置内核'
-        })
-        return
-      }
-
-      if (!appConfig?.systemCorePath || !paths.includes(appConfig.systemCorePath)) {
-        await patchAppConfig({ systemCorePath: paths[0] })
-      }
+  const saveCoreChange = async (
+    to: AppConfig['core'],
+    patch: Partial<AppConfig>
+  ): Promise<void> => {
+    if (coreSaveInFlight) {
+      updateCoreChange()
+      return
     }
-    handleConfigChangeWithRestart('core', newCore)
+
+    updateCoreChange({ phase: 'saving', to })
+    coreSaveInFlight = handleConfigChangeWithRestart(patch)
+    try {
+      await coreSaveInFlight
+    } finally {
+      coreSaveInFlight = undefined
+      if (currentPage.current) updateCoreChange()
+    }
+  }
+
+  const handleCoreChange = async (newCore: AppConfig['core']): Promise<void> => {
+    if (!appConfig || coreSaveInFlight || window.location.hash !== routeHash) return
+    if (newCore === core) {
+      updateCoreChange()
+      return
+    }
+    if (newCore !== 'system') {
+      await saveCoreChange(newCore, { core: newCore })
+      return
+    }
+    if (currentChange.current?.phase === 'discovering') return
+
+    const change: CoreChange = { phase: 'discovering', from: core, to: 'system' }
+    currentChange.current = change
+    setCoreChange(change)
+    const result = await loadSystemCorePaths()
+    const config = currentPage.current?.appConfig
+    if (currentChange.current !== change || !config) return
+    if (window.location.hash !== routeHash) {
+      updateCoreChange()
+      return
+    }
+    if ('error' in result) {
+      updateCoreChange()
+      notify('查找系统内核失败', { body: String(result.error), variant: 'danger' })
+      return
+    }
+
+    const [firstPath] = result.paths
+    if (!firstPath) {
+      updateCoreChange()
+      notify('未找到系统内核', { body: '系统中未找到可用的 mihomo 或 clash 内核' })
+      return
+    }
+
+    const { systemCorePath } = config
+    const patch: Partial<AppConfig> = { core: 'system' }
+    if (!systemCorePath || !result.paths.includes(systemCorePath)) patch.systemCorePath = firstPath
+    await saveCoreChange('system', patch)
+  }
+
+  const handleSystemCorePathChange = async (selectedPath: string): Promise<void> => {
+    if (coreSaveInFlight || window.location.hash !== routeHash) return
+    if (!systemCorePaths.includes(selectedPath)) return
+    if (selectedPath === appConfig?.systemCorePath) return
+    await saveCoreChange('system', { systemCorePath: selectedPath })
   }
 
   const handlePermissionModeChange = async (key: string): Promise<void> => {
@@ -169,7 +264,7 @@ const Mihomo: React.FC = () => {
         <ServiceModal
           onChange={setShowServiceModal}
           serviceRunMode={serviceRunMode}
-          onRunModeChange={(mode) => handleConfigChangeWithRestart('serviceRunMode', mode)}
+          onRunModeChange={(mode) => handleConfigChangeWithRestart({ serviceRunMode: mode })}
           serviceCpuAffinity={serviceCpuAffinity}
           onCpuAffinityChange={async (value) => {
             await patchAppConfig({ serviceCpuAffinity: value })
@@ -226,11 +321,18 @@ const Mihomo: React.FC = () => {
               aria-label="内核版本"
               className={['w-37.5'].filter(Boolean).join(' ')}
               data-size="sm"
-              value={core ?? null}
-              onChange={(v) => handleCoreChange(v as 'mihomo' | 'mihomo-alpha' | 'system')}
+              isDisabled={!hasConfig || isSavingCore}
+              value={coreChange?.to ?? core}
+              onChange={(value) => {
+                if (value === 'mihomo' || value === 'mihomo-alpha' || value === 'system') {
+                  void handleCoreChange(value)
+                }
+              }}
             >
               <Select.Trigger className="data-[hover=true]:bg-default-200">
-                <Select.Value />
+                <Select.Value>
+                  {coreChange?.phase === 'discovering' ? '正在查找系统内核...' : undefined}
+                </Select.Value>
                 <Select.Indicator />
               </Select.Trigger>
               <Select.Popover placement="bottom" shouldFlip containerPadding={56}>
@@ -256,13 +358,12 @@ const Mihomo: React.FC = () => {
           <SettingItem compatKey="legacy" title="系统内核路径选择" divider>
             <Select
               aria-label="系统内核路径"
-              isDisabled={loadingPaths}
+              isDisabled={isSavingCore || systemCorePaths.length === 0}
               className={['w-87.5'].filter(Boolean).join(' ')}
               data-size="sm"
-              value={(appConfig?.systemCorePath || '') ?? null}
-              onChange={(v) => {
-                const selectedPath = v as string
-                if (selectedPath) handleConfigChangeWithRestart('systemCorePath', selectedPath)
+              value={appConfig?.systemCorePath ?? null}
+              onChange={(value) => {
+                if (typeof value === 'string') void handleSystemCorePathChange(value)
               }}
             >
               <Select.Trigger className="data-[hover=true]:bg-default-200">
@@ -271,30 +372,21 @@ const Mihomo: React.FC = () => {
               </Select.Trigger>
               <Select.Popover placement="bottom" shouldFlip containerPadding={56}>
                 <ListBox>
-                  {loadingPaths ? (
-                    <ListBox.Item key="" id="" textValue="正在查找系统内核...">
-                      正在查找系统内核...
+                  {systemCorePaths.map((path) => (
+                    <ListBox.Item key={path} id={path} textValue={path}>
+                      {path}
                       <ListBox.ItemIndicator />
                     </ListBox.Item>
-                  ) : systemCorePaths.length > 0 ? (
-                    systemCorePaths.map((path) => (
-                      <ListBox.Item key={path} id={path} textValue={path}>
-                        {path}
-                        <ListBox.ItemIndicator />
-                      </ListBox.Item>
-                    ))
-                  ) : (
-                    <ListBox.Item key="" id="" textValue="未找到系统内核">
-                      未找到系统内核
-                      <ListBox.ItemIndicator />
-                    </ListBox.Item>
-                  )}
+                  ))}
                 </ListBox>
               </Select.Popover>
             </Select>
-            {!loadingPaths && systemCorePaths.length === 0 && (
+            {!pathResult && <div className="mt-2 text-sm">正在查找系统内核...</div>}
+            {pathResult && systemCorePaths.length === 0 && (
               <div className="mt-2 text-sm text-warning">
-                未在系统中找到 mihomo 或 clash 内核，请安装后重试
+                {'error' in pathResult
+                  ? '查找系统内核失败，请重新打开内核设置后重试'
+                  : '未在系统中找到 mihomo 或 clash 内核，请安装后重试'}
               </div>
             )}
           </SettingItem>
@@ -382,7 +474,9 @@ const Mihomo: React.FC = () => {
           <SettingItem compatKey="legacy" title="启动检测方式" divider>
             <Tabs
               selectedKey={coreStartupMode}
-              onSelectionChange={(key) => handleConfigChangeWithRestart('coreStartupMode', key)}
+              onSelectionChange={(key) =>
+                handleConfigChangeWithRestart({ coreStartupMode: key as 'post-up' | 'log' })
+              }
               data-color="primary"
               data-size="sm"
               data-full-width={false}
