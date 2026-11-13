@@ -17,36 +17,48 @@ const omitExternalRendererResources = {
   }
 }
 
-export default defineConfig({
-  main: {
-    define: buildDefines,
-    build: {
-      externalizeDeps: {
-        exclude: ['age-encryption']
-      }
-    }
-  },
-  preload: {
-    build: {
-      externalizeDeps: true
-    }
-  },
-  renderer: {
-    define: buildDefines,
-    build: {
-      rollupOptions: {
-        input: {
-          index: resolve('src/renderer/index.html'),
-          floating: resolve('src/renderer/floating.html'),
-          traymenu: resolve('src/renderer/traymenu.html')
+export default defineConfig(({ command }) => {
+  const sandbox =
+    command === 'serve' && process.env.SPARKLE_DEV_SANDBOX
+      ? JSON.parse(process.env.SPARKLE_DEV_SANDBOX)
+      : undefined
+  return {
+    main: {
+      define: buildDefines,
+      build: {
+        externalizeDeps: {
+          exclude: ['age-encryption']
         }
       }
     },
-    resolve: {
-      alias: {
-        '@renderer': resolve('src/renderer/src')
+    preload: {
+      build: {
+        externalizeDeps: true
       }
     },
-    plugins: [omitExternalRendererResources, react(), tailwindcss()]
+    renderer: {
+      ...(sandbox
+        ? {
+            cacheDir: resolve(sandbox.directory, 'vite-cache'),
+            server: { host: '127.0.0.1', port: sandbox.ports.renderer, strictPort: true }
+          }
+        : {}),
+      define: buildDefines,
+      build: {
+        rollupOptions: {
+          input: {
+            index: resolve('src/renderer/index.html'),
+            floating: resolve('src/renderer/floating.html'),
+            traymenu: resolve('src/renderer/traymenu.html')
+          }
+        }
+      },
+      resolve: {
+        alias: {
+          '@renderer': resolve('src/renderer/src')
+        }
+      },
+      plugins: [omitExternalRendererResources, react(), tailwindcss()]
+    }
   }
 })

@@ -1,3 +1,4 @@
+import { devSandbox } from '../utils/dev-sandbox'
 import { getAppConfig, getControledMihomoConfig } from '../config'
 import { Worker } from 'worker_threads'
 import {
@@ -98,7 +99,7 @@ export async function startPacServer(): Promise<void> {
   let script = pacScript || defaultPacScript
   const { 'mixed-port': port = 7890 } = await getControledMihomoConfig()
   script = script.replaceAll('%mixed-port%', port.toString())
-  pacPort = await findAvailablePort(10000)
+  pacPort = devSandbox?.ports.pac ?? (await findAvailablePort(10000))
   pacServer = http
     .createServer(async (_req, res) => {
       res.writeHead(200, { 'Content-Type': 'application/x-ns-proxy-autoconfig' })
@@ -117,7 +118,7 @@ export async function startSubStoreFrontendServer(): Promise<void> {
   const { useSubStore = true, subStoreHost = '127.0.0.1' } = await getAppConfig()
   if (!useSubStore) return
   await stopSubStoreFrontendServer()
-  subStoreFrontendPort = await findAvailablePort(14122)
+  subStoreFrontendPort = devSandbox?.ports.frontend ?? (await findAvailablePort(14122))
   const app = express()
   const frontendDir = subStoreFrontendDir()
   app.use(express.static(frontendDir))
@@ -147,7 +148,7 @@ export async function startSubStoreBackendServer(): Promise<void> {
   if (!useSubStore) return
   if (!useCustomSubStore) {
     await stopSubStoreBackendServer()
-    subStorePort = await findAvailablePort(38324)
+    subStorePort = devSandbox?.ports.substore ?? (await findAvailablePort(38324))
     const icon = nativeImage.createFromPath(subStoreIcon)
     icon.toDataURL()
     const stdout = createLogWritable('substore')

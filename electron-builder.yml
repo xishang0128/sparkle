@@ -3,6 +3,7 @@ productName: Sparkle
 directories:
   buildResources: build
 files:
+  - '!.dev-sandboxes/**'
   - '!**/.vscode/*'
   - '!src/*'
   - '!aur/*'

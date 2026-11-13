@@ -8,3 +8,5 @@ out
 *.log*
 .idea
 *.ttf
+
+.dev-sandboxes/

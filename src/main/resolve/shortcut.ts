@@ -1,3 +1,4 @@
+import { devSandbox } from '../utils/dev-sandbox'
 import { app, globalShortcut, ipcMain } from 'electron'
 import { mainWindow, setNotQuitDialog, triggerMainWindow } from '..'
 import {
@@ -18,6 +19,7 @@ export async function registerShortcut(
   newShortcut: string,
   action: string
 ): Promise<boolean> {
+  if (devSandbox) return false
   if (oldShortcut !== '') {
     globalShortcut.unregister(oldShortcut)
   }
@@ -136,6 +138,7 @@ export async function registerShortcut(
 }
 
 export async function initShortcut(): Promise<void> {
+  if (devSandbox) return
   const {
     showFloatingWindowShortcut,
     showWindowShortcut,

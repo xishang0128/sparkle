@@ -1,3 +1,4 @@
+import { devSandbox } from '../utils/dev-sandbox'
 import { ChildProcess, spawn } from 'child_process'
 import { getAppConfig } from '../config'
 import { dataDir, resourcesFilesDir } from '../utils/dirs'
@@ -8,6 +9,7 @@ import { readFile, rm, writeFile } from 'fs/promises'
 let child: ChildProcess
 
 export async function startMonitor(detached = false): Promise<void> {
+  if (devSandbox) return
   if (process.platform !== 'win32') return
   if (existsSync(path.join(dataDir(), 'monitor.pid'))) {
     const pid = parseInt(await readFile(path.join(dataDir(), 'monitor.pid'), 'utf-8'))

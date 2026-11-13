@@ -1,3 +1,4 @@
+import { devSandbox } from '../utils/dev-sandbox'
 import { execFile } from 'child_process'
 import { net } from 'electron'
 import os from 'os'
@@ -68,6 +69,7 @@ async function setDNS(dns: string, mode: 'none' | 'exec' | 'service'): Promise<v
 }
 
 export async function setPublicDNS(): Promise<void> {
+  if (devSandbox) return
   if (process.platform !== 'darwin') return
   if (net.isOnline()) {
     const { originDNS, autoSetDNSMode = 'none' } = await getAppConfig()
@@ -82,6 +84,7 @@ export async function setPublicDNS(): Promise<void> {
 }
 
 export async function recoverDNS(): Promise<void> {
+  if (devSandbox) return
   if (process.platform !== 'darwin') return
   if (net.isOnline()) {
     const { originDNS, autoSetDNSMode = 'none' } = await getAppConfig()

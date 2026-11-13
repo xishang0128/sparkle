@@ -1,3 +1,4 @@
+import { devSandbox } from './dev-sandbox'
 import os from 'os'
 import { systemCoreDefaultPath, systemCoreOnlyBuild } from '../../shared/build-flags'
 
@@ -84,7 +85,7 @@ export const defaultControledMihomoConfig: Partial<MihomoConfig> = {
   secret: '',
   ipv6: true,
   mode: 'rule',
-  'mixed-port': 7890,
+  'mixed-port': devSandbox?.ports.mixed ?? 7890,
   'socks-port': 0,
   port: 0,
   'redir-port': 0,

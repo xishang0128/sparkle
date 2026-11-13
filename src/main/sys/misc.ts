@@ -1,3 +1,4 @@
+import { assertOutsideDevSandbox } from '../utils/dev-sandbox'
 import { execFile, execSync, spawn } from 'child_process'
 import { app, dialog, nativeImage, nativeTheme, shell } from 'electron'
 import { readFile } from 'fs/promises'
@@ -57,12 +58,14 @@ export function openFile(type: 'profile' | 'override', id: string, ext?: 'yaml' 
 }
 
 export async function openUWPTool(): Promise<void> {
+  assertOutsideDevSandbox()
   const execFilePromise = promisify(execFile)
   const uwpToolPath = path.join(resourcesDir(), 'files', 'enableLoopback.exe')
   await execFilePromise(uwpToolPath)
 }
 
 export async function setupFirewall(): Promise<void> {
+  assertOutsideDevSandbox()
   if (process.platform === 'win32') {
     setupFirewallRules([
       { name: 'mihomo', applicationPath: mihomoCorePath('mihomo') },
@@ -124,6 +127,7 @@ function prepareElevateTaskFile(): string {
 }
 
 export function createElevateTaskSync(): void {
+  assertOutsideDevSandbox()
   const taskFilePath = prepareElevateTaskFile()
   execSync(
     `%SystemRoot%\\System32\\schtasks.exe /create /tn "sparkle-run" /xml "${taskFilePath}" /f`
@@ -143,6 +147,7 @@ export async function createElevateTask(): Promise<void> {
 }
 
 export async function deleteElevateTask(): Promise<void> {
+  assertOutsideDevSandbox()
   try {
     execSync(`%SystemRoot%\\System32\\schtasks.exe /delete /tn "sparkle-run" /f`)
   } catch {

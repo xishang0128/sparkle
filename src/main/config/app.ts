@@ -1,3 +1,4 @@
+import { devSandbox, assertOutsideDevSandbox } from '../utils/dev-sandbox'
 import { readFile, writeFile, rename, copyFile, unlink } from 'fs/promises'
 import { appConfigPath } from '../utils/dirs'
 import { parseYaml, stringifyYaml } from '../utils/yaml'
@@ -11,6 +12,15 @@ let appConfig: AppConfig
 let writePromise: Promise<void> = Promise.resolve()
 
 function applyBuildConfig(config: AppConfig): AppConfig {
+  if (devSandbox)
+    return {
+      ...config,
+      core: config.core === 'mihomo-alpha' ? 'mihomo-alpha' : 'mihomo',
+      corePermissionMode: 'elevated',
+      autoSetDNSMode: 'none',
+      sysProxy: { ...config.sysProxy, enable: false, guard: false },
+      subStoreHost: '127.0.0.1'
+    }
   if (!systemCoreOnlyBuild) return config
 
   return {
@@ -75,6 +85,13 @@ export async function getAppConfig(force = false): Promise<AppConfig> {
 }
 
 export async function patchAppConfig(patch: Partial<AppConfig>): Promise<AppConfig> {
+  if (
+    devSandbox &&
+    (patch.sysProxy?.enable ||
+      patch.corePermissionMode === 'service' ||
+      (patch.autoSetDNSMode && patch.autoSetDNSMode !== 'none'))
+  )
+    assertOutsideDevSandbox()
   const previousPromise = writePromise
   const currentPromise = (async () => {
     await previousPromise

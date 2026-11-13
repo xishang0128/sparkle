@@ -1,3 +1,4 @@
+import { devSandbox } from './utils/dev-sandbox'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import { registerIpcMainHandlers } from './utils/ipc'
 import { app, shell, BrowserWindow, Menu, type IpcMainEvent } from 'electron'
@@ -259,6 +260,7 @@ export async function createWindow(appConfig?: AppConfig): Promise<void> {
     ])
     const windowState = windowStateManager.state
     mainWindow = new BrowserWindow({
+      ...(devSandbox ? { title: `Sparkle Sandbox ${devSandbox.id}` } : {}),
       minWidth: 800,
       minHeight: 600,
       width: windowState.width,

@@ -1,3 +1,4 @@
+import { assertOutsideDevSandbox } from './dev-sandbox'
 import { execFile } from 'child_process'
 import { promisify } from 'util'
 import {
@@ -32,6 +33,7 @@ function appleScriptQuote(value: string): string {
 }
 
 export async function execWithElevation(command: string, args: string[]): Promise<void> {
+  assertOutsideDevSandbox()
   if (systemCoreOnlyBuild && command !== systemServicePath) {
     throw new Error('系统内核构建不支持提权操作')
   }

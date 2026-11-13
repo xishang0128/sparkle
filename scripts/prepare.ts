@@ -1,4 +1,6 @@
 import fs from 'fs'
+import axios from 'axios'
+import { pipeline } from 'stream/promises'
 import AdmZip from 'adm-zip'
 import path from 'path'
 import zlib from 'zlib'
@@ -47,19 +49,15 @@ const MIHOMO_ALPHA_MAP = {
   'linux-loong64': 'mihomo-linux-loong64-abi2'
 }
 
-// Fetch the latest alpha release version from the version.txt file
+// Use Axios so HTTP(S)_PROXY and NO_PROXY apply to preparation downloads.
+const downloadClient = axios.create({ timeout: 60_000 })
+
 async function getLatestAlphaVersion() {
-  try {
-    const response = await fetch(MIHOMO_ALPHA_VERSION_URL, {
-      method: 'GET'
-    })
-    const v = await response.text()
-    MIHOMO_ALPHA_VERSION = v.trim() // Trim to remove extra whitespaces
-    console.log(`Latest alpha version: ${MIHOMO_ALPHA_VERSION}`)
-  } catch (error) {
-    console.error('Error fetching latest alpha version:', getErrorMessage(error))
-    process.exit(1)
-  }
+  const { data } = await downloadClient.get<string>(MIHOMO_ALPHA_VERSION_URL, {
+    responseType: 'text'
+  })
+  MIHOMO_ALPHA_VERSION = data.trim()
+  console.log(`Latest alpha version: ${MIHOMO_ALPHA_VERSION}`)
 }
 
 /* ======= mihomo release ======= */
@@ -79,19 +77,12 @@ const MIHOMO_MAP = {
   'linux-loong64': 'mihomo-linux-loong64-abi2'
 }
 
-// Fetch the latest release version from the version.txt file
 async function getLatestReleaseVersion() {
-  try {
-    const response = await fetch(MIHOMO_VERSION_URL, {
-      method: 'GET'
-    })
-    const v = await response.text()
-    MIHOMO_VERSION = v.trim() // Trim to remove extra whitespaces
-    console.log(`Latest release version: ${MIHOMO_VERSION}`)
-  } catch (error) {
-    console.error('Error fetching latest release version:', getErrorMessage(error))
-    process.exit(1)
-  }
+  const { data } = await downloadClient.get<string>(MIHOMO_VERSION_URL, {
+    responseType: 'text'
+  })
+  MIHOMO_VERSION = data.trim()
+  console.log(`Latest release version: ${MIHOMO_VERSION}`)
 }
 
 /*
@@ -160,9 +151,6 @@ async function resolveSidecar(binInfo: SidecarInfo) {
   const sidecarPath = path.join(sidecarDir, targetFile)
 
   fs.mkdirSync(sidecarDir, { recursive: true })
-  if (fs.existsSync(sidecarPath)) {
-    fs.rmSync(sidecarPath)
-  }
   const tempDir = path.join(TEMP_DIR, name)
   const tempZip = path.join(tempDir, zipFile)
   const tempExe = path.join(tempDir, exeFile)
@@ -179,7 +167,6 @@ async function resolveSidecar(binInfo: SidecarInfo) {
         console.log(`[DEBUG]: "${name}" entry name`, entry.entryName)
       })
       zip.extractAllTo(tempDir, true)
-      fs.renameSync(tempExe, sidecarPath)
       console.log(`[INFO]: "${name}" unzip finished`)
     } else if (zipFile.endsWith('.tgz')) {
       // tgz
@@ -193,40 +180,27 @@ async function resolveSidecar(binInfo: SidecarInfo) {
       const extractedFile = files.find((file) => file.startsWith('虚空终端-'))
       if (extractedFile) {
         const extractedFilePath = path.join(tempDir, extractedFile)
-        fs.renameSync(extractedFilePath, sidecarPath)
+        fs.renameSync(extractedFilePath, tempExe)
         console.log(`[INFO]: "${name}" file renamed to "${sidecarPath}"`)
-        fs.chmodSync(sidecarPath, 0o755)
+        fs.chmodSync(tempExe, 0o755)
         console.log(`[INFO]: "${name}" chmod binary finished`)
       } else {
         throw new Error(`Expected file not found in ${tempDir}`)
       }
     } else {
       // gz
-      const readStream = fs.createReadStream(tempZip)
-      const writeStream = fs.createWriteStream(sidecarPath)
-      await new Promise<void>((resolve, reject) => {
-        const onError = (error: unknown) => {
-          console.error(`[ERROR]: "${name}" gz failed:`, getErrorMessage(error))
-          reject(error)
-        }
-        readStream
-          .pipe(zlib.createGunzip().on('error', onError))
-          .pipe(writeStream)
-          .on('finish', () => {
-            console.log(`[INFO]: "${name}" gunzip finished`)
-            fs.chmodSync(sidecarPath, 0o755)
-            console.log(`[INFO]: "${name}" chmod binary finished`)
-            resolve()
-          })
-          .on('error', onError)
-      })
+      await pipeline(
+        fs.createReadStream(tempZip),
+        zlib.createGunzip(),
+        fs.createWriteStream(tempExe)
+      )
+      fs.chmodSync(tempExe, 0o755)
+      console.log(`[INFO]: "${name}" gunzip finished`)
     }
-  } catch (err) {
-    // 需要删除文件
-    fs.rmSync(sidecarPath)
-    throw err
+    // Keep any existing binary until the replacement has downloaded and extracted.
+    fs.renameSync(tempExe, sidecarPath)
   } finally {
-    fs.rmSync(tempDir, { recursive: true })
+    fs.rmSync(tempDir, { recursive: true, force: true })
   }
 }
 
@@ -238,10 +212,6 @@ async function resolveResource(binInfo: ResourceInfo) {
 
   const resDir = path.join(cwd, 'extra', 'files')
   const targetPath = path.join(resDir, file)
-
-  if (fs.existsSync(targetPath)) {
-    fs.rmSync(targetPath)
-  }
 
   fs.mkdirSync(resDir, { recursive: true })
   await downloadFile(downloadURL, targetPath)
@@ -257,13 +227,11 @@ async function resolveResource(binInfo: ResourceInfo) {
 /**
  * download file and save to `path`
  */
-async function downloadFile(url: string | URL | Request, path: fs.PathOrFileDescriptor) {
-  const response = await fetch(url, {
-    method: 'GET',
-    headers: { 'Content-Type': 'application/octet-stream' }
+async function downloadFile(url: string, targetPath: fs.PathOrFileDescriptor) {
+  const { data } = await downloadClient.get<ArrayBuffer>(url, {
+    responseType: 'arraybuffer'
   })
-  const buffer = await response.arrayBuffer()
-  fs.writeFileSync(path, new Uint8Array(buffer))
+  fs.writeFileSync(targetPath, new Uint8Array(data))
 
   console.log(`[INFO]: download finished "${url}"`)
 }
@@ -516,5 +484,7 @@ async function runTask(): Promise<void> {
   return runTask()
 }
 
-runTask()
-runTask()
+Promise.all([runTask(), runTask()]).catch((error: unknown) => {
+  console.error('[ERROR]: Preparation failed:', getErrorMessage(error))
+  process.exitCode = 1
+})

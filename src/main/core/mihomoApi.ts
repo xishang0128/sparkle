@@ -1,3 +1,4 @@
+import { devSandbox, assertOutsideDevSandbox } from '../utils/dev-sandbox'
 import axios, { AxiosInstance } from 'axios'
 import { getAppConfig, getControledMihomoConfig } from '../config'
 import { mainWindow } from '..'
@@ -98,6 +99,29 @@ export const mihomoConfig = async (): Promise<ControllerConfigs> => {
 }
 
 export const patchMihomoConfig = async (patch: Partial<ControllerConfigs>): Promise<void> => {
+  if (
+    devSandbox &&
+    (patch.tun?.enable ||
+      Object.keys(patch).some((key) =>
+        [
+          'mixed-port',
+          'port',
+          'socks-port',
+          'redir-port',
+          'tproxy-port',
+          'external-controller',
+          'external-controller-tls',
+          'external-controller-unix',
+          'external-controller-pipe',
+          'allow-lan',
+          'bind-address',
+          'listeners',
+          'dns'
+        ].includes(key)
+      ))
+  ) {
+    assertOutsideDevSandbox()
+  }
   const instance = await getAxios()
   return await instance.patch('/configs', patch)
 }

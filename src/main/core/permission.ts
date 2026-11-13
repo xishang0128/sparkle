@@ -1,3 +1,4 @@
+import { assertOutsideDevSandbox } from '../utils/dev-sandbox'
 import { execFile } from 'child_process'
 import { promisify } from 'util'
 import { mihomoCorePath } from '../utils/dirs'
@@ -28,6 +29,7 @@ function isUserCancelledError(error: unknown): boolean {
 }
 
 export async function manualGrantCorePermition(cores?: CoreName[]): Promise<void> {
+  assertOutsideDevSandbox()
   if (process.platform === 'win32') {
     try {
       await createElevateTask()
@@ -100,6 +102,7 @@ export async function checkCorePermission(): Promise<{ mihomo: boolean; 'mihomo-
 }
 
 export async function revokeCorePermission(cores?: CoreName[]): Promise<void> {
+  assertOutsideDevSandbox()
   const execFilePromise = promisify(execFile)
 
   const revokePermission = async (coreName: CoreName): Promise<void> => {

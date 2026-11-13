@@ -1,3 +1,4 @@
+import { devSandbox, sandboxMihomoConfig, assertOutsideDevSandbox } from '../utils/dev-sandbox'
 import { controledMihomoConfigPath } from '../utils/dirs'
 import { readFile, writeFile } from 'fs/promises'
 import { parseYaml, stringifyYaml } from '../utils/yaml'
@@ -24,10 +25,12 @@ export async function getControledMihomoConfig(force = false): Promise<Partial<M
   }
   if (typeof controledMihomoConfig !== 'object')
     controledMihomoConfig = defaultControledMihomoConfig
+  controledMihomoConfig = sandboxMihomoConfig(controledMihomoConfig)
   return controledMihomoConfig
 }
 
 export async function patchControledMihomoConfig(patch: Partial<MihomoConfig>): Promise<void> {
+  if (devSandbox && patch.tun?.enable) assertOutsideDevSandbox()
   await getControledMihomoConfig()
   const { controlDns = true, controlSniff = true } = await getAppConfig()
   if (!controlDns) {
@@ -59,7 +62,7 @@ export async function patchControledMihomoConfig(patch: Partial<MihomoConfig>): 
   if (patch.dns?.['use-hosts']) {
     controledMihomoConfig.hosts = patch.hosts
   }
-  controledMihomoConfig = deepMerge(controledMihomoConfig, patch)
+  controledMihomoConfig = sandboxMihomoConfig(deepMerge(controledMihomoConfig, patch))
   await generateProfile()
   await writeFile(controledMihomoConfigPath(), stringifyYaml(controledMihomoConfig), 'utf-8')
   notifyConfigOperation('patchControledMihomoConfig', patch)

@@ -1,3 +1,4 @@
+import { sandboxMihomoConfig } from '../utils/dev-sandbox'
 import {
   getControledMihomoConfig,
   getProfileConfig,
@@ -52,7 +53,9 @@ export async function generateProfile(): Promise<void> {
     delete configToMerge.sniffer
   }
 
-  const profile = deepMerge(JSON.parse(JSON.stringify(currentProfile)), configToMerge)
+  const profile = sandboxMihomoConfig(
+    deepMerge(JSON.parse(JSON.stringify(currentProfile)), configToMerge)
+  )
 
   if (controlDns && profile.dns) {
     profile.dns['proxy-server-nameserver-policy'] =

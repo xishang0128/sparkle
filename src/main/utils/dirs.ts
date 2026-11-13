@@ -1,3 +1,4 @@
+import { devSandbox } from './dev-sandbox'
 import { is } from '@electron-toolkit/utils'
 import { existsSync, mkdirSync, readdirSync } from 'fs'
 import { app } from 'electron'
@@ -14,6 +15,7 @@ import {
 export const homeDir = app.getPath('home')
 
 export function isPortable(): boolean {
+  if (devSandbox) return false
   return existsSync(path.join(exeDir(), 'PORTABLE'))
 }
 
@@ -58,6 +60,7 @@ export function exePath(): string {
 }
 
 export function resourcesDir(): string {
+  if (devSandbox) return devSandbox.resources
   if (is.dev) {
     return path.join(__dirname, '../../extra')
   } else {
@@ -78,6 +81,7 @@ export function themesDir(): string {
 }
 
 export function mihomoIpcPath(): string {
+  if (devSandbox) return devSandbox.socket
   if (process.platform === 'win32') {
     return '\\\\.\\pipe\\Sparkle\\mihomo'
   }
@@ -92,6 +96,7 @@ export function mihomoIpcPath(): string {
 }
 
 export function serviceIpcPath(): string {
+  if (devSandbox) return `${devSandbox.socket}.service`
   if (process.platform === 'win32') {
     return '\\\\.\\pipe\\sparkle\\service'
   }
@@ -99,6 +104,7 @@ export function serviceIpcPath(): string {
 }
 
 export function mihomoCoreDir(): string {
+  if (devSandbox) return path.join(devSandbox.directory, 'sidecar')
   if (systemCoreOnlyBuild) {
     return path.dirname(systemCorePath())
   }

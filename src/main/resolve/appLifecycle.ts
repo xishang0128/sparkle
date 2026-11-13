@@ -1,3 +1,4 @@
+import { devSandbox } from '../utils/dev-sandbox'
 import { app, ipcMain, powerMonitor, type BrowserWindow, type IpcMainEvent } from 'electron'
 import { stopCore } from '../core/manager'
 import { stopNetworkDetection } from '../core/network'
@@ -13,7 +14,7 @@ interface AppQuitLifecycleContext {
 }
 
 let isQuitting = false
-let notQuitDialog = false
+let notQuitDialog = Boolean(devSandbox)
 let lastQuitAttempt = 0
 
 export function setNotQuitDialog(): void {

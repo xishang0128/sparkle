@@ -1,3 +1,4 @@
+import { devSandbox } from '../utils/dev-sandbox'
 import type { ChildProcess } from 'child_process'
 import { existsSync, watch } from 'fs'
 import type { FSWatcher } from 'fs'
@@ -30,7 +31,7 @@ function hookTouchCommand(file: string): string {
 }
 
 function coreHookDir(): string {
-  if (process.platform === 'win32' && process.env.ProgramData) {
+  if (!devSandbox && process.platform === 'win32' && process.env.ProgramData) {
     return path.join(process.env.ProgramData, 'sparkle', 'core-hooks')
   }
   return path.join(dataDir(), 'core-hooks')

@@ -1,3 +1,4 @@
+import { devSandbox } from '../utils/dev-sandbox'
 import { ChildProcess, spawn } from 'child_process'
 import { createInterface } from 'readline'
 import { dataDir, coreLogPath, mihomoCorePath } from '../utils/dirs'
@@ -785,6 +786,10 @@ export async function restartCore(): Promise<void> {
 }
 
 export async function keepCoreAlive(): Promise<void> {
+  if (devSandbox) {
+    await stopCore()
+    return
+  }
   try {
     const { corePermissionMode = 'elevated', webhook } = await getAppConfig()
     if (corePermissionMode === 'service') {

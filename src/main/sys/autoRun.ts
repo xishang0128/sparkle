@@ -1,3 +1,4 @@
+import { devSandbox, assertOutsideDevSandbox } from '../utils/dev-sandbox'
 import { exePath, homeDir, taskDir } from '../utils/dirs'
 import { execWithElevation } from '../utils/elevation'
 import { mkdir, readFile, rm, writeFile } from 'fs/promises'
@@ -59,6 +60,7 @@ const taskXml = `<?xml version="1.0" encoding="UTF-16"?>
 `
 
 export async function checkAutoRun(): Promise<boolean> {
+  if (devSandbox) return false
   if (process.platform === 'win32') {
     const execFilePromise = promisify(execFile)
     try {
@@ -85,6 +87,7 @@ export async function checkAutoRun(): Promise<boolean> {
 }
 
 export async function enableAutoRun(): Promise<void> {
+  assertOutsideDevSandbox()
   if (process.platform === 'win32') {
     const taskFilePath = path.join(taskDir(), `${appName}.xml`)
     await writeFile(taskFilePath, Buffer.from(`\ufeff${taskXml}`, 'utf-16le'))
@@ -130,6 +133,7 @@ Categories=Utility;
 }
 
 export async function disableAutoRun(): Promise<void> {
+  assertOutsideDevSandbox()
   if (process.platform === 'win32') {
     await execWithElevation('schtasks.exe', ['/delete', '/tn', `${appName}`, '/f'])
   }
